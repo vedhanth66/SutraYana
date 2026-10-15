@@ -150,7 +150,7 @@ def find_best_hub_in_component(G, component_nodes, nodes_dict, scale):
     return best_room, best_cost
 
 
-def partition_and_place_hubs(G, nodes_dict, scale, min_hubs):
+def partition_and_place_hubs(G, nodes_dict, scale, min_hubs, verbose=True):
     """
     Finds the optimal partitioning of eligible rooms in G into >= min_hubs components
     and selects the best hub room for each component.
@@ -171,7 +171,8 @@ def partition_and_place_hubs(G, nodes_dict, scale, min_hubs):
     total_nodes = len(eligible_nodes)
 
     while k <= total_nodes:
-        print(f"Trying to partition into {k} hubs...")
+        if verbose:
+            print(f"Trying to partition into {k} hubs...")
         found_valid = False
 
         state = {"count": 0}
@@ -315,25 +316,27 @@ def visualize_partitioned_plan(json_path, G, nodes_dict, scale, best_hubs, outpu
         plt.show()
 
 
-def run_phase2(json_path="sample_plan.json", show_plot=False, save_img=None, plan_data=None):
+def run_phase2(json_path="sample_plan.json", show_plot=False, save_img=None, plan_data=None, verbose=True):
     # 1. Run Phase 1 data pipeline (or reuse pre-loaded data)
     if plan_data is not None:
         G, nodes_dict, scale, min_hubs = plan_data
     else:
-        G, nodes_dict, scale, min_hubs = load_and_process_plan(json_path, show_plot=False)
+        G, nodes_dict, scale, min_hubs = load_and_process_plan(json_path, show_plot=False, verbose=verbose)
 
     # 2. Partition graph and place hubs
-    best_hubs, best_total_cost = partition_and_place_hubs(G, nodes_dict, scale, min_hubs)
+    best_hubs, best_total_cost = partition_and_place_hubs(G, nodes_dict, scale, min_hubs, verbose=verbose)
 
     # 3. Print resulting hubs in the exact expected format
-    print("\n--- Phase 2 Partitioning Results ---")
+    if verbose:
+        print("\n--- Phase 2 Partitioning Results ---")
     hub_idx = 1
     result_dict = {}
 
     for hub_room in sorted(best_hubs.keys()):
         assigned = sorted(list(best_hubs[hub_room]))
         assigned_str = ", ".join(assigned)
-        print(f"Hub {hub_idx}: Located in {hub_room}, assigned rooms: {assigned_str}.")
+        if verbose:
+            print(f"Hub {hub_idx}: Located in {hub_room}, assigned rooms: {assigned_str}.")
         result_dict[f"Hub_{hub_idx}"] = {
             "hub_location": hub_room,
             "assigned_rooms": assigned,
@@ -344,8 +347,9 @@ def run_phase2(json_path="sample_plan.json", show_plot=False, save_img=None, pla
 
     hub_areas = [result_dict[h]["total_area_m2"] for h in result_dict]
     area_gap = (max(hub_areas) - min(hub_areas)) if len(hub_areas) >= 2 else 0.0
-    print(f"Total Heuristic Distance Cost: {best_total_cost}")
-    print(f"Assigned Area Gap (Official Tie-Breaker): {area_gap:.2f} m²\n")
+    if verbose:
+        print(f"Total Heuristic Distance Cost: {best_total_cost}")
+        print(f"Assigned Area Gap (Official Tie-Breaker): {area_gap:.2f} m²\n")
 
     if show_plot or save_img:
         visualize_partitioned_plan(json_path, G, nodes_dict, scale, best_hubs, output_image_path=save_img, show_plot=show_plot)

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry import shape, Point, Polygon, MultiPolygon
 
 
-def load_and_process_plan(json_path, output_image_path=None, show_plot=True):
+def load_and_process_plan(json_path, output_image_path=None, show_plot=True, verbose=True):
     """
     Phase 1 Core Data Pipeline:
     1. Loads ResPlan JSON.
@@ -22,9 +22,16 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True):
     6. Prints total eligible area (m²), eligible nodes, and minimum hubs required.
     7. Plots the floor plan with eligible rooms highlighted, nodes marked, and door connections.
     """
-    print(f"\n--- Loading and Processing Plan: {json_path} ---")
-    with open(json_path, 'r', encoding='utf-8') as f:
-        plan = json.load(f)
+    if isinstance(json_path, dict):
+        plan = json_path
+        p_name = plan.get("id", "in_memory_plan")
+    else:
+        p_name = str(json_path)
+        with open(json_path, 'r', encoding='utf-8') as f:
+            plan = json.load(f)
+
+    if show_plot and verbose:
+        print(f"\n--- Loading and Processing Plan: {p_name} ---")
 
     # 1. Calculate Scale
     if isinstance(plan.get("inner"), dict) and "area" in plan["inner"]:
@@ -40,7 +47,8 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True):
         raise ValueError("Plan JSON has non-positive area in m².")
 
     scale = math.sqrt(inner_area_units / area_m2)
-    print(f"Scale: {scale:.4f} units/m")
+    if verbose:
+        print(f"Scale: {scale:.4f} units/m")
 
     # 2. Identify Rooms and Extract Nodes
     eligible_types = {"living", "bedroom", "kitchen", "storage"}
@@ -96,10 +104,11 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True):
     min_hubs_nodes = math.ceil(total_nodes / 5.0) if total_nodes > 0 else 0
     min_hubs = max(min_hubs_area, min_hubs_nodes)
 
-    print(f"Total Eligible Area: {total_area:.2f} m²")
-    print(f"Total Eligible Nodes: {total_nodes}")
-    print(f"Minimum Hubs Required: {min_hubs}")
-    print(f"Door Edges in Graph: {list(G.edges())}")
+    if verbose:
+        print(f"Total Eligible Area: {total_area:.2f} m²")
+        print(f"Total Eligible Nodes: {total_nodes}")
+        print(f"Minimum Hubs Required: {min_hubs}")
+        print(f"Door Edges in Graph: {list(G.edges())}")
 
     # 5. Visualize (only if requested)
     if show_plot or output_image_path:

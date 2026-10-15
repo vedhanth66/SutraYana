@@ -37,33 +37,52 @@ def calculate_physical_tour_length(sequence, nodes_dict, scale):
     return total_len
 
 
-def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=None):
+def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=None, pairwise_dist=None):
     """
     Finds the optimal closed sequence for a single hub using brute-force permutations.
     Evaluates every permutation of visiting the assigned rooms:
         Hub -> N1 -> N2 -> ... -> Nn -> Hub
-    Minimizes total graph hop-distance, using physical Euclidean length as tie-breaker.
+    If pairwise_dist is provided: minimizes true physical path distance (in metres).
+    Otherwise: minimizes graph hop-distance, using physical Euclidean length as tie-breaker.
     """
     nodes_to_visit = sorted([n for n in assigned_nodes if n != hub_room])
 
     # If the hub room is the only room in the component
     if not nodes_to_visit:
-        return [hub_room], 0
+        return [hub_room], 0.0
 
     best_sequence = None
     best_dist = float('inf')
+    best_max_hops = float('inf')
     best_phys_len = float('inf')
 
     # Try every possible order of visiting the nodes
     for perm in itertools.permutations(nodes_to_visit):
         sequence = [hub_room] + list(perm) + [hub_room]
-        dist = calculate_tour_distance(sequence, G)
-        phys_len = calculate_physical_tour_length(sequence, nodes_dict, scale)
 
-        if dist < best_dist or (dist == best_dist and phys_len < best_phys_len):
-            best_dist = dist
-            best_phys_len = phys_len
-            best_sequence = sequence
+        if pairwise_dist is not None:
+            dist = sum(pairwise_dist.get((sequence[i], sequence[i + 1]), float('inf')) for i in range(len(sequence) - 1))
+            # Tie breaker: prefer sequence with smaller maximum hop jump between consecutive rooms
+            max_hops = max(
+                nx.shortest_path_length(G, sequence[i], sequence[i + 1])
+                for i in range(len(sequence) - 1)
+            )
+            total_hops = calculate_tour_distance(sequence, G)
+
+            # Prioritize distance, then minimize max single jump (avoiding skipping rooms), then total hops
+            if (dist < best_dist - 1e-4) or (
+                abs(dist - best_dist) <= 1e-4 and (max_hops, total_hops) < (best_max_hops, best_dist)
+            ):
+                best_dist = dist
+                best_max_hops = max_hops
+                best_sequence = sequence
+        else:
+            dist = calculate_tour_distance(sequence, G)
+            phys_len = calculate_physical_tour_length(sequence, nodes_dict, scale)
+
+    if best_sequence is None:
+        best_sequence = [hub_room] + list(nodes_to_visit) + [hub_room]
+        best_dist = calculate_tour_distance(best_sequence, G)
 
     return best_sequence, best_dist
 
@@ -170,12 +189,27 @@ def visualize_sequenced_tours(json_path, G, nodes_dict, best_hubs, final_sequenc
         plt.show()
 
 
-def run_phase3(json_path="sample_plan.json", show_plot=False, save_img=None):
+def run_phase3(json_path="sample_plan.json", show_plot=False, save_img=None, plan_data=None):
     # 1. Load plan graph and nodes from Phase 1
-    G, nodes_dict, scale, min_hubs = load_and_process_plan(json_path, show_plot=False)
+    if plan_data is not None:
+        G, nodes_dict, scale, min_hubs = plan_data
+    else:
+        G, nodes_dict, scale, min_hubs = load_and_process_plan(json_path, show_plot=False)
 
     # 2. Get optimal partitioning and hub placement from Phase 2
     best_hubs, best_total_cost = run_phase2(json_path, show_plot=False, plan_data=(G, nodes_dict, scale, min_hubs))
+
+    # Precompute physical pairwise distances using A* on metric grid if possible
+    grid_info = None
+    nodes_m = None
+    try:
+        from phase4_routing import build_orthogonal_grid, compute_pairwise_physical_distances
+        with open(json_path, 'r', encoding='utf-8') as f:
+            plan = json.load(f)
+        grid_info = build_orthogonal_grid(plan, scale)
+        nodes_m = {r: (round(pt.x / scale, 4), round(pt.y / scale, 4)) for r, pt in nodes_dict.items()}
+    except Exception:
+        pass
 
     print("\n--- Phase 3: Optimal Node Sequencing ---")
 
@@ -183,11 +217,18 @@ def run_phase3(json_path="sample_plan.json", show_plot=False, save_img=None):
     for hub_idx, (hub_room, assigned_rooms) in enumerate(sorted(best_hubs.items()), start=1):
         print(f"\nHub {hub_idx} ({hub_room}) - Assigned Rooms: {sorted(list(assigned_rooms))}")
 
+        pairwise_dist = None
+        if grid_info is not None and nodes_m is not None:
+            pairwise_dist = compute_pairwise_physical_distances(grid_info, nodes_m, assigned_rooms)
+
         # Find the optimal closed sequence
-        sequence, dist = find_optimal_sequence(G, hub_room, list(assigned_rooms), nodes_dict, scale)
+        sequence, dist = find_optimal_sequence(G, hub_room, list(assigned_rooms), nodes_dict, scale, pairwise_dist=pairwise_dist)
 
         print(f"  Optimal Ring Sequence: {' -> '.join(sequence)}")
-        print(f"  Total Hop Distance: {dist}")
+        if pairwise_dist is not None:
+            print(f"  Physical Path Length: {dist:.2f} m")
+        else:
+            print(f"  Total Hop Distance: {dist}")
 
         final_sequences[hub_room] = sequence
 
