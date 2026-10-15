@@ -172,37 +172,121 @@
     {
       "id": "D01",
       "room_a": "R01_living",
-      "room_b": "R02_kitchen"
+      "room_b": "R02_kitchen",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [30.0, 79.0],
+            [40.0, 79.0],
+            [40.0, 81.0],
+            [30.0, 81.0],
+            [30.0, 79.0]
+          ]
+        ]
+      }
     },
     {
       "id": "D02",
       "room_a": "R02_kitchen",
-      "room_b": "R03_storage"
+      "room_b": "R03_storage",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [20.0, 139.0],
+            [30.0, 139.0],
+            [30.0, 141.0],
+            [20.0, 141.0],
+            [20.0, 139.0]
+          ]
+        ]
+      }
     },
     {
       "id": "D03",
       "room_a": "R01_living",
-      "room_b": "R04_bedroom1"
+      "room_b": "R04_bedroom1",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.0, 35.0],
+            [121.0, 35.0],
+            [121.0, 45.0],
+            [119.0, 45.0],
+            [119.0, 35.0]
+          ]
+        ]
+      }
     },
     {
       "id": "D04",
       "room_a": "R01_living",
-      "room_b": "R06_bedroom3"
+      "room_b": "R06_bedroom3",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [90.0, 79.0],
+            [100.0, 79.0],
+            [100.0, 81.0],
+            [90.0, 81.0],
+            [90.0, 79.0]
+          ]
+        ]
+      }
     },
     {
       "id": "D05",
       "room_a": "R06_bedroom3",
-      "room_b": "R05_bedroom2"
+      "room_b": "R05_bedroom2",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.0, 115.0],
+            [121.0, 115.0],
+            [121.0, 125.0],
+            [119.0, 125.0],
+            [119.0, 115.0]
+          ]
+        ]
+      }
     },
     {
       "id": "D06",
       "room_a": "R02_kitchen",
-      "room_b": "R07_bathroom"
+      "room_b": "R07_bathroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [49.0, 155.0],
+            [51.0, 155.0],
+            [51.0, 165.0],
+            [49.0, 165.0],
+            [49.0, 155.0]
+          ]
+        ]
+      }
     },
     {
       "id": "D07",
       "room_a": "R05_bedroom2",
-      "room_b": "R08_balcony"
+      "room_b": "R08_balcony",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [155.0, 159.0],
+            [165.0, 159.0],
+            [165.0, 161.0],
+            [155.0, 161.0],
+            [155.0, 159.0]
+          ]
+        ]
+      }
     }
   ]
 }

@@ -66,7 +66,8 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
                 doors_data.append({
                     "id": f"D{d_idx:02d}",
                     "room_a": contacted[0],
-                    "room_b": contacted[1]
+                    "room_b": contacted[1],
+                    "polygon": mapping(dpoly)
                 })
                 d_idx += 1
 
