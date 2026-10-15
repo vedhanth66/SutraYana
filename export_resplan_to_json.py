@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import math
 import pickle
 from shapely.geometry import mapping, Polygon, MultiPolygon
 from shapely.ops import unary_union
@@ -51,7 +52,7 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
                 "node": {"x": round(pt.x, 3), "y": round(pt.y, 3)}
             })
 
-    # Doors extraction and room association
+    # Doors extraction and robust geometric room association
     doors_data = []
     door_geom = plan.get("door")
     if door_geom is not None and not door_geom.is_empty:
@@ -59,17 +60,49 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
         
         d_idx = 1
         for dpoly in door_polys:
-            # Buffer door slightly to find contacting rooms
-            dbuf = dpoly.buffer(2.0)
-            contacted = [rid for rid, rpoly in room_geoms.items() if dbuf.intersects(rpoly)]
-            if len(contacted) >= 2:
-                doors_data.append({
-                    "id": f"D{d_idx:02d}",
-                    "room_a": contacted[0],
-                    "room_b": contacted[1],
-                    "polygon": mapping(dpoly)
-                })
-                d_idx += 1
+            if dpoly.is_empty:
+                continue
+
+            # 1. Direct boundary touch or intersection test
+            direct = []
+            for rid, rpoly in room_geoms.items():
+                if dpoly.intersects(rpoly) or dpoly.touches(rpoly):
+                    direct.append(rid)
+
+            if len(direct) == 2:
+                r_a, r_b = direct[0], direct[1]
+            else:
+                # 2. Adaptive scale-aware contact scoring for doors spanning wall thickness
+                minx, miny, maxx, maxy = dpoly.bounds
+                diag = max(math.hypot(maxx - minx, maxy - miny), 2.0)
+                tol = max(diag * 0.25, 1.5)
+                
+                scored = []
+                d_bound = dpoly.boundary
+                for rid, rpoly in room_geoms.items():
+                    try:
+                        r_buf = rpoly.buffer(tol)
+                        if dpoly.intersects(r_buf):
+                            c_len = d_bound.intersection(r_buf).length
+                            scored.append((rid, c_len))
+                    except Exception:
+                        pass
+
+                scored.sort(key=lambda x: x[1], reverse=True)
+                if len(scored) >= 2 and scored[1][1] > 1e-4:
+                    r_a, r_b = scored[0][0], scored[1][0]
+                elif len(direct) >= 2:
+                    r_a, r_b = direct[0], direct[1]
+                else:
+                    continue
+
+            doors_data.append({
+                "id": f"D{d_idx:02d}",
+                "room_a": r_a,
+                "room_b": r_b,
+                "polygon": mapping(dpoly)
+            })
+            d_idx += 1
 
     return {
         "id": str(plan.get("id", plan_id)),

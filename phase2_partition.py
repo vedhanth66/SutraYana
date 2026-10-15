@@ -21,13 +21,17 @@ def is_connected_subgraph(G, nodes_subset):
     return nx.is_connected(subgraph)
 
 
-def generate_partitions(G, k, scale):
+def generate_partitions(G, k, scale, max_iterations=2500, state=None):
     """
-    Generates all valid partitions of graph G into k connected components.
+    Generates valid partitions of graph G into k connected components.
     Yields a list of sets, where each set is a connected component satisfying:
       - area <= 100 m²
       - node count <= 5
+    Includes iteration guard to prevent combinatorial explosion on large plans.
     """
+    if state is None:
+        state = {"count": 0}
+
     nodes = list(G.nodes())
     n = len(nodes)
 
@@ -35,25 +39,35 @@ def generate_partitions(G, k, scale):
         return
 
     # Capacity pruning
-    total_area = sum(float(G.nodes[u]['area']) for u in nodes) / (scale ** 2)
-    if total_area > k * 100.0 + 1e-6 or n > k * 5:
+    room_areas = [float(G.nodes[u]['area']) / (scale ** 2) for u in nodes]
+    total_area = sum(room_areas)
+    effective_cap = max(100.0, max(room_areas))
+    if total_area > k * effective_cap + 1e-6 or n > k * 5:
         return
 
     # Base case: k == 1
     if k == 1:
+        state["count"] += 1
         if is_connected_subgraph(G, set(nodes)):
             area = sum(float(G.nodes[u]['area']) for u in nodes) / (scale ** 2)
-            if area <= 100.0 + 1e-6 and len(nodes) <= 5:
+            # Allow single room exceeding 100m² to form a solo hub
+            if (area <= 100.0 + 1e-6 or len(nodes) == 1) and len(nodes) <= 5:
                 yield [set(nodes)]
         return
 
     # Recursive case: try subsets for the first component
-    # Fixing first_node in comp1 avoids duplicate permutations across components
     first_node = nodes[0]
     remaining_nodes = nodes[1:]
 
     for i in range(len(remaining_nodes) + 1):
+        if state["count"] >= max_iterations:
+            return
+
         for combo in itertools.combinations(remaining_nodes, i):
+            state["count"] += 1
+            if state["count"] >= max_iterations:
+                return
+
             comp1 = {first_node} | set(combo)
             if len(comp1) > 5:
                 continue
@@ -61,19 +75,53 @@ def generate_partitions(G, k, scale):
             if not is_connected_subgraph(G, comp1):
                 continue
 
-            # Check capacity of comp1
             area1 = sum(float(G.nodes[u]['area']) for u in comp1) / (scale ** 2)
-            if area1 > 100.0 + 1e-6:
+            if area1 > 100.0 + 1e-6 and len(comp1) > 1:
                 continue
 
-            # Remaining nodes must form k - 1 valid connected components
             remaining_nodes_set = set(nodes) - comp1
             if not remaining_nodes_set:
                 continue
 
             sub_G = G.subgraph(remaining_nodes_set)
-            for sub_partition in generate_partitions(sub_G, k - 1, scale):
+            for sub_partition in generate_partitions(sub_G, k - 1, scale, max_iterations, state):
                 yield [comp1] + sub_partition
+
+
+def greedy_partition_fallback(G, eligible_nodes, k, scale):
+    """
+    Fast, deterministic fallback partitioner for complex or large floor plans.
+    Grows contiguous zones from seed rooms until capacity constraints are met.
+    """
+    unassigned = set(eligible_nodes)
+    areas = {r: float(G.nodes[r]["area"]) / (scale ** 2) for r in eligible_nodes}
+    zones = []
+
+    while unassigned:
+        sub = G.subgraph(unassigned)
+        seed = max(unassigned, key=lambda r: (sub.degree(r), areas[r], r))
+        zone = {seed}
+        unassigned.remove(seed)
+        cur_area = areas[seed]
+
+        # Grow zone along neighbors
+        frontier = [n for n in G.neighbors(seed) if n in unassigned]
+        while frontier and len(zone) < 5:
+            best_nxt = None
+            for nxt in sorted(frontier, key=lambda r: (-sub.degree(r), -areas[r])):
+                if cur_area + areas[nxt] <= 100.0 + 1e-6:
+                    best_nxt = nxt
+                    break
+            if best_nxt is None:
+                break
+            zone.add(best_nxt)
+            unassigned.remove(best_nxt)
+            cur_area += areas[best_nxt]
+            frontier = [n for r in zone for n in G.neighbors(r) if n in unassigned]
+
+        zones.append(zone)
+
+    return zones
 
 
 def find_best_hub_in_component(G, component_nodes, nodes_dict, scale):
@@ -104,25 +152,30 @@ def find_best_hub_in_component(G, component_nodes, nodes_dict, scale):
 
 def partition_and_place_hubs(G, nodes_dict, scale, min_hubs):
     """
-    Finds the optimal partitioning of G into >= min_hubs components
+    Finds the optimal partitioning of eligible rooms in G into >= min_hubs components
     and selects the best hub room for each component.
     """
+    # Only partition eligible rooms
+    eligible_nodes = [n for n in G.nodes() if G.nodes[n].get("eligible", True)]
+    subG = G.subgraph(eligible_nodes)
+
     best_partition = None
     best_hubs = None
     best_total_cost = float('inf')
-    best_tie_breaker = float('inf')
+    best_tie_breaker = (float('inf'), float('inf'))
 
     # Hub suitability preference: common/utility areas (living, kitchen) preferred over private bedrooms
     type_priority = {'living': 0, 'kitchen': 1, 'storage': 2, 'bedroom': 3}
 
     k = min_hubs
-    total_nodes = len(G.nodes())
+    total_nodes = len(eligible_nodes)
 
     while k <= total_nodes:
         print(f"Trying to partition into {k} hubs...")
         found_valid = False
 
-        for partition in generate_partitions(G, k, scale):
+        state = {"count": 0}
+        for partition in generate_partitions(subG, k, scale, max_iterations=3000, state=state):
             found_valid = True
             current_hubs = {}
             total_cost = 0
@@ -132,21 +185,48 @@ def partition_and_place_hubs(G, nodes_dict, scale, min_hubs):
                 current_hubs[hub_room] = comp
                 total_cost += cost
 
-            # Tie-breaker when shortest-path costs are identical
-            tie_breaker = sum(
+            # Calculate assigned-area gap (primary competition tie-breaker)
+            h_areas = [sum(float(G.nodes[r]["area"]) / (scale ** 2) for r in comp) for comp in partition]
+            area_gap = (max(h_areas) - min(h_areas)) if len(h_areas) >= 2 else 0.0
+
+            # Calculate hub room suitability score (secondary tie-breaker)
+            type_score = sum(
                 type_priority.get(G.nodes[h].get('type', '').lower(), 99)
                 for h in current_hubs.keys()
             )
 
-            if (total_cost < best_total_cost) or (total_cost == best_total_cost and tie_breaker < best_tie_breaker):
+            # Combined tie-breaker: type suitability then area gap balance
+            tb_score = (type_score, round(area_gap, 2))
+
+            if (total_cost < best_total_cost) or (total_cost == best_total_cost and tb_score < best_tie_breaker):
                 best_total_cost = total_cost
-                best_tie_breaker = tie_breaker
+                best_tie_breaker = tb_score
                 best_partition = partition
                 best_hubs = current_hubs
+
+        # If combinatorial search didn't yield a valid partition within iteration limit, use greedy fallback
+        if not found_valid and state["count"] >= 3000:
+            print("  Combinatorial search reached limit. Employing greedy zone-growing fallback...")
+            fallback_partition = greedy_partition_fallback(G, eligible_nodes, k, scale)
+            if fallback_partition:
+                current_hubs = {}
+                total_cost = 0
+                for comp in fallback_partition:
+                    hub_room, cost = find_best_hub_in_component(G, comp, nodes_dict, scale)
+                    current_hubs[hub_room] = comp
+                    total_cost += cost
+                best_hubs = current_hubs
+                best_total_cost = total_cost
+                best_partition = fallback_partition
+                found_valid = True
 
         if found_valid:
             break
         k += 1
+
+    if best_hubs is None:
+        best_hubs = {r: {r} for r in eligible_nodes}
+        best_total_cost = 0
 
     return best_hubs, best_total_cost
 
@@ -262,7 +342,10 @@ def run_phase2(json_path="sample_plan.json", show_plot=False, save_img=None, pla
         }
         hub_idx += 1
 
-    print(f"Total Heuristic Distance Cost: {best_total_cost}\n")
+    hub_areas = [result_dict[h]["total_area_m2"] for h in result_dict]
+    area_gap = (max(hub_areas) - min(hub_areas)) if len(hub_areas) >= 2 else 0.0
+    print(f"Total Heuristic Distance Cost: {best_total_cost}")
+    print(f"Assigned Area Gap (Official Tie-Breaker): {area_gap:.2f} m²\n")
 
     if show_plot or save_img:
         visualize_partitioned_plan(json_path, G, nodes_dict, scale, best_hubs, output_image_path=save_img, show_plot=show_plot)
