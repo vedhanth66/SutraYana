@@ -1,0 +1,208 @@
+{
+  "id": "sample_plan_01",
+  "area": 87.5,
+  "inner": {
+    "area": 35000.0,
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [0.0, 0.0],
+        [200.0, 0.0],
+        [200.0, 180.0],
+        [0.0, 180.0],
+        [0.0, 0.0]
+      ]
+    ]
+  },
+  "rooms": [
+    {
+      "id": "R01_living",
+      "type": "living",
+      "area": 9600.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.0, 0.0],
+            [120.0, 0.0],
+            [120.0, 80.0],
+            [0.0, 80.0],
+            [0.0, 0.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 60.0, "y": 40.0 },
+      "node": { "x": 60.0, "y": 40.0 }
+    },
+    {
+      "id": "R02_kitchen",
+      "type": "kitchen",
+      "area": 4200.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.0, 80.0],
+            [70.0, 80.0],
+            [70.0, 140.0],
+            [0.0, 140.0],
+            [0.0, 80.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 35.0, "y": 110.0 },
+      "node": { "x": 35.0, "y": 110.0 }
+    },
+    {
+      "id": "R03_storage",
+      "type": "storage",
+      "area": 2000.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.0, 140.0],
+            [50.0, 140.0],
+            [50.0, 180.0],
+            [0.0, 180.0],
+            [0.0, 140.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 25.0, "y": 160.0 },
+      "node": { "x": 25.0, "y": 160.0 }
+    },
+    {
+      "id": "R04_bedroom1",
+      "type": "bedroom",
+      "area": 6400.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [120.0, 0.0],
+            [200.0, 0.0],
+            [200.0, 80.0],
+            [120.0, 80.0],
+            [120.0, 0.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 160.0, "y": 40.0 },
+      "node": { "x": 160.0, "y": 40.0 }
+    },
+    {
+      "id": "R05_bedroom2",
+      "type": "bedroom",
+      "area": 6400.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [120.0, 80.0],
+            [200.0, 80.0],
+            [200.0, 160.0],
+            [120.0, 160.0],
+            [120.0, 80.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 160.0, "y": 120.0 },
+      "node": { "x": 160.0, "y": 120.0 }
+    },
+    {
+      "id": "R06_bedroom3",
+      "type": "bedroom",
+      "area": 4000.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [70.0, 80.0],
+            [120.0, 80.0],
+            [120.0, 160.0],
+            [70.0, 160.0],
+            [70.0, 80.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 95.0, "y": 120.0 },
+      "node": { "x": 95.0, "y": 120.0 }
+    },
+    {
+      "id": "R07_bathroom",
+      "type": "bathroom",
+      "area": 800.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [50.0, 140.0],
+            [70.0, 140.0],
+            [70.0, 180.0],
+            [50.0, 180.0],
+            [50.0, 140.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 60.0, "y": 160.0 },
+      "node": { "x": 60.0, "y": 160.0 }
+    },
+    {
+      "id": "R08_balcony",
+      "type": "balcony",
+      "area": 1600.0,
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [120.0, 160.0],
+            [200.0, 160.0],
+            [200.0, 180.0],
+            [120.0, 180.0],
+            [120.0, 160.0]
+          ]
+        ]
+      },
+      "centroid": { "x": 160.0, "y": 170.0 },
+      "node": { "x": 160.0, "y": 170.0 }
+    }
+  ],
+  "doors": [
+    {
+      "id": "D01",
+      "room_a": "R01_living",
+      "room_b": "R02_kitchen"
+    },
+    {
+      "id": "D02",
+      "room_a": "R02_kitchen",
+      "room_b": "R03_storage"
+    },
+    {
+      "id": "D03",
+      "room_a": "R01_living",
+      "room_b": "R04_bedroom1"
+    },
+    {
+      "id": "D04",
+      "room_a": "R01_living",
+      "room_b": "R06_bedroom3"
+    },
+    {
+      "id": "D05",
+      "room_a": "R06_bedroom3",
+      "room_b": "R05_bedroom2"
+    },
+    {
+      "id": "D06",
+      "room_a": "R02_kitchen",
+      "room_b": "R07_bathroom"
+    },
+    {
+      "id": "D07",
+      "room_a": "R05_bedroom2",
+      "room_b": "R08_balcony"
+    }
+  ]
+}
