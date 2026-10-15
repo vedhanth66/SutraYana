@@ -156,7 +156,7 @@ def partition_and_place_hubs(G, nodes_dict, scale, min_hubs, verbose=True):
     and selects the best hub room for each component.
     """
     # Only partition eligible rooms
-    eligible_nodes = [n for n in G.nodes() if G.nodes[n].get("eligible", True)]
+    eligible_nodes = [n for n in G.nodes() if G.nodes[n].get("eligible", False)]
     subG = G.subgraph(eligible_nodes)
 
     best_partition = None

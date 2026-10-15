@@ -1,0 +1,70 @@
+================================================================================
+SUTRAYANA: SINGLE-PLAN VERIFICATION
+Target Plan     : sample_plan.json
+Results Log File: results\check_20261016_012352_sample_plan.log
+================================================================================
+Scale: 20.0000 units/m
+Total Eligible Area: 81.50 m²
+Total Eligible Nodes: 6
+Minimum Hubs Required: 2
+Door Edges in Graph: [('R01_living', 'R02_kitchen'), ('R01_living', 'R04_bedroom1'), ('R01_living', 'R06_bedroom3'), ('R02_kitchen', 'R03_storage'), ('R02_kitchen', 'R07_bathroom'), ('R05_bedroom2', 'R06_bedroom3'), ('R05_bedroom2', 'R08_balcony')]
+Trying to partition into 2 hubs...
+
+--- Phase 2 Partitioning Results ---
+Hub 1: Located in R01_living, assigned rooms: R01_living, R04_bedroom1, R05_bedroom2, R06_bedroom3.
+Hub 2: Located in R02_kitchen, assigned rooms: R02_kitchen, R03_storage.
+Total Heuristic Distance Cost: 5
+Assigned Area Gap (Official Tie-Breaker): 50.50 m²
+
+
+=======================================================
+PHASE 4: AXIS-ALIGNED CABLE ROUTING & PHYSICAL OPTIMIZATION
+=======================================================
+
+--- Physical-Distance Driven TSP Sequencing ---
+Hub 1 [R01_living] Optimized Closed TSP: R01_living -> R04_bedroom1 -> R05_bedroom2 -> R06_bedroom3 -> R01_living (Score J: 33.75)
+Hub 2 [R02_kitchen] Optimized Closed TSP: R02_kitchen -> R03_storage -> R02_kitchen (Score J: 10.00)
+
+--- Routing Hub 1 [R01_living] ---
+  Closed Tour Sequence: R01_living -> R04_bedroom1 -> R05_bedroom2 -> R06_bedroom3 -> R01_living
+  [PASS] Strict wall-crossing verification passed (0 walls crossed).
+  Total Segments / Vertices: 11
+  Length (L): 24.1 m
+  Bends  (B): 10 (penalty: 5.00)
+  Overlap(O): 0.0 m
+  Cross  (X): 0 (penalty: 0.00)
+  Cost   (J): 29.1
+
+--- Routing Hub 2 [R02_kitchen] ---
+  Closed Tour Sequence: R02_kitchen -> R03_storage -> R02_kitchen
+  [PASS] Strict wall-crossing verification passed (0 walls crossed).
+  Total Segments / Vertices: 7
+  Length (L): 6.0 m
+  Bends  (B): 6 (penalty: 3.00)
+  Overlap(O): 0.0 m
+  Cross  (X): 0 (penalty: 0.00)
+  Cost   (J): 9.0
+
+=== FINAL ROUTING RESULTS & OBJECTIVE METRICS ===
+Hub [R01_living]: L=24.1m | Bends=10 | Overlap=0.0m | Crossings=0 | Score J=29.1
+Hub [R02_kitchen]: L=6.0m | Bends=6 | Overlap=0.0m | Crossings=0 | Score J=9.0
+-------------------------------------------------------
+TOTAL SYSTEM COST: J = 38.10
+  - Total Length (L): 30.10 m
+  - Total Bends  (B): 16 (cost: 8.00)
+  - Total Overlap(O): 0.00 m
+  - Total Cross  (X): 0 (cost: 0.00)
+=======================================================
+
+Official Output JSON saved to: output_plan.json
+
+Phase 4 visualization saved to: floor_plan_phase4.png
+
+================================================================================
+VERIFICATION COMPLETED SUCCESSFULLY
+Hubs Placed     : 2
+Total Cost J    : 38.10
+Log written to  : results\check_20261016_012352_sample_plan.log
+Rendered image  : floor_plan_phase4.png
+================================================================================
+

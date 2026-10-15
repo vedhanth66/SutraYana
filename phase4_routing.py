@@ -327,10 +327,12 @@ def a_star_orthogonal(grid_info, start_pt_m, goal_pt_m, cable_usage=None, walkab
 
 def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
     """
-    Precomputes pairwise physical A* path costs between all room nodes in room_ids.
+    Precomputes pairwise physical A* path costs and leg paths between all room nodes in room_ids.
     Cost includes physical length (L) + bend penalty (0.5 * B).
+    Returns (pairwise_dist, pair_paths).
     """
     pairwise = {}
+    pair_paths = {}
     rooms = list(room_ids)
     H, W = grid_info["H"], grid_info["W"]
     room_masks = grid_info.get("room_masks", {})
@@ -338,11 +340,11 @@ def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
     room_pair_doors = grid_info.get("room_pair_doors", {})
 
     for i in range(len(rooms)):
-        for j in range(i, len(rooms)):
-            u, v = rooms[i], rooms[j]
-            if u == v:
-                pairwise[(u, v)] = 0.0
-                continue
+        u = rooms[i]
+        pairwise[(u, u)] = 0.0
+        pair_paths[(u, u)] = [nodes_m[u], nodes_m[u]]
+        for j in range(i + 1, len(rooms)):
+            v = rooms[j]
 
             leg_walkable = None
             if G is not None and G.has_node(u) and G.has_node(v) and nx.has_path(G, u, v):
@@ -370,13 +372,17 @@ def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
 
             if pts is None:
                 dist = float('inf')
+                pair_paths[(u, v)] = None
+                pair_paths[(v, u)] = None
             else:
+                pair_paths[(u, v)] = pts
+                pair_paths[(v, u)] = list(reversed(pts))
                 comp = compress_orthogonal_path(pts)
                 m = calculate_ring_metrics(comp)
                 dist = m["L"] + 0.5 * m["B"]
             pairwise[(u, v)] = dist
             pairwise[(v, u)] = dist
-    return pairwise
+    return pairwise, pair_paths
 
 
 def compress_orthogonal_path(pts):
@@ -491,11 +497,12 @@ def calculate_ring_metrics(polyline_pts, tol_mm=0.001):
     }
 
 
-def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.05, grid_info=None, G=None):
+def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.05, grid_info=None, G=None, all_pair_paths=None):
     """
     Routes axis-aligned closed ring cables for each hub in metres.
     Includes active overlap and crossing penalties across all legs and hubs.
     Restricts search to topological room corridor per leg when G is available.
+    Selects the global optimal route between dynamic and static A* candidates to minimize J.
     Enforces strict post-routing geometric wall-crossing verification.
     """
     inv_s = 1.0 / scale
@@ -616,6 +623,46 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
 
         # Compress into clean orthogonal polyline corners
         compressed_polyline = compress_orthogonal_path(full_raw_path)
+
+        # Compare with direct static pair_paths route if available and select lowest J
+        pair_paths = all_pair_paths.get(hub_room) if all_pair_paths else None
+        if pair_paths is not None:
+            full_raw_static = []
+            static_segments = []
+            valid_static = True
+            for i in range(len(sequence) - 1):
+                u = sequence[i]
+                v = sequence[i + 1]
+                leg_pts = pair_paths.get((u, v))
+                if leg_pts is None:
+                    valid_static = False
+                    break
+                for pt in (leg_pts if i == 0 else leg_pts[1:]):
+                    full_raw_static.append(pt)
+                leg_comp = compress_orthogonal_path(leg_pts)
+                leg_len = sum(math.hypot(leg_comp[k + 1][0] - leg_comp[k][0], leg_comp[k + 1][1] - leg_comp[k][1]) for k in range(len(leg_comp) - 1))
+                static_segments.append({
+                    "from": u,
+                    "to": v,
+                    "length_m": round(leg_len, 3),
+                    "polyline": leg_comp
+                })
+
+            if valid_static:
+                comp_static = compress_orthogonal_path(full_raw_static)
+                try:
+                    verify_no_wall_crossings(comp_static, grid_info["wall_barriers"])
+                    m_static = calculate_ring_metrics(comp_static)
+                    m_dynamic = calculate_ring_metrics(compressed_polyline)
+                    # Pick static route if it yields strictly lower J or fewer crossings
+                    if (m_static["J"] < m_dynamic["J"] - 1e-4) or (
+                        abs(m_static["J"] - m_dynamic["J"]) <= 1e-4 and m_static["X"] < m_dynamic["X"]
+                    ):
+                        compressed_polyline = comp_static
+                        route_segments = static_segments
+                        full_raw_path = full_raw_static
+                except Exception:
+                    pass
 
         # Safety net: Verify strict adherence to walls
         verify_no_wall_crossings(compressed_polyline, grid_info["wall_barriers"])
@@ -742,23 +789,30 @@ def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, res
     nodes_m = {r_id: (round(pt.x * inv_s, 4), round(pt.y * inv_s, 4)) for r_id, pt in nodes_dict_units.items()}
 
     # Canonical node mapping: N1, N2, ... for all eligible rooms (per PPT Slide 8)
-    all_eligible = sorted([r for r, d in G.nodes(data=True) if d.get("eligible", True)])
+    all_eligible = sorted([r for r, d in G.nodes(data=True) if d.get("eligible", False)])
     room_to_node = {r: f"N{idx}" for idx, r in enumerate(all_eligible, 1)}
 
     # 4. Phase 3 Physical-Distance Driven Sequencing
     if verbose:
         print("\n--- Physical-Distance Driven TSP Sequencing ---")
     final_sequences = {}
+    all_hub_pair_paths = {}
     for hub_idx, (hub_room, assigned_rooms) in enumerate(sorted(best_hubs.items()), start=1):
-        pairwise_dist = compute_pairwise_physical_distances(grid_info, nodes_m, assigned_rooms, G=G)
-        sequence, phys_cost = find_optimal_sequence(G, hub_room, list(assigned_rooms), pairwise_dist=pairwise_dist)
+        pairwise_dist, pair_paths = compute_pairwise_physical_distances(grid_info, nodes_m, assigned_rooms, G=G)
+        all_hub_pair_paths[hub_room] = pair_paths
+        sequence, phys_cost = find_optimal_sequence(
+            G, hub_room, list(assigned_rooms),
+            pairwise_dist=pairwise_dist,
+            pair_paths=pair_paths
+        )
         if verbose:
-            print(f"Hub {hub_idx} [{hub_room}] Physical TSP: {' -> '.join(sequence)} (Cost: {phys_cost:.2f}m)")
+            print(f"Hub {hub_idx} [{hub_room}] Optimized Closed TSP: {' -> '.join(sequence)} (Score J: {phys_cost:.2f})")
         final_sequences[hub_room] = sequence
 
     # 5. Route all hubs with active overlap & crossing penalties and topological corridors
     hubs_routed, grid_info = route_all_hubs(
-        plan, scale, final_sequences, nodes_dict_units, resolution=resolution, grid_info=grid_info, G=G
+        plan, scale, final_sequences, nodes_dict_units, resolution=resolution, grid_info=grid_info, G=G,
+        all_pair_paths=all_hub_pair_paths
     )
 
     total_L = sum(h["metrics"]["L"] for h in hubs_routed.values())

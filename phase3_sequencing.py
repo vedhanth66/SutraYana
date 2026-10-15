@@ -1,8 +1,10 @@
 import os
 import sys
 import json
+import math
 import itertools
 import tempfile
+from collections import defaultdict
 import networkx as nx
 
 os.environ.setdefault('MPLCONFIGDIR', tempfile.gettempdir())
@@ -37,12 +39,126 @@ def calculate_physical_tour_length(sequence, nodes_dict, scale):
     return total_len
 
 
-def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=None, pairwise_dist=None):
+def compress_orthogonal_path(pts):
+    """
+    Compresses consecutive collinear grid points into clean polyline corner vertices.
+    Guarantees every segment is strictly axis-aligned (either dx == 0 or dy == 0).
+    """
+    if len(pts) <= 2:
+        return pts
+
+    compressed = [pts[0]]
+    for i in range(1, len(pts) - 1):
+        dx_in = pts[i][0] - pts[i - 1][0]
+        dy_in = pts[i][1] - pts[i - 1][1]
+        dx_out = pts[i + 1][0] - pts[i][0]
+        dy_out = pts[i + 1][1] - pts[i][1]
+
+        dir_in = ('H' if abs(dx_in) > 1e-6 else 'V')
+        dir_out = ('H' if abs(dx_out) > 1e-6 else 'V')
+
+        # Keep vertex if direction changes (bend) or step reverses
+        if dir_in != dir_out or (dx_in * dx_out < -1e-6) or (dy_in * dy_out < -1e-6):
+            compressed.append((round(pts[i][0], 4), round(pts[i][1], 4)))
+
+    compressed.append((round(pts[-1][0], 4), round(pts[-1][1], 4)))
+    return compressed
+
+
+def calculate_ring_metrics(polyline_pts, tol_mm=0.001):
+    """
+    Calculates L, B, O, X, J for a closed orthogonal cable ring.
+      J = L + 5.0 * X + 1.0 * O + 0.5 * B
+    """
+    if len(polyline_pts) < 2:
+        return {"L": 0.0, "B": 0, "O": 0.0, "X": 0, "J": 0.0, "segments": []}
+
+    # 1. Total Length (L) and segment extraction
+    L = 0.0
+    segs = []
+    h_segs = []
+    v_segs = []
+
+    for k in range(len(polyline_pts) - 1):
+        x1, y1 = polyline_pts[k]
+        x2, y2 = polyline_pts[k + 1]
+        slen = math.hypot(x2 - x1, y2 - y1)
+        if slen < tol_mm:
+            continue
+        L += slen
+        if abs(y2 - y1) <= tol_mm:
+            # Horizontal segment
+            c_y = round(0.5 * (y1 + y2), 3)
+            h_segs.append((c_y, min(x1, x2), max(x1, x2)))
+            segs.append(("H", c_y, min(x1, x2), max(x1, x2), slen))
+        else:
+            # Vertical segment
+            c_x = round(0.5 * (x1 + x2), 3)
+            v_segs.append((c_x, min(y1, y2), max(y1, y2)))
+            segs.append(("V", c_x, min(y1, y2), max(y1, y2), slen))
+
+    # 2. Bends (B)
+    B = 0
+    dirs = []
+    for k in range(len(polyline_pts) - 1):
+        x1, y1 = polyline_pts[k]
+        x2, y2 = polyline_pts[k + 1]
+        dx, dy = x2 - x1, y2 - y1
+        if math.hypot(dx, dy) >= tol_mm:
+            dirs.append("H" if abs(dx) >= abs(dy) else "V")
+
+    if len(dirs) >= 2:
+        for i in range(len(dirs)):
+            if dirs[(i - 1) % len(dirs)] != dirs[i]:
+                B += 1
+
+    # 3. Overlap (O) - sweep line interval coverage along identical coordinate lines
+    O = 0.0
+    by_line = defaultdict(list)
+    for orient, coord, cmin, cmax, _ in segs:
+        by_line[(orient, coord)].append((cmin, cmax))
+
+    for _, ivs in by_line.items():
+        if len(ivs) > 1:
+            events = []
+            for a, b in ivs:
+                events.extend([(a, 1), (b, -1)])
+            events.sort(key=lambda ev: (ev[0], -ev[1]))
+            cov, px = 0, None
+            for x, d in events:
+                if px is not None and cov >= 2 and x > px:
+                    O += (cov - 1) * (x - px)
+                cov += d
+                px = x
+
+    # 4. Transverse Crossings (X)
+    X = 0
+    for y_h, x1, x2 in h_segs:
+        for x_v, y1, y2 in v_segs:
+            # Strictly interior crossing
+            if (x1 + tol_mm < x_v < x2 - tol_mm) and (y1 + tol_mm < y_h < y2 - tol_mm):
+                X += 1
+
+    J = L + 5.0 * X + 1.0 * O + 0.5 * B
+
+    return {
+        "L": round(L, 3),
+        "B": int(B),
+        "O": round(O, 3),
+        "X": int(X),
+        "J": round(J, 3),
+        "segments": segs
+    }
+
+
+def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=None, pairwise_dist=None, pair_paths=None):
     """
     Finds the optimal closed sequence for a single hub using brute-force permutations.
     Evaluates every permutation of visiting the assigned rooms:
         Hub -> N1 -> N2 -> ... -> Nn -> Hub
-    If pairwise_dist is provided: minimizes true physical path distance (in metres).
+    If pair_paths is provided: directly evaluates the TRUE closed-ring objective cost J
+    (L + 5X + 1.0O + 0.5B) over all permutations, prioritizing zero crossings and minimum J.
+    If pairwise_dist is provided: minimizes physical path distance (in metres).
     Otherwise: minimizes graph hop-distance, using physical Euclidean length as tie-breaker.
     """
     nodes_to_visit = sorted([n for n in assigned_nodes if n != hub_room])
@@ -53,6 +169,7 @@ def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=No
 
     best_sequence = None
     best_dist = float('inf')
+    best_score_tuple = (float('inf'), float('inf'), float('inf'), float('inf'), float('inf'))
     best_max_hops = float('inf')
     best_phys_len = float('inf')
 
@@ -60,7 +177,27 @@ def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=No
     for perm in itertools.permutations(nodes_to_visit):
         sequence = [hub_room] + list(perm) + [hub_room]
 
-        if pairwise_dist is not None:
+        if pair_paths is not None:
+            # Reconstruct the closed loop polyline using precomputed leg paths
+            full_path = []
+            valid = True
+            for i in range(len(sequence) - 1):
+                leg = pair_paths.get((sequence[i], sequence[i + 1]))
+                if leg is None:
+                    valid = False
+                    break
+                full_path.extend(leg if i == 0 else leg[1:])
+
+            if valid:
+                comp = compress_orthogonal_path(full_path)
+                m = calculate_ring_metrics(comp)
+                # Primary: lowest J. Ties: lowest crossings X, lowest overlap O, shortest length L, fewest bends B
+                score_tuple = (round(m["J"], 3), m["X"], round(m["O"], 3), round(m["L"], 3), m["B"])
+                if score_tuple < best_score_tuple:
+                    best_score_tuple = score_tuple
+                    best_dist = m["J"]
+                    best_sequence = sequence
+        elif pairwise_dist is not None:
             dist = sum(pairwise_dist.get((sequence[i], sequence[i + 1]), float('inf')) for i in range(len(sequence) - 1))
             # Tie breaker: prefer sequence with smaller maximum hop jump between consecutive rooms
             max_hops = max(
@@ -79,6 +216,11 @@ def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=No
         else:
             dist = calculate_tour_distance(sequence, G)
             phys_len = calculate_physical_tour_length(sequence, nodes_dict, scale)
+
+            if dist < best_dist or (dist == best_dist and phys_len < best_phys_len):
+                best_dist = dist
+                best_phys_len = phys_len
+                best_sequence = sequence
 
     if best_sequence is None:
         best_sequence = [hub_room] + list(nodes_to_visit) + [hub_room]

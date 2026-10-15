@@ -4,6 +4,7 @@ import time
 import random
 import pickle
 import argparse
+import json
 import tempfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -12,6 +13,27 @@ os.environ.setdefault('MPLCONFIGDIR', tempfile.gettempdir())
 
 from export_resplan_to_json import extract_rooms_and_doors
 from phase4_routing import run_phase4
+
+
+class TeeLogger:
+    """Simultaneously writes all terminal output to console and a log file."""
+    def __init__(self, filepath, stream=sys.stdout):
+        self.terminal = stream
+        self.log_file = open(filepath, "w", encoding="utf-8")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.terminal.flush()
+        self.log_file.write(message)
+        self.log_file.flush()
+
+    def flush(self):
+        self.terminal.flush()
+        self.log_file.flush()
+
+    def close(self):
+        if not self.log_file.closed:
+            self.log_file.close()
 
 
 def process_single_plan_task(args):
@@ -88,41 +110,80 @@ def find_resplan_pickle(preferred_path=None):
     return None
 
 
-def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08, seed=42):
-    print("=" * 80)
-    print("SUTRAYANA: FULL-PIPELINE PARALLEL BATCH EVALUATION (PHASE 1 -> 4)")
-    print(f"Target Plans: {num_plans} | Parallel Workers: {workers} | Grid Resolution: {resolution*100:.0f}cm")
-    print("=" * 80)
+def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08, seed=42, results_dir="results", log_name=None):
+    os.makedirs(results_dir, exist_ok=True)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    res_cm = int(round(resolution * 100))
+    if not log_name:
+        log_name = f"batch_eval_{timestamp}_{num_plans}plans_res{res_cm}cm.log"
+    json_name = os.path.splitext(log_name)[0] + ".json"
 
-    pkl_file = find_resplan_pickle(pkl_path)
-    if not pkl_file:
-        print(f"ERROR: Could not find ResPlan.pkl! Checked common paths.")
-        sys.exit(1)
+    log_path = os.path.join(results_dir, log_name)
+    json_path = os.path.join(results_dir, json_name)
 
-    print(f"Loading dataset from: {pkl_file} ...")
-    with open(pkl_file, "rb") as f:
-        data = pickle.load(f)
+    tee = TeeLogger(log_path, sys.stdout)
+    orig_stdout = sys.stdout
+    sys.stdout = tee
 
-    total_available = len(data) if isinstance(data, list) else len(data.keys())
-    print(f"Successfully loaded dataset with {total_available} total plans.")
+    try:
+        print("=" * 80)
+        print("SUTRAYANA: FULL-PIPELINE PARALLEL BATCH EVALUATION (PHASE 1 -> 4)")
+        print(f"Target Plans   : {num_plans}")
+        print(f"Parallel Workers: {workers}")
+        print(f"Grid Resolution : {resolution*100:.0f}cm")
+        print(f"Results Log File: {log_path}")
+        print(f"Results JSON File: {json_path}")
+        print("=" * 80)
 
-    random.seed(seed)
-    sampled_indices = random.sample(range(min(2000, total_available)), num_plans)
+        pkl_file = find_resplan_pickle(pkl_path)
+        if not pkl_file:
+            print(f"ERROR: Could not find ResPlan.pkl! Checked common paths.")
+            sys.exit(1)
 
-    tasks = []
-    for p_idx in sampled_indices:
-        raw_plan = data[p_idx] if isinstance(data, list) else data[list(data.keys())[p_idx]]
-        tasks.append((raw_plan, p_idx, resolution))
+        print(f"Loading dataset from: {pkl_file} ...")
+        with open(pkl_file, "rb") as f:
+            data = pickle.load(f)
 
-    print(f"\nStarting parallel execution across {workers} worker processes...\n")
-    results = []
-    start_wall = time.time()
+        total_available = len(data) if isinstance(data, list) else len(data.keys())
+        print(f"Successfully loaded dataset with {total_available} total plans.")
 
-    if workers > 1:
-        with ProcessPoolExecutor(max_workers=workers) as executor:
-            future_to_idx = {executor.submit(process_single_plan_task, t): t[1] for t in tasks}
-            for i, future in enumerate(as_completed(future_to_idx), start=1):
-                res = future.result()
+        random.seed(seed)
+        if num_plans >= total_available:
+            sampled_indices = list(range(total_available))
+            num_plans = len(sampled_indices)
+        else:
+            sampled_indices = random.sample(range(total_available), num_plans)
+
+        tasks = []
+        for p_idx in sampled_indices:
+            raw_plan = data[p_idx] if isinstance(data, list) else data[list(data.keys())[p_idx]]
+            tasks.append((raw_plan, p_idx, resolution))
+
+        print(f"\nStarting parallel execution across {workers} worker processes...\n")
+        results = []
+        start_wall = time.time()
+
+        if workers > 1:
+            with ProcessPoolExecutor(max_workers=workers) as executor:
+                future_to_idx = {executor.submit(process_single_plan_task, t): t[1] for t in tasks}
+                for i, future in enumerate(as_completed(future_to_idx), start=1):
+                    res = future.result()
+                    results.append(res)
+                    p_idx = res["plan_idx"]
+                    if res.get("skipped"):
+                        print(f"[{i:02d}/{num_plans}] Plan #{p_idx:05d}: SKIPPED ({res.get('reason')})")
+                    elif res.get("valid"):
+                        print(
+                            f"[{i:02d}/{num_plans}] Plan #{p_idx:05d}: PASSED | "
+                            f"Hubs: {res['hub_count']} | J={res['total_J']:.2f} "
+                            f"(L={res['total_L']:.1f}m, B={res['total_B']}, O={res['total_O']:.1f}m, X={res['total_X']}) | "
+                            f"Time: {res['time_sec']*1000:.0f}ms"
+                        )
+                    else:
+                        print(f"[{i:02d}/{num_plans}] Plan #{p_idx:05d}: FAILED -> {res.get('error')}")
+        else:
+            for i, t in enumerate(tasks, start=1):
+                res = process_single_plan_task(t)
                 results.append(res)
                 p_idx = res["plan_idx"]
                 if res.get("skipped"):
@@ -136,53 +197,74 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
                     )
                 else:
                     print(f"[{i:02d}/{num_plans}] Plan #{p_idx:05d}: FAILED -> {res.get('error')}")
-    else:
-        for i, t in enumerate(tasks, start=1):
-            res = process_single_plan_task(t)
-            results.append(res)
-            p_idx = res["plan_idx"]
-            if res.get("skipped"):
-                print(f"[{i:02d}/{num_plans}] Plan #{p_idx:05d}: SKIPPED ({res.get('reason')})")
-            elif res.get("valid"):
-                print(
-                    f"[{i:02d}/{num_plans}] Plan #{p_idx:05d}: PASSED | "
-                    f"Hubs: {res['hub_count']} | J={res['total_J']:.2f} "
-                    f"(L={res['total_L']:.1f}m, B={res['total_B']}, O={res['total_O']:.1f}m, X={res['total_X']}) | "
-                    f"Time: {res['time_sec']*1000:.0f}ms"
-                )
-            else:
-                print(f"[{i:02d}/{num_plans}] Plan #{p_idx:05d}: FAILED -> {res.get('error')}")
 
-    total_wall_time = time.time() - start_wall
-    successful = [r for r in results if r.get("valid")]
-    pass_rate = (len(successful) / len(results)) * 100 if results else 0.0
-    throughput = len(results) / total_wall_time if total_wall_time > 0 else 0.0
+        total_wall_time = time.time() - start_wall
+        successful = [r for r in results if r.get("valid")]
+        pass_rate = (len(successful) / len(results)) * 100 if results else 0.0
+        throughput = len(results) / total_wall_time if total_wall_time > 0 else 0.0
 
-    print("\n" + "=" * 80)
-    print("BATCH EVALUATION SUMMARY (Phase 1 -> Phase 2 -> Phase 3 -> Phase 4)")
-    print("=" * 80)
-    print(f"Total Plans Evaluated : {len(results)}")
-    print(f"Passed All Validations: {len(successful)} / {len(results)} ({pass_rate:.1f}%)")
-    print(f"Total Wall-Clock Time : {total_wall_time:.2f} seconds")
-    print(f"System Throughput     : {throughput:.2f} plans/second")
-    if successful:
-        avg_cpu_time = (sum(r["time_sec"] for r in successful) / len(successful)) * 1000.0
-        avg_hubs = sum(r["hub_count"] for r in successful) / len(successful)
-        avg_L = sum(r["total_L"] for r in successful) / len(successful)
-        avg_B = sum(r["total_B"] for r in successful) / len(successful)
-        avg_O = sum(r["total_O"] for r in successful) / len(successful)
-        avg_X = sum(r["total_X"] for r in successful) / len(successful)
-        avg_J = sum(r["total_J"] for r in successful) / len(successful)
-        print(f"Average Plan Runtime  : {avg_cpu_time:.1f} ms/plan")
-        print("-" * 80)
-        print("Average Metrics Across Valid Plans:")
-        print(f"  - Hub Count (H)    : {avg_hubs:.2f}")
-        print(f"  - Cable Length (L) : {avg_L:.2f} m")
-        print(f"  - Total Bends (B)  : {avg_B:.1f}")
-        print(f"  - Total Overlap (O): {avg_O:.2f} m")
-        print(f"  - Crossings (X)    : {avg_X:.2f}")
-        print(f"  - Objective Cost J : {avg_J:.2f}")
-    print("=" * 80 + "\n")
+        avg_cpu_time = (sum(r["time_sec"] for r in successful) / len(successful)) * 1000.0 if successful else 0.0
+        avg_hubs = sum(r["hub_count"] for r in successful) / len(successful) if successful else 0.0
+        avg_L = sum(r["total_L"] for r in successful) / len(successful) if successful else 0.0
+        avg_B = sum(r["total_B"] for r in successful) / len(successful) if successful else 0.0
+        avg_O = sum(r["total_O"] for r in successful) / len(successful) if successful else 0.0
+        avg_X = sum(r["total_X"] for r in successful) / len(successful) if successful else 0.0
+        avg_J = sum(r["total_J"] for r in successful) / len(successful) if successful else 0.0
+
+        print("\n" + "=" * 80)
+        print("BATCH EVALUATION SUMMARY (Phase 1 -> Phase 2 -> Phase 3 -> Phase 4)")
+        print("=" * 80)
+        print(f"Total Plans Evaluated : {len(results)}")
+        print(f"Passed All Validations: {len(successful)} / {len(results)} ({pass_rate:.1f}%)")
+        print(f"Total Wall-Clock Time : {total_wall_time:.2f} seconds")
+        print(f"System Throughput     : {throughput:.2f} plans/second")
+        if successful:
+            print(f"Average Plan Runtime  : {avg_cpu_time:.1f} ms/plan")
+            print("-" * 80)
+            print("Average Metrics Across Valid Plans:")
+            print(f"  - Hub Count (H)    : {avg_hubs:.2f}")
+            print(f"  - Cable Length (L) : {avg_L:.2f} m")
+            print(f"  - Total Bends (B)  : {avg_B:.1f}")
+            print(f"  - Total Overlap (O): {avg_O:.2f} m")
+            print(f"  - Crossings (X)    : {avg_X:.2f}")
+            print(f"  - Objective Cost J : {avg_J:.2f}")
+        print("=" * 80)
+        print(f"COMPLETE LOG SAVED TO   : {log_path}")
+        print(f"STRUCTURED JSON SAVED TO: {json_path}")
+        print("=" * 80 + "\n")
+
+        # Save structured JSON
+        json_payload = {
+            "timestamp": timestamp,
+            "config": {
+                "num_plans": num_plans,
+                "workers": workers,
+                "resolution_m": resolution,
+                "seed": seed,
+                "pkl_file": pkl_file
+            },
+            "summary": {
+                "total_evaluated": len(results),
+                "passed": len(successful),
+                "pass_rate_pct": round(pass_rate, 2),
+                "wall_time_sec": round(total_wall_time, 2),
+                "throughput_plans_per_sec": round(throughput, 2),
+                "avg_runtime_ms": round(avg_cpu_time, 2) if successful else None,
+                "avg_hub_count": round(avg_hubs, 2) if successful else None,
+                "avg_length_m": round(avg_L, 2) if successful else None,
+                "avg_bends": round(avg_B, 2) if successful else None,
+                "avg_overlap_m": round(avg_O, 2) if successful else None,
+                "avg_crossings": round(avg_X, 2) if successful else None,
+                "avg_cost_J": round(avg_J, 2) if successful else None
+            },
+            "detailed_results": results
+        }
+        with open(json_path, "w", encoding="utf-8") as jf:
+            json.dump(json_payload, jf, indent=2)
+
+    finally:
+        sys.stdout = orig_stdout
+        tee.close()
 
 
 if __name__ == "__main__":
@@ -192,6 +274,8 @@ if __name__ == "__main__":
     parser.add_argument("--workers", type=int, default=min(os.cpu_count() or 4, 8), help="Number of parallel worker processes")
     parser.add_argument("--resolution", type=float, default=0.08, help="Grid resolution in metres (e.g. 0.05, 0.08, 0.10)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for sampling")
+    parser.add_argument("--results-dir", type=str, default="results", help="Directory where log and json results will be saved")
+    parser.add_argument("--log-name", type=str, default=None, help="Custom filename for the log output")
     args = parser.parse_args()
 
     run_batch_evaluation(
@@ -199,5 +283,7 @@ if __name__ == "__main__":
         num_plans=args.count,
         workers=args.workers,
         resolution=args.resolution,
-        seed=args.seed
+        seed=args.seed,
+        results_dir=args.results_dir,
+        log_name=args.log_name
     )
