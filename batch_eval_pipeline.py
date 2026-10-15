@@ -110,12 +110,14 @@ def find_resplan_pickle(preferred_path=None):
     return None
 
 
-def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08, seed=42, results_dir="results", log_name=None):
+def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08, seed=42, results_dir="results", log_name=None, plan_indices=None):
     os.makedirs(results_dir, exist_ok=True)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     res_cm = int(round(resolution * 100))
     if not log_name:
-        log_name = f"batch_eval_{timestamp}_{num_plans}plans_res{res_cm}cm.log"
+        prefix = "benchmark" if plan_indices else "batch_eval"
+        plan_count_str = f"{len(plan_indices)}plans" if plan_indices else f"{num_plans}plans"
+        log_name = f"{prefix}_{timestamp}_{plan_count_str}_res{res_cm}cm.log"
     json_name = os.path.splitext(log_name)[0] + ".json"
 
     log_path = os.path.join(results_dir, log_name)
@@ -128,7 +130,10 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
     try:
         print("=" * 80)
         print("SUTRAYANA: FULL-PIPELINE PARALLEL BATCH EVALUATION (PHASE 1 -> 4)")
-        print(f"Target Plans   : {num_plans}")
+        if plan_indices:
+            print(f"Target Benchmark Indices: {plan_indices}")
+        else:
+            print(f"Target Plans   : {num_plans}")
         print(f"Parallel Workers: {workers}")
         print(f"Grid Resolution : {resolution*100:.0f}cm")
         print(f"Results Log File: {log_path}")
@@ -147,12 +152,16 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
         total_available = len(data) if isinstance(data, list) else len(data.keys())
         print(f"Successfully loaded dataset with {total_available} total plans.")
 
-        random.seed(seed)
-        if num_plans >= total_available:
-            sampled_indices = list(range(total_available))
+        if plan_indices:
+            sampled_indices = [int(p) for p in plan_indices if int(p) < total_available]
             num_plans = len(sampled_indices)
         else:
-            sampled_indices = random.sample(range(total_available), num_plans)
+            random.seed(seed)
+            if num_plans >= total_available:
+                sampled_indices = list(range(total_available))
+                num_plans = len(sampled_indices)
+            else:
+                sampled_indices = random.sample(range(total_available), num_plans)
 
         tasks = []
         for p_idx in sampled_indices:
@@ -275,7 +284,7 @@ if __name__ == "__main__":
     parser.add_argument("--resolution", type=float, default=0.08, help="Grid resolution in metres (e.g. 0.05, 0.08, 0.10)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for sampling")
     parser.add_argument("--results-dir", type=str, default="results", help="Directory where log and json results will be saved")
-    parser.add_argument("--log-name", type=str, default=None, help="Custom filename for the log output")
+    parser.add_argument("--plans", nargs="+", type=int, default=None, help="Specific plan indices to evaluate (e.g. 1 5 16 80 192)")
     args = parser.parse_args()
 
     run_batch_evaluation(
@@ -285,5 +294,6 @@ if __name__ == "__main__":
         resolution=args.resolution,
         seed=args.seed,
         results_dir=args.results_dir,
-        log_name=args.log_name
+        log_name=args.log_name,
+        plan_indices=args.plans
     )

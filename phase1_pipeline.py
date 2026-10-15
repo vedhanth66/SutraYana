@@ -9,6 +9,7 @@ import networkx as nx
 os.environ.setdefault('MPLCONFIGDIR', tempfile.gettempdir())
 import matplotlib.pyplot as plt
 from shapely.geometry import shape, Point, Polygon, MultiPolygon
+from shapely.ops import unary_union
 
 
 def load_and_process_plan(json_path, output_image_path=None, show_plot=True, verbose=True):
@@ -69,9 +70,15 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
         # Parse polygon geometry
         poly = shape(room["polygon"])
         
-        # Ensure area attribute is present
-        if "area" not in room or room["area"] is None:
-            room["area"] = poly.area
+        # Ensure area attribute is converted to m²
+        raw_area = float(room.get("area") if room.get("area") is not None else poly.area)
+        if raw_area > (area_m2 * 1.5):
+            room_area_m2 = raw_area / (scale ** 2)
+        else:
+            room_area_m2 = raw_area
+
+        room["area"] = round(room_area_m2, 4)
+        room["area_m2"] = round(room_area_m2, 4)
 
         # Extract fixed node (either from JSON or representative interior point)
         if "node" in room and isinstance(room["node"], dict) and "x" in room["node"] and "y" in room["node"]:
@@ -89,7 +96,7 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
             nodes[room_id] = pt
 
         # Add all rooms to graph G with eligibility attribute
-        G.add_node(room_id, eligible=is_eligible, **room)
+        G.add_node(room_id, eligible=is_eligible, area=room_area_m2, area_m2=room_area_m2, **{k: v for k, v in room.items() if k not in ("area", "area_m2")})
 
     # 3. Build Full Graph (Add ALL doors in the house topology)
     for door in plan.get("doors", []):
@@ -97,8 +104,54 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
         if r1 in all_rooms and r2 in all_rooms:
             G.add_edge(r1, r2, type="door", door_id=door.get("id"), polygon=door.get("polygon"))
 
-    # 4. Calculate Minimum Hubs (on eligible rooms)
-    total_area = sum(float(r["area"]) / (scale ** 2) for r in eligible_rooms.values())
+    # Safeguard: connect adjacent/touching open-concept rooms within 0.15m if not already connected
+    r_list = list(all_rooms.keys())
+    prox_units = max(0.15 * scale, 2.0)
+    for i in range(len(r_list)):
+        for j in range(i + 1, len(r_list)):
+            r1, r2 = r_list[i], r_list[j]
+            if not G.has_edge(r1, r2):
+                p1 = shape(all_rooms[r1]["polygon"])
+                p2 = shape(all_rooms[r2]["polygon"])
+                if p1.intersects(p2) or p1.distance(p2) <= prox_units:
+                    shared = p1.buffer(prox_units).intersection(p2.buffer(prox_units))
+                    if not shared.is_empty and shared.area >= 0.05 * (scale ** 2):
+                        G.add_edge(r1, r2, type="passage", door_id=f"open_{r1}_{r2}")
+
+    # 4. Construct Walkable Freespace Polygon
+    # Subtract wall polygon from union of rooms + doors, then union back door.buffer(0.06 * scale) clipped to inner
+    try:
+        rooms_union = unary_union([shape(r["polygon"]) for r in all_rooms.values() if "polygon" in r])
+        doors_union = unary_union([shape(d["polygon"]) for d in plan.get("doors", []) if "polygon" in d])
+        door_buffer_units = 0.06 * scale
+        doors_buffered = doors_union.buffer(door_buffer_units) if not doors_union.is_empty else None
+
+        inner_geom = shape(plan["inner"]["polygon"]) if isinstance(plan.get("inner"), dict) and "polygon" in plan["inner"] else shape(plan["inner"]) if "inner" in plan else None
+        if doors_buffered is not None and inner_geom is not None and not inner_geom.is_empty:
+            doors_buffered = doors_buffered.intersection(inner_geom)
+
+        base_freespace = unary_union([rooms_union, doors_union]) if not doors_union.is_empty else rooms_union
+
+        wall_geom = None
+        if "wall" in plan and plan["wall"]:
+            wall_geom = shape(plan["wall"]) if isinstance(plan["wall"], dict) else plan["wall"]
+
+        if wall_geom is not None and not wall_geom.is_empty:
+            freespace = base_freespace.difference(wall_geom)
+            if doors_buffered is not None and not doors_buffered.is_empty:
+                freespace = freespace.union(doors_buffered)
+        else:
+            freespace = base_freespace
+            if doors_buffered is not None and not doors_buffered.is_empty:
+                freespace = freespace.union(doors_buffered)
+
+        plan["freespace"] = freespace
+        G.graph["freespace"] = freespace
+    except Exception:
+        pass
+
+    # 5. Calculate Minimum Hubs (on eligible rooms)
+    total_area = sum(float(r["area"]) for r in eligible_rooms.values())
     total_nodes = len(eligible_rooms)
     min_hubs_area = math.ceil(total_area / 100.0) if total_area > 0 else 0
     min_hubs_nodes = math.ceil(total_nodes / 5.0) if total_nodes > 0 else 0
@@ -134,7 +187,7 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
             else:
                 cx, cy = poly.centroid.x, poly.centroid.y
             
-            room_area_m2 = float(room["area"]) / (scale ** 2)
+            room_area_m2 = float(room["area"])
             ax.text(
                 cx, cy,
                 f"{room_id}\n({room['type']})\n{room_area_m2:.1f} m²",

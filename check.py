@@ -67,6 +67,7 @@ if __name__ == "__main__":
         parser.add_argument("--workers", type=int, default=min(os.cpu_count() or 4, 8), help="Worker processes")
         parser.add_argument("--resolution", type=float, default=0.08, help="Grid resolution in metres (default: 0.08)")
         parser.add_argument("--seed", type=int, default=42, help="Random seed for sampling (default: 42)")
+        parser.add_argument("--plans", nargs="+", type=int, default=None, help="Specific plan indices to evaluate (e.g. 1 5 16 80 192)")
         parser.add_argument("--results-dir", type=str, default="results", help="Directory where logs and results are stored")
         parser.add_argument("--log-name", type=str, default=None, help="Custom filename for the log output")
         parser.add_argument("--pkl", type=str, default=None, help="Path to ResPlan.pkl")
@@ -79,5 +80,6 @@ if __name__ == "__main__":
             resolution=args.resolution,
             seed=args.seed,
             results_dir=args.results_dir,
-            log_name=args.log_name
+            log_name=args.log_name,
+            plan_indices=args.plans
         )

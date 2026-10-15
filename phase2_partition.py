@@ -21,6 +21,11 @@ def is_connected_subgraph(G, nodes_subset):
     return nx.is_connected(subgraph)
 
 
+def get_room_area_m2(G, r):
+    """Returns room area strictly in square metres (m²)."""
+    return float(G.nodes[r].get("area_m2", G.nodes[r].get("area", 0.0)))
+
+
 def generate_partitions(G, k, scale, max_iterations=2500, state=None):
     """
     Generates valid partitions of graph G into k connected components.
@@ -39,7 +44,7 @@ def generate_partitions(G, k, scale, max_iterations=2500, state=None):
         return
 
     # Capacity pruning
-    room_areas = [float(G.nodes[u]['area']) / (scale ** 2) for u in nodes]
+    room_areas = [get_room_area_m2(G, u) for u in nodes]
     total_area = sum(room_areas)
     effective_cap = max(100.0, max(room_areas))
     if total_area > k * effective_cap + 1e-6 or n > k * 5:
@@ -49,7 +54,7 @@ def generate_partitions(G, k, scale, max_iterations=2500, state=None):
     if k == 1:
         state["count"] += 1
         if is_connected_subgraph(G, set(nodes)):
-            area = sum(float(G.nodes[u]['area']) for u in nodes) / (scale ** 2)
+            area = sum(get_room_area_m2(G, u) for u in nodes)
             # Allow single room exceeding 100m² to form a solo hub
             if (area <= 100.0 + 1e-6 or len(nodes) == 1) and len(nodes) <= 5:
                 yield [set(nodes)]
@@ -75,7 +80,7 @@ def generate_partitions(G, k, scale, max_iterations=2500, state=None):
             if not is_connected_subgraph(G, comp1):
                 continue
 
-            area1 = sum(float(G.nodes[u]['area']) for u in comp1) / (scale ** 2)
+            area1 = sum(get_room_area_m2(G, u) for u in comp1)
             if area1 > 100.0 + 1e-6 and len(comp1) > 1:
                 continue
 
@@ -94,7 +99,7 @@ def greedy_partition_fallback(G, eligible_nodes, k, scale):
     Grows contiguous zones from seed rooms until capacity constraints are met.
     """
     unassigned = set(eligible_nodes)
-    areas = {r: float(G.nodes[r]["area"]) / (scale ** 2) for r in eligible_nodes}
+    areas = {r: get_room_area_m2(G, r) for r in eligible_nodes}
     zones = []
 
     while unassigned:
@@ -126,13 +131,22 @@ def greedy_partition_fallback(G, eligible_nodes, k, scale):
 
 def find_best_hub_in_component(G, component_nodes, nodes_dict, scale):
     """
-    Finds the room in the component that minimizes total shortest-path distance
-    to all other nodes in the component.
+    Finds the optimal room in the component to host the hub by prioritizing:
+    1. Higher degree in the territory's induced subgraph (subG.degree) - avoids leaf rooms that force doorway retracing.
+    2. Room type suitability: common areas (living, kitchen, hallway) preferred over private bedrooms/bathrooms.
+    3. Minimum total shortest-path distance to all other rooms in the component.
+    4. Deterministic room ID sorting as final tie-breaker.
     """
+    subG = G.subgraph(component_nodes)
+    type_priority = {
+        'living': 0, 'kitchen': 1, 'hallway': 1, 'corridor': 1, 'entry': 1,
+        'storage': 2, 'bedroom': 3, 'bathroom': 4, 'balcony': 5
+    }
+
     best_room = None
+    best_key = (float('inf'), float('inf'), float('inf'), "")
     best_cost = float('inf')
 
-    # Sort for deterministic evaluation order
     for hub_candidate in sorted(component_nodes):
         total_dist = 0
         for target_node in component_nodes:
@@ -141,11 +155,18 @@ def find_best_hub_in_component(G, component_nodes, nodes_dict, scale):
                     dist = nx.shortest_path_length(G, hub_candidate, target_node)
                     total_dist += dist
                 except nx.NetworkXNoPath:
-                    total_dist += float('inf')
+                    total_dist += 999
 
-        if total_dist < best_cost:
-            best_cost = total_dist
+        deg = subG.degree(hub_candidate) if subG.has_node(hub_candidate) else 0
+        r_type = G.nodes[hub_candidate].get('type', '').lower()
+        t_prio = type_priority.get(r_type, 10)
+
+        # Maximize degree (-deg), minimize type priority (t_prio), minimize total_dist, deterministic ID
+        key = (-deg, t_prio, total_dist, hub_candidate)
+        if key < best_key:
+            best_key = key
             best_room = hub_candidate
+            best_cost = total_dist
 
     return best_room, best_cost
 
@@ -187,7 +208,7 @@ def partition_and_place_hubs(G, nodes_dict, scale, min_hubs, verbose=True):
                 total_cost += cost
 
             # Calculate assigned-area gap (primary competition tie-breaker)
-            h_areas = [sum(float(G.nodes[r]["area"]) / (scale ** 2) for r in comp) for comp in partition]
+            h_areas = [sum(get_room_area_m2(G, r) for r in comp) for comp in partition]
             area_gap = (max(h_areas) - min(h_areas)) if len(h_areas) >= 2 else 0.0
 
             # Calculate hub room suitability score (secondary tie-breaker)
@@ -341,7 +362,7 @@ def run_phase2(json_path="sample_plan.json", show_plot=False, save_img=None, pla
             "hub_location": hub_room,
             "assigned_rooms": assigned,
             "total_rooms": len(assigned),
-            "total_area_m2": round(sum(float(G.nodes[r]["area"]) for r in assigned) / (scale ** 2), 2)
+            "total_area_m2": round(sum(get_room_area_m2(G, r) for r in assigned), 2)
         }
         hub_idx += 1
 

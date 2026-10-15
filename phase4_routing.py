@@ -17,7 +17,7 @@ from shapely import affinity
 import networkx as nx
 
 from phase1_pipeline import load_and_process_plan
-from phase2_partition import run_phase2
+from phase2_partition import run_phase2, find_best_hub_in_component
 from phase3_sequencing import find_optimal_sequence, run_phase3
 
 
@@ -63,35 +63,41 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
         doors_m.append(affinity.scale(dp, inv_s, inv_s, origin=(0, 0)))
 
     all_geoms = list(rooms_m.values()) + doors_m
-    minx = min(g.bounds[0] for g in all_geoms)
-    miny = min(g.bounds[1] for g in all_geoms)
+    minx = math.floor(min(g.bounds[0] for g in all_geoms) / resolution) * resolution
+    miny = math.floor(min(g.bounds[1] for g in all_geoms) / resolution) * resolution
+    minx = round(minx, 6)
+    miny = round(miny, 6)
     maxx = max(g.bounds[2] for g in all_geoms)
     maxy = max(g.bounds[3] for g in all_geoms)
 
-    W = int(math.ceil((maxx - minx) / resolution)) + 1
-    H = int(math.ceil((maxy - miny) / resolution)) + 1
+    W = int(math.ceil((maxx - minx) / resolution)) + 2
+    H = int(math.ceil((maxy - miny) / resolution)) + 2
 
-    # 1. Rasterize room interiors and store individual room masks
+    # 1. Rasterize room interiors (with hole support) and store individual room masks
     house_mask = np.zeros((H, W), dtype=np.uint8)
+    wall_mask = np.zeros((H, W), dtype=np.uint8)
     room_masks = {}
+
     for rid, g in rooms_m.items():
         rmask = np.zeros((H, W), dtype=bool)
         polys = g.geoms if hasattr(g, 'geoms') else [g]
         for p in polys:
             ext = p.exterior.coords[:-1]
-            pts = np.array([[(x - minx) / resolution, (y - miny) / resolution] for x, y in ext], dtype=np.int32)
-            cv2.fillPoly(house_mask, [pts], 1)
-            cv2.fillPoly(rmask.view(np.uint8), [pts], 1)
-        room_masks[rid] = rmask
+            ext_pts = np.array([[round((x - minx) / resolution), round((y - miny) / resolution)] for x, y in ext], dtype=np.int32)
+            cv2.fillPoly(house_mask, [ext_pts], 1)
+            cv2.fillPoly(rmask.view(np.uint8), [ext_pts], 1)
+            cv2.polylines(wall_mask, [ext_pts], isClosed=True, color=1, thickness=3)
 
-    # 2. Rasterize walls from room boundaries with thickness=3 (15-24cm) to close micro-gaps
-    wall_mask = np.zeros((H, W), dtype=np.uint8)
-    for g in rooms_m.values():
-        polys = g.geoms if hasattr(g, 'geoms') else [g]
-        for p in polys:
-            ext = p.exterior.coords[:-1]
-            pts = np.array([[(x - minx) / resolution, (y - miny) / resolution] for x, y in ext], dtype=np.int32)
-            cv2.polylines(wall_mask, [pts], isClosed=True, color=1, thickness=3)
+            # Rasterize interior holes (ducts, shafts, inner walls)
+            for hole in p.interiors:
+                hole_coords = hole.coords[:-1]
+                hole_pts = np.array([[round((x - minx) / resolution), round((y - miny) / resolution)] for x, y in hole_coords], dtype=np.int32)
+                cv2.fillPoly(house_mask, [hole_pts], 0)
+                cv2.fillPoly(rmask.view(np.uint8), [hole_pts], 0)
+                cv2.fillPoly(wall_mask, [hole_pts], 1)
+                cv2.polylines(wall_mask, [hole_pts], isClosed=True, color=1, thickness=3)
+
+        room_masks[rid] = rmask
 
     # 3. Carve out door passages through walls
     # Expand strictly across wall thickness (short dimension) to punch through 15-30cm walls
@@ -117,24 +123,20 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
             d_minx, d_miny, d_maxx, d_maxy = p.bounds
             dx = d_maxx - d_minx
             dy = d_maxy - d_miny
+
+            # 6cm buffer (at least 0.75 * res) along door opening to ensure clean 2+ cell passage
+            d_buf_m = max(0.06, resolution * 0.75)
+
             if dx <= dy:
                 # Vertical wall: opening along Y, thickness along X
-                # Along opening (Y): strict inner bounds
-                gy_start = int(math.ceil((d_miny - miny) / resolution))
-                gy_end = int(math.floor((d_maxy - miny) / resolution))
-                if gy_start > gy_end:
-                    gy_start = gy_end = int(round((0.5 * (d_miny + d_maxy) - miny) / resolution))
-                # Across thickness (X): expanded
+                gy_start = int(math.floor((d_miny - d_buf_m - miny) / resolution))
+                gy_end = int(math.ceil((d_maxy + d_buf_m - miny) / resolution))
                 gx_start = int(math.floor((d_minx - expand_m - minx) / resolution))
                 gx_end = int(math.ceil((d_maxx + expand_m - minx) / resolution))
             else:
                 # Horizontal wall: opening along X, thickness along Y
-                # Along opening (X): strict inner bounds
-                gx_start = int(math.ceil((d_minx - minx) / resolution))
-                gx_end = int(math.floor((d_maxx - minx) / resolution))
-                if gx_start > gx_end:
-                    gx_start = gx_end = int(round((0.5 * (d_minx + d_maxx) - minx) / resolution))
-                # Across thickness (Y): expanded
+                gx_start = int(math.floor((d_minx - d_buf_m - minx) / resolution))
+                gx_end = int(math.ceil((d_maxx + d_buf_m - minx) / resolution))
                 gy_start = int(math.floor((d_miny - expand_m - miny) / resolution))
                 gy_end = int(math.ceil((d_maxy + expand_m - miny) / resolution))
 
@@ -146,6 +148,15 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
             wall_mask[gy_start:gy_end + 1, gx_start:gx_end + 1] = 0
             house_mask[gy_start:gy_end + 1, gx_start:gx_end + 1] = 1
 
+            # Direct buffered polygon carving to clear walls across angled/diagonal doors
+            p_buffered = p.buffer(d_buf_m)
+            buf_polys = p_buffered.geoms if hasattr(p_buffered, 'geoms') else [p_buffered]
+            for bp in buf_polys:
+                b_coords = bp.exterior.coords[:-1]
+                b_pts = np.array([[int(round((x - minx) / resolution)), int(round((y - miny) / resolution))] for x, y in b_coords], dtype=np.int32)
+                cv2.fillPoly(wall_mask, [b_pts], 0)
+                cv2.fillPoly(house_mask, [b_pts], 1)
+
             if d_id:
                 door_cell_bounds[d_id] = (gx_start, gx_end, gy_start, gy_end)
 
@@ -156,6 +167,7 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
                 miny + (gy_end + 1) * resolution + 1e-4
             )
             carved_door_geoms.append(carved_box)
+            carved_door_geoms.append(p_buffered)
 
     walkable = (house_mask == 1) & (wall_mask == 0)
 
@@ -253,6 +265,7 @@ def a_star_orthogonal(grid_info, start_pt_m, goal_pt_m, cable_usage=None, walkab
     h_use = cable_usage.get("grid_h_usage") if cable_usage else None
     v_use = cable_usage.get("grid_v_usage") if cable_usage else None
     protected = cable_usage.get("protected_cells") if cable_usage else None
+    used_v = cable_usage.get("used_vertices") if cable_usage else None
 
     while open_set:
         f, g, cx, cy, cdir = heapq.heappop(open_set)
@@ -278,26 +291,31 @@ def a_star_orthogonal(grid_info, start_pt_m, goal_pt_m, cable_usage=None, walkab
                 bend_cost = 0.5 if (cdir != 0 and cdir != ndir) else 0.0
                 step_cost = res + bend_cost
 
-                # Overlap and crossing penalties
+                # Overlap, crossing, and vertex separation penalties
                 if cable_usage is not None:
                     if ndir == 1:  # Horizontal move
                         edge_x = min(cx, nx)
                         edge_y = cy
-                        if h_use[edge_y, edge_x] > 0:
-                            step_cost += 1.0 * res  # Overlap penalty (1 per m)
+                        if h_use is not None and h_use[edge_y, edge_x] > 0:
+                            step_cost += 3.0 * res  # Overlap penalty (forces parallel lane)
                         if protected is None or (nx, ny) not in protected:
                             # Moving horizontally into (nx, ny) where a vertical cable exists
-                            if v_use[ny, nx] > 0 or (ny > 0 and v_use[ny - 1, nx] > 0):
-                                step_cost += 5.0  # Crossing penalty (5 per crossing)
+                            if v_use is not None and (v_use[ny, nx] > 0 or (ny > 0 and v_use[ny - 1, nx] > 0)):
+                                step_cost += 5.0  # Transverse crossing penalty (5 per crossing)
                     elif ndir == 2:  # Vertical move
                         edge_x = cx
                         edge_y = min(cy, ny)
-                        if v_use[edge_y, edge_x] > 0:
-                            step_cost += 1.0 * res  # Overlap penalty (1 per m)
+                        if v_use is not None and v_use[edge_y, edge_x] > 0:
+                            step_cost += 3.0 * res  # Overlap penalty (forces parallel lane)
                         if protected is None or (nx, ny) not in protected:
                             # Moving vertically into (nx, ny) where a horizontal cable exists
-                            if h_use[ny, nx] > 0 or (nx > 0 and h_use[ny, nx - 1] > 0):
-                                step_cost += 5.0  # Crossing penalty (5 per crossing)
+                            if h_use is not None and (h_use[ny, nx] > 0 or (nx > 0 and h_use[ny, nx - 1] > 0)):
+                                step_cost += 5.0  # Transverse crossing penalty (5 per crossing)
+
+                    # Vertex reuse penalty outside protected cells
+                    if used_v is not None and (nx, ny) in used_v:
+                        if protected is None or (nx, ny) not in protected:
+                            step_cost += 1.0  # Encourage clean lane separation
 
                 new_g = g + step_cost
                 state = (nx, ny, ndir)
@@ -313,16 +331,75 @@ def a_star_orthogonal(grid_info, start_pt_m, goal_pt_m, cable_usage=None, walkab
     if not goal_reached_state:
         return None
 
-    # Reconstruct path points in metres
+    # Reconstruct path points in metres (strictly snapped to resolution multiples)
     curr = goal_reached_state
     grid_pts = []
     while curr in came_from:
-        grid_pts.append((minx + curr[0] * res, miny + curr[1] * res))
+        grid_pts.append((round(minx + curr[0] * res, 6), round(miny + curr[1] * res, 6)))
         curr = came_from[curr]
-    grid_pts.append((minx + start_gx * res, miny + start_gy * res))
+    grid_pts.append((round(minx + start_gx * res, 6), round(miny + start_gy * res, 6)))
     grid_pts.reverse()
 
     return grid_pts
+
+
+def get_node_grid_and_stub(node_pt_m, room_id, grid_info):
+    """
+    Finds the nearest walkable grid cell G to a fixed room node N,
+    and computes the tiny safe dogleg stub between G and N:
+      stub_to_node: G -> (Gx, Ny) -> N
+    This stub is at most resolution/2 (e.g. 4cm) long and strictly inside the room far from walls.
+    """
+    nx_pt, ny_pt = round(node_pt_m[0], 6), round(node_pt_m[1], 6)
+    minx, miny, res = grid_info["minx"], grid_info["miny"], grid_info["res"]
+    W, H = grid_info["W"], grid_info["H"]
+    walkable = grid_info["walkable"]
+    rmask = grid_info.get("room_masks", {}).get(room_id)
+
+    gx = int(round((nx_pt - minx) / res))
+    gy = int(round((ny_pt - miny) / res))
+    gx = max(0, min(W - 1, gx))
+    gy = max(0, min(H - 1, gy))
+
+    best_g = None
+    if walkable[gy, gx] and (rmask is None or rmask[gy, gx]):
+        best_g = (gx, gy)
+    else:
+        best_dist = float('inf')
+        for r_search in range(1, 4):
+            for dx in range(-r_search, r_search + 1):
+                for dy in range(-r_search, r_search + 1):
+                    cx, cy = gx + dx, gy + dy
+                    if 0 <= cx < W and 0 <= cy < H and walkable[cy, cx]:
+                        if rmask is None or rmask[cy, cx]:
+                            cx_m = round(minx + cx * res, 6)
+                            cy_m = round(miny + cy * res, 6)
+                            d = math.hypot(cx_m - nx_pt, cy_m - ny_pt)
+                            if d < best_dist:
+                                best_dist = d
+                                best_g = (cx, cy)
+            if best_g is not None:
+                break
+
+    if best_g is None:
+        best_g = (gx, gy)
+
+    Gx = round(minx + best_g[0] * res, 6)
+    Gy = round(miny + best_g[1] * res, 6)
+    G_pt = (Gx, Gy)
+    N_pt = (nx_pt, ny_pt)
+
+    # Dogleg stub: G -> (Gx, ny) -> N
+    corner_pt = (Gx, ny_pt)
+    stub_to_node = [G_pt]
+    if abs(Gy - ny_pt) > 1e-4:
+        stub_to_node.append(corner_pt)
+    if abs(Gx - nx_pt) > 1e-4:
+        stub_to_node.append(N_pt)
+    if len(stub_to_node) == 1:
+        stub_to_node.append(N_pt)
+
+    return G_pt, stub_to_node
 
 
 def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
@@ -339,12 +416,17 @@ def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
     door_cell_bounds = grid_info.get("door_cell_bounds", {})
     room_pair_doors = grid_info.get("room_pair_doors", {})
 
+    node_stubs = {r: get_node_grid_and_stub(nodes_m[r], r, grid_info) for r in rooms}
+
     for i in range(len(rooms)):
         u = rooms[i]
         pairwise[(u, u)] = 0.0
         pair_paths[(u, u)] = [nodes_m[u], nodes_m[u]]
+        Gu, stub_to_u = node_stubs[u]
+
         for j in range(i + 1, len(rooms)):
             v = rooms[j]
+            Gv, stub_to_v = node_stubs[v]
 
             leg_walkable = None
             if G is not None and G.has_node(u) and G.has_node(v) and nx.has_path(G, u, v):
@@ -364,20 +446,21 @@ def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
                 except Exception:
                     leg_walkable = None
 
-            pts = None
+            grid_pts = None
             if leg_walkable is not None:
-                pts = a_star_orthogonal(grid_info, nodes_m[u], nodes_m[v], walkable_mask=leg_walkable)
-            if pts is None:
-                pts = a_star_orthogonal(grid_info, nodes_m[u], nodes_m[v])
+                grid_pts = a_star_orthogonal(grid_info, Gu, Gv, walkable_mask=leg_walkable)
+            if grid_pts is None:
+                grid_pts = a_star_orthogonal(grid_info, Gu, Gv)
 
-            if pts is None:
+            if grid_pts is None:
                 dist = float('inf')
                 pair_paths[(u, v)] = None
                 pair_paths[(v, u)] = None
             else:
-                pair_paths[(u, v)] = pts
-                pair_paths[(v, u)] = list(reversed(pts))
+                pts = list(reversed(stub_to_u)) + grid_pts[1:] + stub_to_v[1:]
                 comp = compress_orthogonal_path(pts)
+                pair_paths[(u, v)] = comp
+                pair_paths[(v, u)] = list(reversed(comp))
                 m = calculate_ring_metrics(comp)
                 dist = m["L"] + 0.5 * m["B"]
             pairwise[(u, v)] = dist
@@ -389,25 +472,27 @@ def compress_orthogonal_path(pts):
     """
     Compresses consecutive collinear grid points into clean polyline corner vertices.
     Guarantees every segment is strictly axis-aligned (either dx == 0 or dy == 0).
+    Rounds all coordinates strictly to 6 decimals to eliminate floating-point drift.
     """
     if len(pts) <= 2:
-        return pts
+        return [(round(p[0], 6), round(p[1], 6)) for p in pts]
 
-    compressed = [pts[0]]
-    for i in range(1, len(pts) - 1):
-        dx_in = pts[i][0] - pts[i - 1][0]
-        dy_in = pts[i][1] - pts[i - 1][1]
-        dx_out = pts[i + 1][0] - pts[i][0]
-        dy_out = pts[i + 1][1] - pts[i][1]
+    cleaned = [(round(p[0], 6), round(p[1], 6)) for p in pts]
+    compressed = [cleaned[0]]
+    for i in range(1, len(cleaned) - 1):
+        dx_in = cleaned[i][0] - cleaned[i - 1][0]
+        dy_in = cleaned[i][1] - cleaned[i - 1][1]
+        dx_out = cleaned[i + 1][0] - cleaned[i][0]
+        dy_out = cleaned[i + 1][1] - cleaned[i][1]
 
         dir_in = ('H' if abs(dx_in) > 1e-6 else 'V')
         dir_out = ('H' if abs(dx_out) > 1e-6 else 'V')
 
         # Keep vertex if direction changes (bend) or step reverses
         if dir_in != dir_out or (dx_in * dx_out < -1e-6) or (dy_in * dy_out < -1e-6):
-            compressed.append((round(pts[i][0], 4), round(pts[i][1], 4)))
+            compressed.append(cleaned[i])
 
-    compressed.append((round(pts[-1][0], 4), round(pts[-1][1], 4)))
+    compressed.append(cleaned[-1])
     return compressed
 
 
@@ -532,7 +617,8 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
     cable_usage = {
         "grid_h_usage": np.zeros((H, W), dtype=np.int16),
         "grid_v_usage": np.zeros((H, W), dtype=np.int16),
-        "protected_cells": protected_cells
+        "protected_cells": protected_cells,
+        "used_vertices": set()
     }
 
     hubs_routed = {}
@@ -541,29 +627,79 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
         print(f"\n--- Routing Hub {hub_idx} [{hub_room}] ---")
         print(f"  Closed Tour Sequence: {' -> '.join(sequence)}")
 
-        # Handle 1-room hub (node is the hub itself)
+        # Handle 1-room hub (node is in hub_room, hub H is placed at adjacent walkable cell 1 grid step away)
         if len(sequence) <= 1:
-            pt = nodes_m[sequence[0]]
-            compressed_polyline = [pt, pt]
-            metrics = calculate_ring_metrics(compressed_polyline)
+            room_id = sequence[0]
+            nx_pt, ny_pt = round(nodes_m[room_id][0], 6), round(nodes_m[room_id][1], 6)
+            G_pt, stub_to_node = get_node_grid_and_stub(nodes_m[room_id], room_id, grid_info)
+            ngx = int(round((G_pt[0] - minx) / res))
+            ngy = int(round((G_pt[1] - miny) / res))
+
+            # Find best adjacent walkable cell inside hub_room
+            candidate_h = None
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                cand_gx = ngx + dx
+                cand_gy = ngy + dy
+                if 0 <= cand_gx < W and 0 <= cand_gy < H:
+                    if grid_info["walkable"][cand_gy, cand_gx]:
+                        if room_masks.get(room_id) is None or room_masks[room_id][cand_gy, cand_gx]:
+                            candidate_h = (round(minx + cand_gx * res, 6), round(miny + cand_gy * res, 6))
+                            break
+
+            if candidate_h is None:
+                for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                    cand_gx = ngx + dx
+                    cand_gy = ngy + dy
+                    if 0 <= cand_gx < W and 0 <= cand_gy < H:
+                        if grid_info["walkable"][cand_gy, cand_gx]:
+                            candidate_h = (round(minx + cand_gx * res, 6), round(miny + cand_gy * res, 6))
+                            break
+
+            if candidate_h is None:
+                candidate_h = (round(G_pt[0] + res, 6), round(G_pt[1], 6))
+
+            hx, hy = candidate_h
+            # Clean closed ring: H -> G -> stub -> N -> stub -> G -> H
+            loop_raw = [(hx, hy), G_pt] + stub_to_node[1:] + list(reversed(stub_to_node))[1:] + [G_pt, (hx, hy)]
+            compressed_polyline = compress_orthogonal_path(loop_raw)
+            m = calculate_ring_metrics(compressed_polyline)
+            step_len = round(m["L"] * 0.5, 4)
+            route_segs = [
+                {
+                    "from": hub_room,
+                    "to": room_id,
+                    "length_m": step_len,
+                    "polyline": compress_orthogonal_path([(hx, hy), G_pt] + stub_to_node[1:])
+                },
+                {
+                    "from": room_id,
+                    "to": hub_room,
+                    "length_m": step_len,
+                    "polyline": compress_orthogonal_path(list(reversed(stub_to_node)) + [G_pt, (hx, hy)])
+                }
+            ]
+            print(f"  Single-room hub: H placed at ({hx}, {hy}), N at ({nx_pt}, {ny_pt}) | Loop L={m['L']}m, J={m['J']}")
             hubs_routed[hub_room] = {
                 "hub_idx": hub_idx,
                 "hub_room": hub_room,
-                "sequence": sequence,
+                "hub_loc": (hx, hy),
+                "sequence": [hub_room, room_id, hub_room],
                 "polyline": compressed_polyline,
-                "route_segments": [],
-                "metrics": metrics
+                "route_segments": route_segs,
+                "metrics": m
             }
             continue
 
+        node_stubs = {r: get_node_grid_and_stub(nodes_m[r], r, grid_info) for r in set(sequence)}
         full_raw_path = []
         route_segments = []
 
         for i in range(len(sequence) - 1):
             u = sequence[i]
             v = sequence[i + 1]
-            start_pt = nodes_m[u]
-            goal_pt = nodes_m[v]
+            Gu, stub_to_u = node_stubs[u]
+            Gv, stub_to_v = node_stubs[v]
+            stub_from_u = list(reversed(stub_to_u))
 
             # Build topological corridor mask if graph G is provided and path exists
             leg_walkable = None
@@ -584,29 +720,37 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                 except Exception:
                     leg_walkable = None
 
-            leg_raw = None
+            leg_grid = None
             if leg_walkable is not None:
-                leg_raw = a_star_orthogonal(grid_info, start_pt, goal_pt, cable_usage=cable_usage, walkable_mask=leg_walkable)
+                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=leg_walkable)
 
             # Fallback to global walkable if corridor was disconnected
-            if leg_raw is None:
-                leg_raw = a_star_orthogonal(grid_info, start_pt, goal_pt, cable_usage=cable_usage)
+            if leg_grid is None:
+                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage)
 
-            if leg_raw is None:
+            if leg_grid is None:
                 raise RuntimeError(f"A* failed to route leg: {u} -> {v} through doors!")
 
-            # Update cable usage grid for subsequent legs to avoid overlap and crossings
-            for k in range(len(leg_raw) - 1):
-                x1, y1 = leg_raw[k]
-                x2, y2 = leg_raw[k + 1]
+            # Combine safe fixed-node stubs with verified grid path
+            leg_raw = stub_from_u + leg_grid[1:] + stub_to_v[1:]
+
+            # Update cable usage grid along the grid steps
+            for k in range(len(leg_grid) - 1):
+                x1, y1 = leg_grid[k]
+                x2, y2 = leg_grid[k + 1]
                 gx1 = int(round((x1 - minx) / res))
                 gy1 = int(round((y1 - miny) / res))
                 gx2 = int(round((x2 - minx) / res))
                 gy2 = int(round((y2 - miny) / res))
-                if gy1 == gy2:
+                if gy1 == gy2 and 0 <= gy1 < H and 0 <= min(gx1, gx2) < W:
                     cable_usage["grid_h_usage"][gy1, min(gx1, gx2)] += 1
-                elif gx1 == gx2:
+                elif gx1 == gx2 and 0 <= gx1 < W and 0 <= min(gy1, gy2) < H:
                     cable_usage["grid_v_usage"][min(gy1, gy2), gx1] += 1
+
+            for pt in leg_grid:
+                gx = int(round((pt[0] - minx) / res))
+                gy = int(round((pt[1] - miny) / res))
+                cable_usage["used_vertices"].add((gx, gy))
 
             leg_comp = compress_orthogonal_path(leg_raw)
             leg_len = sum(math.hypot(leg_comp[k + 1][0] - leg_comp[k][0], leg_comp[k + 1][1] - leg_comp[k][1]) for k in range(len(leg_comp) - 1))
@@ -648,21 +792,36 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                     "polyline": leg_comp
                 })
 
+            # Verify both candidates for strict physical wall compliance
+            dyn_valid = True
+            try:
+                verify_no_wall_crossings(compressed_polyline, grid_info["wall_barriers"])
+            except Exception:
+                dyn_valid = False
+
             if valid_static:
                 comp_static = compress_orthogonal_path(full_raw_static)
+                static_valid = True
                 try:
                     verify_no_wall_crossings(comp_static, grid_info["wall_barriers"])
-                    m_static = calculate_ring_metrics(comp_static)
-                    m_dynamic = calculate_ring_metrics(compressed_polyline)
-                    # Pick static route if it yields strictly lower J or fewer crossings
-                    if (m_static["J"] < m_dynamic["J"] - 1e-4) or (
-                        abs(m_static["J"] - m_dynamic["J"]) <= 1e-4 and m_static["X"] < m_dynamic["X"]
-                    ):
+                except Exception:
+                    static_valid = False
+
+                if static_valid:
+                    if not dyn_valid:
+                        # Dynamic route clipped a barrier cell; adopt clean static route
                         compressed_polyline = comp_static
                         route_segments = static_segments
                         full_raw_path = full_raw_static
-                except Exception:
-                    pass
+                    else:
+                        m_static = calculate_ring_metrics(comp_static)
+                        m_dynamic = calculate_ring_metrics(compressed_polyline)
+                        # Only adopt static if it has fewer crossings AND strictly lower/equal overlap
+                        # (static routes frequently have severe doorway retracing overlap)
+                        if m_static["X"] < m_dynamic["X"] and m_static["O"] <= m_dynamic["O"] + 1e-4:
+                            compressed_polyline = comp_static
+                            route_segments = static_segments
+                            full_raw_path = full_raw_static
 
         # Safety net: Verify strict adherence to walls
         verify_no_wall_crossings(compressed_polyline, grid_info["wall_barriers"])
@@ -762,7 +921,7 @@ def visualize_phase4_routes(plan, scale, hubs_routed, grid_info, output_image_pa
         plt.show()
 
 
-def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, resolution=0.05, output_json_path=None, verbose=True):
+def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, resolution=0.08, output_json_path=None, verbose=True):
     # Load raw JSON plan (supports either file path or in-memory dict)
     if isinstance(json_path, dict):
         plan = json_path
@@ -783,37 +942,59 @@ def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, res
         print("PHASE 4: AXIS-ALIGNED CABLE ROUTING & PHYSICAL OPTIMIZATION")
         print("=======================================================")
 
-    # 3. Build metric grid with 15cm walls, dilated doors, and wall barriers
-    grid_info = build_orthogonal_grid(plan, scale, resolution=resolution)
-    inv_s = 1.0 / scale
-    nodes_m = {r_id: (round(pt.x * inv_s, 4), round(pt.y * inv_s, 4)) for r_id, pt in nodes_dict_units.items()}
+    try:
+        # 3. Build metric grid with 15cm walls, dilated doors, and wall barriers
+        grid_info = build_orthogonal_grid(plan, scale, resolution=resolution)
+        inv_s = 1.0 / scale
+        nodes_m = {r_id: (round(pt.x * inv_s, 4), round(pt.y * inv_s, 4)) for r_id, pt in nodes_dict_units.items()}
 
-    # Canonical node mapping: N1, N2, ... for all eligible rooms (per PPT Slide 8)
-    all_eligible = sorted([r for r, d in G.nodes(data=True) if d.get("eligible", False)])
-    room_to_node = {r: f"N{idx}" for idx, r in enumerate(all_eligible, 1)}
+        # Canonical node mapping: N1, N2, ... for all eligible rooms (per PPT Slide 8)
+        all_eligible = sorted([r for r, d in G.nodes(data=True) if d.get("eligible", False)])
+        room_to_node = {r: f"N{idx}" for idx, r in enumerate(all_eligible, 1)}
 
-    # 4. Phase 3 Physical-Distance Driven Sequencing
-    if verbose:
-        print("\n--- Physical-Distance Driven TSP Sequencing ---")
-    final_sequences = {}
-    all_hub_pair_paths = {}
-    for hub_idx, (hub_room, assigned_rooms) in enumerate(sorted(best_hubs.items()), start=1):
-        pairwise_dist, pair_paths = compute_pairwise_physical_distances(grid_info, nodes_m, assigned_rooms, G=G)
-        all_hub_pair_paths[hub_room] = pair_paths
-        sequence, phys_cost = find_optimal_sequence(
-            G, hub_room, list(assigned_rooms),
-            pairwise_dist=pairwise_dist,
-            pair_paths=pair_paths
-        )
+        # 4. Phase 3 Physical-Distance Driven Sequencing
         if verbose:
-            print(f"Hub {hub_idx} [{hub_room}] Optimized Closed TSP: {' -> '.join(sequence)} (Score J: {phys_cost:.2f})")
-        final_sequences[hub_room] = sequence
+            print("\n--- Physical-Distance Driven TSP Sequencing ---")
+        final_sequences = {}
+        all_hub_pair_paths = {}
 
-    # 5. Route all hubs with active overlap & crossing penalties and topological corridors
-    hubs_routed, grid_info = route_all_hubs(
-        plan, scale, final_sequences, nodes_dict_units, resolution=resolution, grid_info=grid_info, G=G,
-        all_pair_paths=all_hub_pair_paths
-    )
+        # Ensure each territory is hosted by its most central, highest-degree room (avoiding leaf room hubs)
+        refined_hubs = {}
+        for hub_room, assigned_rooms in sorted(best_hubs.items()):
+            best_r, _ = find_best_hub_in_component(G, assigned_rooms, nodes_dict_units, scale)
+            refined_hubs[best_r] = assigned_rooms
+
+        for hub_idx, (hub_room, assigned_rooms) in enumerate(sorted(refined_hubs.items()), start=1):
+            pairwise_dist, pair_paths = compute_pairwise_physical_distances(grid_info, nodes_m, assigned_rooms, G=G)
+            all_hub_pair_paths[hub_room] = pair_paths
+            sequence, phys_cost = find_optimal_sequence(
+                G, hub_room, list(assigned_rooms),
+                pairwise_dist=pairwise_dist,
+                pair_paths=pair_paths
+            )
+            if verbose:
+                print(f"Hub {hub_idx} [{hub_room}] Optimized Closed TSP: {' -> '.join(sequence)} (Score J: {phys_cost:.2f})")
+            final_sequences[hub_room] = sequence
+
+        # 5. Route all hubs with active overlap & crossing penalties and topological corridors
+        hubs_routed, grid_info = route_all_hubs(
+            plan, scale, final_sequences, nodes_dict_units, resolution=resolution, grid_info=grid_info, G=G,
+            all_pair_paths=all_hub_pair_paths
+        )
+    except RuntimeError as e:
+        if "A* failed to route leg" in str(e) and resolution > 0.04:
+            if verbose:
+                print(f"  [AUTOMATIC RETRY] A* door routing encountered narrow/angled doorway at {resolution*100:.0f}cm ({e}).")
+                print(f"  Retrying plan with high-precision 4cm resolution (resolution=0.04)...")
+            return run_phase4(
+                json_path=json_path,
+                show_plot=show_plot,
+                save_img=save_img,
+                resolution=0.04,
+                output_json_path=output_json_path,
+                verbose=verbose
+            )
+        raise e
 
     total_L = sum(h["metrics"]["L"] for h in hubs_routed.values())
     total_B = sum(h["metrics"]["B"] for h in hubs_routed.values())
@@ -853,7 +1034,7 @@ def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, res
     for hub_room, h_data in hubs_routed.items():
         h_idx = h_data["hub_idx"]
         hub_id = f"H{h_idx}"
-        hx, hy = nodes_m[hub_room]
+        hx, hy = h_data.get("hub_loc", nodes_m[hub_room])
         assigned_r = sorted(list(best_hubs[hub_room]))
 
         # Format sequence with H1 at start and end, and N1, N2... for interior nodes
