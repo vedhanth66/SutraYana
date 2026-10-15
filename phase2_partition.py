@@ -1,0 +1,277 @@
+import os
+import sys
+import json
+import math
+import itertools
+import tempfile
+import networkx as nx
+
+os.environ.setdefault('MPLCONFIGDIR', tempfile.gettempdir())
+import matplotlib.pyplot as plt
+from shapely.geometry import shape
+
+from phase1_pipeline import load_and_process_plan
+
+
+def is_connected_subgraph(G, nodes_subset):
+    """Checks if the given subset of nodes forms a single connected component."""
+    if not nodes_subset:
+        return False
+    subgraph = G.subgraph(nodes_subset)
+    return nx.is_connected(subgraph)
+
+
+def generate_partitions(G, k, scale):
+    """
+    Generates all valid partitions of graph G into k connected components.
+    Yields a list of sets, where each set is a connected component satisfying:
+      - area <= 100 m²
+      - node count <= 5
+    """
+    nodes = list(G.nodes())
+    n = len(nodes)
+
+    if n < k:
+        return
+
+    # Capacity pruning
+    total_area = sum(float(G.nodes[u]['area']) for u in nodes) / (scale ** 2)
+    if total_area > k * 100.0 + 1e-6 or n > k * 5:
+        return
+
+    # Base case: k == 1
+    if k == 1:
+        if is_connected_subgraph(G, set(nodes)):
+            area = sum(float(G.nodes[u]['area']) for u in nodes) / (scale ** 2)
+            if area <= 100.0 + 1e-6 and len(nodes) <= 5:
+                yield [set(nodes)]
+        return
+
+    # Recursive case: try subsets for the first component
+    # Fixing first_node in comp1 avoids duplicate permutations across components
+    first_node = nodes[0]
+    remaining_nodes = nodes[1:]
+
+    for i in range(len(remaining_nodes) + 1):
+        for combo in itertools.combinations(remaining_nodes, i):
+            comp1 = {first_node} | set(combo)
+            if len(comp1) > 5:
+                continue
+
+            if not is_connected_subgraph(G, comp1):
+                continue
+
+            # Check capacity of comp1
+            area1 = sum(float(G.nodes[u]['area']) for u in comp1) / (scale ** 2)
+            if area1 > 100.0 + 1e-6:
+                continue
+
+            # Remaining nodes must form k - 1 valid connected components
+            remaining_nodes_set = set(nodes) - comp1
+            if not remaining_nodes_set:
+                continue
+
+            sub_G = G.subgraph(remaining_nodes_set)
+            for sub_partition in generate_partitions(sub_G, k - 1, scale):
+                yield [comp1] + sub_partition
+
+
+def find_best_hub_in_component(G, component_nodes, nodes_dict, scale):
+    """
+    Finds the room in the component that minimizes total shortest-path distance
+    to all other nodes in the component.
+    """
+    best_room = None
+    best_cost = float('inf')
+
+    # Sort for deterministic evaluation order
+    for hub_candidate in sorted(component_nodes):
+        total_dist = 0
+        for target_node in component_nodes:
+            if hub_candidate != target_node:
+                try:
+                    dist = nx.shortest_path_length(G, hub_candidate, target_node)
+                    total_dist += dist
+                except nx.NetworkXNoPath:
+                    total_dist += float('inf')
+
+        if total_dist < best_cost:
+            best_cost = total_dist
+            best_room = hub_candidate
+
+    return best_room, best_cost
+
+
+def partition_and_place_hubs(G, nodes_dict, scale, min_hubs):
+    """
+    Finds the optimal partitioning of G into >= min_hubs components
+    and selects the best hub room for each component.
+    """
+    best_partition = None
+    best_hubs = None
+    best_total_cost = float('inf')
+    best_tie_breaker = float('inf')
+
+    # Hub suitability preference: common/utility areas (living, kitchen) preferred over private bedrooms
+    type_priority = {'living': 0, 'kitchen': 1, 'storage': 2, 'bedroom': 3}
+
+    k = min_hubs
+    total_nodes = len(G.nodes())
+
+    while k <= total_nodes:
+        print(f"Trying to partition into {k} hubs...")
+        found_valid = False
+
+        for partition in generate_partitions(G, k, scale):
+            found_valid = True
+            current_hubs = {}
+            total_cost = 0
+
+            for comp in partition:
+                hub_room, cost = find_best_hub_in_component(G, comp, nodes_dict, scale)
+                current_hubs[hub_room] = comp
+                total_cost += cost
+
+            # Tie-breaker when shortest-path costs are identical
+            tie_breaker = sum(
+                type_priority.get(G.nodes[h].get('type', '').lower(), 99)
+                for h in current_hubs.keys()
+            )
+
+            if (total_cost < best_total_cost) or (total_cost == best_total_cost and tie_breaker < best_tie_breaker):
+                best_total_cost = total_cost
+                best_tie_breaker = tie_breaker
+                best_partition = partition
+                best_hubs = current_hubs
+
+        if found_valid:
+            break
+        k += 1
+
+    return best_hubs, best_total_cost
+
+
+def visualize_partitioned_plan(json_path, G, nodes_dict, scale, best_hubs, output_image_path=None, show_plot=True):
+    """
+    Visualizes the floor plan with rooms color-coded by their assigned hub territory
+    and marked hub locations.
+    """
+    with open(json_path, 'r', encoding='utf-8') as f:
+        plan = json.load(f)
+
+    room_map = {r["id"]: r for r in plan.get("rooms", [])}
+
+    # Color palette for territories
+    colors = ['#cce5ff', '#d4edda', '#fff3cd', '#f8d7da', '#e2e3e5', '#d1ecf1']
+    edge_colors = ['#004085', '#155724', '#856404', '#721c24', '#383d41', '#0c5460']
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    hub_to_color = {}
+    for idx, hub_room in enumerate(sorted(best_hubs.keys())):
+        c_idx = idx % len(colors)
+        hub_to_color[hub_room] = (colors[c_idx], edge_colors[c_idx])
+
+    # Plot room polygons with territory fills
+    for hub_idx, hub_room in enumerate(sorted(best_hubs.keys()), start=1):
+        assigned_rooms = best_hubs[hub_room]
+        face_color, edge_color = hub_to_color[hub_room]
+
+        for room_id in assigned_rooms:
+            room = room_map[room_id]
+            poly = shape(room["polygon"])
+            polys = poly.geoms if hasattr(poly, "geoms") else [poly]
+
+            for p in polys:
+                x, y = p.exterior.xy
+                ax.fill(x, y, color=face_color, alpha=0.7)
+                ax.plot(x, y, color=edge_color, linewidth=1.8)
+
+            cx = room.get("centroid", {}).get("x", poly.centroid.x)
+            cy = room.get("centroid", {}).get("y", poly.centroid.y)
+            is_hub = (room_id == hub_room)
+            lbl = f"{room_id}\n[HUB {hub_idx}]" if is_hub else room_id
+
+            ax.text(
+                cx, cy, lbl,
+                fontsize=8, ha='center', va='center',
+                fontweight='bold' if is_hub else 'normal',
+                bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.8, edgecolor=edge_color if is_hub else "none")
+            )
+
+    # Plot door edges
+    for u, v in G.edges():
+        u_pt = nodes_dict[u]
+        v_pt = nodes_dict[v]
+        # Check if internal to same territory
+        u_hub = next((h for h, rooms in best_hubs.items() if u in rooms), None)
+        v_hub = next((h for h, rooms in best_hubs.items() if v in rooms), None)
+        if u_hub == v_hub and u_hub is not None:
+            _, ec = hub_to_color[u_hub]
+            ax.plot([u_pt.x, v_pt.x], [u_pt.y, v_pt.y], color=ec, linestyle='--', linewidth=2.2, zorder=3)
+        else:
+            ax.plot([u_pt.x, v_pt.x], [u_pt.y, v_pt.y], color='gray', linestyle=':', linewidth=1.2, alpha=0.5, zorder=2)
+
+    # Plot normal nodes and hubs
+    for node_id, pt in nodes_dict.items():
+        if node_id not in best_hubs:
+            ax.plot(pt.x, pt.y, 'o', color='navy', markersize=6, zorder=4)
+
+    for hub_idx, hub_room in enumerate(sorted(best_hubs.keys()), start=1):
+        pt = nodes_dict[hub_room]
+        ax.plot(pt.x, pt.y, '*', color='crimson', markersize=16, markeredgecolor='black', zorder=6, label=f"Hub {hub_idx} ({hub_room})")
+
+    ax.set_title("Phase 2: Partitioning & Hub Locations", fontsize=12, fontweight='bold')
+    ax.set_aspect('equal')
+    ax.grid(True, linestyle=':', alpha=0.6)
+    ax.legend(loc='upper right')
+    plt.tight_layout()
+
+    if output_image_path:
+        plt.savefig(output_image_path, dpi=150)
+        print(f"Partition visualization saved to: {output_image_path}")
+
+    if show_plot:
+        plt.show()
+
+
+def run_phase2(json_path="sample_plan.json", show_plot=False, save_img=None, plan_data=None):
+    # 1. Run Phase 1 data pipeline (or reuse pre-loaded data)
+    if plan_data is not None:
+        G, nodes_dict, scale, min_hubs = plan_data
+    else:
+        G, nodes_dict, scale, min_hubs = load_and_process_plan(json_path, show_plot=False)
+
+    # 2. Partition graph and place hubs
+    best_hubs, best_total_cost = partition_and_place_hubs(G, nodes_dict, scale, min_hubs)
+
+    # 3. Print resulting hubs in the exact expected format
+    print("\n--- Phase 2 Partitioning Results ---")
+    hub_idx = 1
+    result_dict = {}
+
+    for hub_room in sorted(best_hubs.keys()):
+        assigned = sorted(list(best_hubs[hub_room]))
+        assigned_str = ", ".join(assigned)
+        print(f"Hub {hub_idx}: Located in {hub_room}, assigned rooms: {assigned_str}.")
+        result_dict[f"Hub_{hub_idx}"] = {
+            "hub_location": hub_room,
+            "assigned_rooms": assigned,
+            "total_rooms": len(assigned),
+            "total_area_m2": round(sum(float(G.nodes[r]["area"]) for r in assigned) / (scale ** 2), 2)
+        }
+        hub_idx += 1
+
+    print(f"Total Heuristic Distance Cost: {best_total_cost}\n")
+
+    if show_plot or save_img:
+        visualize_partitioned_plan(json_path, G, nodes_dict, scale, best_hubs, output_image_path=save_img, show_plot=show_plot)
+
+    return best_hubs, best_total_cost
+
+
+if __name__ == "__main__":
+    target_json = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "sample_plan.json"
+    save_flag = "floor_plan_phase2.png" if "--save" in sys.argv else None
+    show_flag = "--show" in sys.argv
+    run_phase2(target_json, show_plot=show_flag, save_img=save_flag)
