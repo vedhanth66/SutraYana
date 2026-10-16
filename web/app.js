@@ -257,26 +257,63 @@ function update3DRoutes() {
 
   if (!result || !result.output || !result.output.hubs) return;
 
+  // Sleek architectural black cable conduit
+  const blackConduitMat = new THREE.MeshStandardMaterial({
+    color: 0x111827,         // Deep architectural black (slate-900)
+    roughness: 0.35,
+    metalness: 0.25,
+  });
+
   result.output.hubs.forEach((h, i) => {
     const col = circuitColors[i % circuitColors.length];
-    const conduitMat = new THREE.MeshStandardMaterial({
+    const arrowMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(col),
       emissive: new THREE.Color(col),
-      emissiveIntensity: 1.25,
-      roughness: 0.15,
-      metalness: 0.2,
+      emissiveIntensity: 1.5,
+      roughness: 0.2,
+      metalness: 0.1,
     });
 
     (h.route_segments || []).forEach(seg => {
       const rawPts = seg.polyline || [];
       if (rawPts.length >= 2) {
-        const pts = rawPts.map(p => planTo3D(p[0], p[1], 0.055));
+        const pts = rawPts.map(p => planTo3D(p[0], p[1], 0.05));
         const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.0);
 
-        // Solid, glowing 3D conduit pipe (11cm diameter)
-        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 4, 12), 0.055, 10, false);
-        const tubeMesh = new THREE.Mesh(tubeGeo, conduitMat);
+        // Solid architectural black 3D conduit pipe (radius 0.048 = ~10cm diameter)
+        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 4, 12), 0.048, 10, false);
+        const tubeMesh = new THREE.Mesh(tubeGeo, blackConduitMat);
         routesGroup.add(tubeMesh);
+
+        // Directional flow arrowheads along each straight run of the conduit
+        for (let j = 0; j < pts.length - 1; j++) {
+          const p1 = pts[j];
+          const p2 = pts[j + 1];
+          const segDist = p1.distanceTo(p2);
+          if (segDist < 0.6) continue;
+
+          const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+          // Arrow count: 1 on standard runs, 2 on long straight runs (> 4.5m)
+          const arrowCount = segDist > 4.5 ? 2 : 1;
+          for (let a = 1; a <= arrowCount; a++) {
+            const frac = a / (arrowCount + 1);
+            const pos = new THREE.Vector3().lerpVectors(p1, p2, frac);
+
+            // 3D directional arrow cone pointing along dir
+            const arrowGeo = new THREE.ConeGeometry(0.09, 0.26, 12);
+            const arrowMesh = new THREE.Mesh(arrowGeo, arrowMat);
+            arrowMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+            arrowMesh.position.set(pos.x, 0.062, pos.z);
+            routesGroup.add(arrowMesh);
+
+            // Sleek conduit collar ring directly under the arrow
+            const collarGeo = new THREE.CylinderGeometry(0.062, 0.062, 0.04, 10);
+            const collarMesh = new THREE.Mesh(collarGeo, arrowMat);
+            collarMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+            collarMesh.position.set(pos.x, 0.05, pos.z);
+            routesGroup.add(collarMesh);
+          }
+        }
       }
     });
   });
@@ -304,7 +341,7 @@ function startTrace3D() {
     const ringPolylines = [];
     const seq = h.closed_sequence || [];
     
-    // Connect segments in closed loop sequence
+    // Connect segments in exact visiting sequence order
     if (seq.length >= 2) {
       for (let s = 0; s < seq.length - 1; s++) {
         const fromId = seq[s];
@@ -340,16 +377,16 @@ function startTrace3D() {
       const col = circuitColors[hIdx % circuitColors.length];
 
       const pulses = [];
-      const pulseCount = 3;
+      const pulseCount = 2; // Clean spacing
       for (let p = 0; p < pulseCount; p++) {
         const pulseGroup = new THREE.Group();
 
-        // White-hot core sphere (radius 0.14m = 28cm)
+        // White-hot core sphere (radius 0.14m)
         const coreGeo = new THREE.SphereGeometry(0.14, 16, 16);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         pulseGroup.add(new THREE.Mesh(coreGeo, coreMat));
 
-        // Outer glowing colored halo (radius 0.28m = 56cm)
+        // Outer glowing colored halo (radius 0.28m)
         const glowGeo = new THREE.SphereGeometry(0.28, 16, 16);
         const glowMat = new THREE.MeshBasicMaterial({
           color: new THREE.Color(col),
@@ -358,23 +395,36 @@ function startTrace3D() {
         });
         pulseGroup.add(new THREE.Mesh(glowGeo, glowMat));
 
-        // Point light on pulse to illuminate rooms as it races through
-        const pLight = new THREE.PointLight(col, 2.0, 3.5);
+        // Dynamic 3D point light to illuminate surrounding walls & floor
+        const pLight = new THREE.PointLight(col, 2.2, 4.0);
         pulseGroup.add(pLight);
+
+        // Directional comet tail spheres indicating forward travel direction
+        const tail1 = new THREE.Mesh(
+          new THREE.SphereGeometry(0.09, 12, 12),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(col), transparent: true, opacity: 0.70 })
+        );
+        const tail2 = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05, 12, 12),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(col), transparent: true, opacity: 0.40 })
+        );
+        pulseGroup.add(tail1);
+        pulseGroup.add(tail2);
 
         if (tracePulsesGroup) {
           tracePulsesGroup.add(pulseGroup);
         }
-        pulses.push(pulseGroup);
+        pulses.push({ group: pulseGroup, tail1, tail2 });
       }
 
+      // Smooth, gentle, slow animation pace (~14–18s per complete ring loop)
       const ringLength = h.ring_length_m || 25;
-      const speed = Math.max(0.12, Math.min(0.35, 6.0 / ringLength));
+      const speed = Math.max(0.035, Math.min(0.09, 1.8 / ringLength));
       traceSplines.push({ curve, pulses, speed });
     }
   });
 
-  notice('Tracing 3D cable circuits · 360° orbit active', 'success');
+  notice('Tracing 3D cable circuits · Directional flow active', 'success');
 }
 
 function stopTrace3D() {
@@ -477,12 +527,23 @@ function init3D() {
     if (isTracing3D && traceSplines.length > 0) {
       const elapsed = (performance.now() - traceStartTime) / 1000;
       traceSplines.forEach(({ curve, pulses, speed }) => {
-        pulses.forEach((pulse, idx) => {
+        pulses.forEach(({ group, tail1, tail2 }, idx) => {
           const offset = idx / pulses.length;
           const t = ((elapsed * speed) + offset) % 1.0;
           const pt = curve.getPointAt(t);
           if (pt) {
-            pulse.position.copy(pt);
+            group.position.copy(pt);
+            // Directional trailing comet tail spheres
+            const t1 = (t - 0.018 + 1.0) % 1.0;
+            const pt1 = curve.getPointAt(t1);
+            if (pt1 && tail1) {
+              tail1.position.set(pt1.x - pt.x, pt1.y - pt.y, pt1.z - pt.z);
+            }
+            const t2 = (t - 0.036 + 1.0) % 1.0;
+            const pt2 = curve.getPointAt(t2);
+            if (pt2 && tail2) {
+              tail2.position.set(pt2.x - pt.x, pt2.y - pt.y, pt2.z - pt.z);
+            }
           }
         });
       });
