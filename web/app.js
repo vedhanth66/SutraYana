@@ -7,8 +7,8 @@ async function api(path,body){const response=await fetch(path,body?{method:'POST
 function notice(text,kind=''){const n=$('notice');if(n){n.textContent=text;n.className='notice '+kind}}
 function visible(){const query=$('search').value.toLowerCase();return catalog.filter(p=>(p.name+' '+p.description).toLowerCase().includes(query)&&(filter==='all'||(filter==='test')===(p.source==='Synthetic test')))}
 function library(){$('count').textContent=catalog.length;$('plans').replaceChildren();visible().forEach(p=>{const b=dom('button','plan'+(p.key===selected?' active':''));b.disabled=busy;b.setAttribute('aria-current',String(p.key===selected));b.append(dom('span','plan-icon','⌑'));const text=dom('span');text.append(dom('span','plan-title',p.name),dom('small','',`${p.rooms} rooms · ${p.source}`));b.append(text);if(history.some(h=>h.key===p.key&&h.ok&&h.profile_valid!==false))b.append(dom('span','plan-dot','✓'));b.onclick=()=>choose(p.key);$('plans').append(b)});if(!visible().length)$('plans').append(dom('p','muted','No plans match your search.'))}
-function clearResult(){result=null;['h','j','l','x','o','b'].forEach(k=>$('metric-'+k)&&($('metric-'+k).textContent='—'));$('download').disabled=true;$('play').disabled=true;$('save-svg').disabled=true;$('zones').replaceChildren(dom('p','muted','Generate rings to inspect each zone’s capacity and visiting order.'));$('score-bar').replaceChildren();$('proof-title').textContent='Geometry first';$('proof').textContent='Every output is checked before it appears as a valid design.';$('status').textContent='READY';$('status').className='pill';$('canvas-label').textContent='INPUT GEOMETRY';$('facts').replaceChildren()}
-async function choose(key){const version=++selectionVersion;selected=key;plan=null;clearResult();library();const item=catalog.find(p=>p.key===key);$('title').textContent=item?item.name:key;$('description').textContent=item?item.description:'';$('solve').disabled=true;$('empty').hidden=false;$('map').replaceChildren();$('rooms').replaceChildren();$('warnings').replaceChildren();notice('Loading floor-plan geometry…');try{const value=await api('/api/plan/'+key);if(version!==selectionVersion)return;plan=value;const [x0,y0,x1,y1]=plan.bounds,pad=Math.max(x1-x0,y1-y0)*.1;baseView=[x0-pad,-y1-pad,x1-x0+2*pad,y1-y0+2*pad];view=[...baseView];draw();inputDetails();$('solve').disabled=busy;if(value.solution){const solTime=value.solution.solver?.elapsed_s??value.solution.elapsed_s??null;showResult({ok:true,output:value.solution,solver_time_s:solTime,elapsed_s:solTime});notice(`${item?item.source:'Solution'} · Solution routes loaded · ${plan.rooms.filter(r=>r.node).length} fixed nodes · source coordinates preserved.`,'success')}else{notice(`${item?item.source:'Plan'} · ${plan.rooms.filter(r=>r.node).length} fixed nodes · source coordinates preserved.`)}}catch(e){if(version!==selectionVersion)return;notice(e.message,'error');$('empty').textContent='Input could not be loaded';warnings([{rule:'input',message:e.message}])}}
+function clearResult(){result=null;['h','j','l','x','o','b','latency'].forEach(k=>$('metric-'+k)&&($('metric-'+k).textContent='—'));$('download').disabled=true;$('play').disabled=true;$('save-svg').disabled=true;$('zones').replaceChildren(dom('p','muted','Generate rings to inspect each zone’s capacity and visiting order.'));$('score-bar').replaceChildren();$('proof-title').textContent='Geometry first';$('proof').textContent='Every output is checked before it appears as a valid design.';$('status').textContent='READY';$('status').className='pill';$('canvas-label').textContent='INPUT GEOMETRY';$('facts').replaceChildren()}
+async function choose(key){setCanvasMode('2d');const version=++selectionVersion;selected=key;plan=null;clearResult();library();const item=catalog.find(p=>p.key===key);$('title').textContent=item?item.name:key;$('description').textContent=item?item.description:'';$('solve').disabled=true;$('empty').hidden=false;$('map').replaceChildren();$('rooms').replaceChildren();$('warnings').replaceChildren();notice('Loading floor-plan geometry…');try{const value=await api('/api/plan/'+key);if(version!==selectionVersion)return;plan=value;const [x0,y0,x1,y1]=plan.bounds,pad=Math.max(x1-x0,y1-y0)*.1;baseView=[x0-pad,-y1-pad,x1-x0+2*pad,y1-y0+2*pad];view=[...baseView];draw();inputDetails();$('solve').disabled=busy;if(value.solution){const solTime=value.solution.solver?.elapsed_s??value.solution.elapsed_s??null;showResult({ok:true,output:value.solution,solver_time_s:solTime,elapsed_s:solTime});notice(`${item?item.source:'Solution'} · Solution routes loaded · ${plan.rooms.filter(r=>r.node).length} fixed nodes · source coordinates preserved.`,'success')}else{notice(`${item?item.source:'Plan'} · ${plan.rooms.filter(r=>r.node).length} fixed nodes · source coordinates preserved.`)}}catch(e){if(version!==selectionVersion)return;notice(e.message,'error');$('empty').textContent='Input could not be loaded';warnings([{rule:'input',message:e.message}])}}
 function pathData(g){if(!g)return '';if(g.type==='Polygon')return g.coordinates.map(r=>r.map((p,i)=>(i?'L':'M')+p[0]+','+(-p[1])).join(' ')+'Z').join(' ');if(g.type==='MultiPolygon')return g.coordinates.map(c=>pathData({type:'Polygon',coordinates:c})).join(' ');if(g.type==='GeometryCollection')return g.geometries.map(pathData).join(' ');return ''}
 function polygon(parent,g,fill,opacity=1){const d=pathData(g);if(d)parent.append(el('path',{d,fill,opacity,'fill-rule':'evenodd'}))}
 function applyView(){$('map').setAttribute('viewBox',view.join(' '))}
@@ -37,3 +37,222 @@ $('zoom-in').onclick=()=>zoom(.8);$('zoom-out').onclick=()=>zoom(1.25);$('fit').
 api('/api/plans').then(async data=>{const stamp=++catalogVersion;if(stamp!==catalogVersion)return;catalog=data;library();if(data.length){const preferred=data.find(p=>p.name==='Open-plan studio')?.key||data[0].key;await choose(preferred);}else notice('No plans found. Import JSON to begin.')}).catch(e=>notice('Cannot reach the local solver: '+e.message,'error'));
 
 $('save-svg').onclick=()=>{if(!result)return;const copy=$('map').cloneNode(true);copy.setAttribute('xmlns',NS);copy.setAttribute('viewBox',baseView.join(' '));copy.setAttribute('width','1400');copy.setAttribute('height',String(Math.round(1400*baseView[3]/baseView[2])));copy.classList.remove('tracing');copy.querySelectorAll('[data-ring]').forEach(g=>g.setAttribute('opacity','1'));const title=el('title',{},'SutraYana / '+plan.id+' / '+result.output.reported_metrics.hub_count+' hubs / J '+result.output.reported_metrics.total_cost_J.toFixed(2));copy.prepend(title);const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml'}));const a=dom('a');a.href=url;a.download='sutrayana-overlay.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+
+let renderer = null, scene3d = null, camera = null, controls = null;
+let currentModel = null, autoRotate = false, modelCache = new Map();
+let canvasMode = '2d';
+let currentMaxDim = 15;
+
+function setCanvasMode(mode) {
+  canvasMode = mode;
+  if (mode === '2d') {
+    if ($('canvas-3d')) $('canvas-3d').style.display = 'none';
+    if ($('map')) $('map').style.display = 'block';
+    if ($('view-mode-2d')) $('view-mode-2d').classList.add('active');
+    if ($('view-mode-3d')) $('view-mode-3d').classList.remove('active');
+    if ($('canvas-caption')) $('canvas-caption').innerHTML = 'METRES · Y UP <span>Scroll to zoom · Drag to pan</span>';
+  } else {
+    if ($('map')) $('map').style.display = 'none';
+    if ($('canvas-3d')) $('canvas-3d').style.display = 'block';
+    if ($('view-mode-3d')) $('view-mode-3d').classList.add('active');
+    if ($('view-mode-2d')) $('view-mode-2d').classList.remove('active');
+    if ($('canvas-caption')) $('canvas-caption').innerHTML = '3D DIGITAL TWIN · 360° ORBIT <span>Left-drag to rotate 360° · Scroll to zoom · Right-drag to pan</span>';
+    init3D();
+    on3DResize();
+    if (selected) {
+      load3DModel(selected);
+    }
+  }
+}
+
+function init3D() {
+  const container = $('canvas-3d-viewport');
+  if (!container || renderer || typeof THREE === 'undefined') return;
+
+  const width = container.clientWidth || 800;
+  const height = container.clientHeight || 460;
+
+  scene3d = new THREE.Scene();
+  scene3d.background = new THREE.Color(0x0e1713);
+
+  // Studio floor grid
+  const grid = new THREE.GridHelper(80, 80, 0x253d30, 0x182820);
+  grid.position.y = -0.01;
+  scene3d.add(grid);
+
+  // Camera
+  camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+  camera.position.set(16, 14, 18);
+
+  // Lighting setup for architectural visualization
+  const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+  scene3d.add(ambient);
+
+  const dirLight1 = new THREE.DirectionalLight(0xfff6ea, 0.85);
+  dirLight1.position.set(25, 40, 25);
+  scene3d.add(dirLight1);
+
+  const dirLight2 = new THREE.DirectionalLight(0xa5c9b2, 0.45);
+  dirLight2.position.set(-25, -15, -20);
+  scene3d.add(dirLight2);
+
+  const dirLight3 = new THREE.DirectionalLight(0x5eead4, 0.25);
+  dirLight3.position.set(0, -25, 20);
+  scene3d.add(dirLight3);
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(width, height);
+  if (renderer.outputEncoding !== undefined) {
+    renderer.outputEncoding = THREE.sRGBEncoding;
+  }
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  container.appendChild(renderer.domElement);
+
+  // OrbitControls for 360-degree rotation and zoom
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.screenSpacePanning = true;
+  controls.minDistance = 2;
+  controls.maxDistance = 250;
+  controls.maxPolarAngle = Math.PI / 2 + 0.05;
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    if (controls) {
+      controls.autoRotate = autoRotate;
+      controls.autoRotateSpeed = 1.8;
+      controls.update();
+    }
+    if (renderer && scene3d && camera) {
+      renderer.render(scene3d, camera);
+    }
+  }
+  animate();
+
+  window.addEventListener('resize', on3DResize);
+}
+
+function on3DResize() {
+  const container = $('canvas-3d-viewport');
+  if (!container || !renderer || !camera) return;
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  if (width > 0 && height > 0) {
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+  }
+}
+
+function fitCamera(maxDim) {
+  if (!camera || !controls) return;
+  currentMaxDim = Math.max(maxDim || 10, 6);
+  const dist = currentMaxDim * 1.5;
+  camera.position.set(dist * 0.75, dist * 0.72, dist * 0.75);
+  controls.target.set(0, 0, 0);
+  controls.update();
+}
+
+function set3DAngle(type) {
+  if (!camera || !controls) return;
+  const dist = currentMaxDim * 1.5;
+  if (type === 'iso') {
+    camera.position.set(dist * 0.75, dist * 0.72, dist * 0.75);
+    controls.target.set(0, 0, 0);
+  } else if (type === 'top') {
+    camera.position.set(0.001, dist * 1.6, 0.001);
+    controls.target.set(0, 0, 0);
+  } else if (type === 'reset') {
+    fitCamera(currentMaxDim);
+  }
+  controls.update();
+}
+
+async function load3DModel(key) {
+  if (!key) return;
+  init3D();
+  on3DResize();
+
+  if (modelCache.has(key)) {
+    const cached = modelCache.get(key);
+    if (currentModel && scene3d) scene3d.remove(currentModel);
+    currentModel = cached.model;
+    scene3d.add(currentModel);
+    if ($('btn-3d-blend')) $('btn-3d-blend').href = cached.blend_url || '#';
+    if ($('btn-3d-glb')) $('btn-3d-glb').href = cached.glb_url || '#';
+    fitCamera(cached.maxDim);
+    if ($('canvas-3d-loading')) $('canvas-3d-loading').style.display = 'none';
+    return;
+  }
+
+  if ($('canvas-3d-loading')) {
+    $('canvas-3d-loading').style.display = 'flex';
+    $('canvas-3d-loading-text').textContent = 'Loading 3D Digital Twin geometry...';
+  }
+
+  try {
+    const data = await api('/api/digital_twin/' + encodeURIComponent(key));
+    if (!data.glb_url) throw new Error('GLB model not generated');
+
+    if ($('btn-3d-blend')) $('btn-3d-blend').href = data.blend_url || '#';
+    if ($('btn-3d-glb')) $('btn-3d-glb').href = data.glb_url || '#';
+
+    const loader = new THREE.GLTFLoader();
+    loader.load(data.glb_url, (gltf) => {
+      const obj = gltf.scene;
+
+      const box = new THREE.Box3().setFromObject(obj);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.z, size.y);
+
+      obj.position.x -= center.x;
+      obj.position.y -= box.min.y;
+      obj.position.z -= center.z;
+
+      obj.traverse((child) => {
+        if (child.isMesh && child.material) {
+          if (child.name.includes('Cable') || child.name.includes('Led') || child.name.includes('Ring')) {
+            if (child.material.emissive) child.material.emissiveIntensity = 1.2;
+          }
+        }
+      });
+
+      if (currentModel && scene3d) scene3d.remove(currentModel);
+      currentModel = obj;
+      scene3d.add(obj);
+
+      modelCache.set(key, { model: obj, maxDim, blend_url: data.blend_url, glb_url: data.glb_url });
+      fitCamera(maxDim);
+      if ($('canvas-3d-loading')) $('canvas-3d-loading').style.display = 'none';
+    }, undefined, (err) => {
+      if ($('canvas-3d-loading-text')) {
+        $('canvas-3d-loading-text').textContent = 'Error loading 3D model: ' + err.message;
+      }
+    });
+  } catch (err) {
+    if ($('canvas-3d-loading-text')) {
+      $('canvas-3d-loading-text').textContent = 'Failed to load 3D twin: ' + err.message;
+    }
+  }
+}
+
+if ($('view-mode-2d')) $('view-mode-2d').onclick = () => setCanvasMode('2d');
+if ($('view-mode-3d')) $('view-mode-3d').onclick = () => setCanvasMode('3d');
+if ($('btn-twin-modal')) $('btn-twin-modal').onclick = () => setCanvasMode('3d');
+
+if ($('btn-3d-autorotate')) {
+  $('btn-3d-autorotate').onclick = () => {
+    autoRotate = !autoRotate;
+    $('btn-3d-autorotate').classList.toggle('active', autoRotate);
+  };
+}
+if ($('btn-3d-iso')) $('btn-3d-iso').onclick = () => set3DAngle('iso');
+if ($('btn-3d-top')) $('btn-3d-top').onclick = () => set3DAngle('top');
+if ($('btn-3d-reset')) $('btn-3d-reset').onclick = () => set3DAngle('reset');
+

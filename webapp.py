@@ -165,7 +165,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length",str(len(body)))
         self.send_header("Cache-Control","no-store")
         self.send_header("X-Content-Type-Options","nosniff")
-        self.send_header("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; object-src 'none'; frame-ancestors 'none'")
+        self.send_header("Content-Security-Policy","default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'none'")
         self.end_headers()
         self.wfile.write(body)
 
@@ -195,10 +195,70 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond({"ok":True,"message":"Server shutting down"})
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return
-            elif path in ("/", "/app.js", "/style.css"):
-                name = {"/":"index.html", "/app.js":"app.js", "/style.css":"style.css"}[path]
-                mime = {"index.html":"text/html", "app.js":"text/javascript", "style.css":"text/css"}[name]
-                self.respond((ROOT/"web"/name).read_bytes(),mime=mime)
+            elif path.startswith("/api/digital_twin/"):
+                plan_key = path.rsplit("/", 1)[-1]
+                with LOCK:
+                    item = CATALOG.get(plan_key)
+                    if not item:
+                        raise KeyError("Plan not found in catalog")
+                    raw = item["raw"]
+                    solution = item.get("solution")
+
+                from tools.blender_bridge import generate_blender_twin
+                plan_id = str(item.get("id", plan_key)).strip()
+                out_blend = ROOT / "results" / f"twin_{plan_id}.blend"
+                out_glb = ROOT / "results" / f"twin_{plan_id}.glb"
+                out_render = ROOT / "results" / f"twin_{plan_id}.png"
+                out_top = ROOT / "results" / f"twin_{plan_id}_top.png"
+
+                # Instant response if already cached
+                if not out_glb.exists() or not out_blend.exists():
+                    res = generate_blender_twin(
+                        plan_source=raw,
+                        output_blend_path=out_blend,
+                        solution_path=solution,
+                        export_glb=True,
+                        glb_path=out_glb,
+                    )
+
+                self.respond({
+                    "ok": True,
+                    "plan_id": plan_id,
+                    "blend_url": f"/results/twin_{plan_id}.blend" if out_blend.exists() else None,
+                    "glb_url": f"/results/twin_{plan_id}.glb" if out_glb.exists() else None,
+                    "render_url": f"/results/twin_{plan_id}.png" if out_render.exists() else None,
+                    "top_render_url": f"/results/twin_{plan_id}_top.png" if out_top.exists() else None,
+                })
+            elif path.startswith("/results/"):
+                file_path = ROOT / path.lstrip("/")
+                if file_path.is_file():
+                    ext = file_path.suffix.lower()
+                    mime = {
+                        ".png": "image/png",
+                        ".blend": "application/x-blender",
+                        ".glb": "model/gltf-binary",
+                        ".json": "application/json",
+                    }.get(ext, "application/octet-stream")
+                    self.respond(file_path.read_bytes(), mime=mime)
+                else:
+                    self.respond({"error": "File not found"}, 404)
+            elif path in ("/", "/app.js", "/style.css") or path.startswith("/vendor/"):
+                rel = "index.html" if path == "/" else path.lstrip("/")
+                file_path = (ROOT / "web" / rel).resolve()
+                web_dir = (ROOT / "web").resolve()
+                if file_path.is_file() and (web_dir in file_path.parents or file_path == web_dir / "index.html"):
+                    ext = file_path.suffix.lower()
+                    mime = {
+                        ".html": "text/html",
+                        ".js": "text/javascript",
+                        ".css": "text/css",
+                        ".json": "application/json",
+                        ".svg": "image/svg+xml",
+                        ".png": "image/png",
+                    }.get(ext, "application/octet-stream")
+                    self.respond(file_path.read_bytes(), mime=mime)
+                else:
+                    self.respond({"error": "File not found"}, 404)
             else:
                 self.respond({"error":"Not found"},404)
         except KeyError:

@@ -22,7 +22,6 @@ class WebAppCompatibilityTests(unittest.TestCase):
             self.assertEqual(item["rooms"], 10)
             self.assertTrue("solution" in item)
 
-
     def test_solve_bounded_clearance_profiles(self):
         import json
         from pathlib import Path
@@ -30,13 +29,11 @@ class WebAppCompatibilityTests(unittest.TestCase):
         from shapely.geometry import LineString
         root = Path(__file__).resolve().parents[1]
         sample = json.loads((root / "sample_plan.json").read_text(encoding="utf-8"))
-        
-        # Test existing profile: wire_clearance = 0
+
         res0 = solve_bounded(sample, wire_clearance=0.0)
         self.assertTrue(res0["ok"])
         self.assertEqual(res0["output"]["solver"]["wire_clearance_m"], 0.0)
-        
-        # Test extra profile: wire_clearance = 0.5
+
         res5 = solve_bounded(sample, wire_clearance=0.5)
         self.assertTrue(res5["ok"])
         self.assertEqual(res5["output"]["solver"]["wire_clearance_m"], 0.5)
@@ -45,6 +42,18 @@ class WebAppCompatibilityTests(unittest.TestCase):
         measured = min(l.distance(p5.barriers) for l in lines)
         self.assertGreaterEqual(measured, 0.5 - 0.001)
 
+    def test_digital_twin_cache_and_vendor_assets(self):
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+
+        self.assertTrue((root / "web" / "vendor" / "three.min.js").is_file())
+        self.assertTrue((root / "web" / "vendor" / "OrbitControls.js").is_file())
+        self.assertTrue((root / "web" / "vendor" / "GLTFLoader.js").is_file())
+
+        glbs = list((root / "results").glob("twin_*.glb"))
+        self.assertGreaterEqual(len(glbs), 10, "Expected pre-cached GLB models for instant loading")
+
 
 if __name__ == "__main__":
     unittest.main()
+
