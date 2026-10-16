@@ -7,7 +7,7 @@ async function api(path,body){const response=await fetch(path,body?{method:'POST
 function notice(text,kind=''){const n=$('notice');if(n){n.textContent=text;n.className='notice '+kind}}
 function visible(){const query=$('search').value.toLowerCase();return catalog.filter(p=>(p.name+' '+p.description).toLowerCase().includes(query)&&(filter==='all'||(filter==='test')===(p.source==='Synthetic test')))}
 function library(){$('count').textContent=catalog.length;$('plans').replaceChildren();visible().forEach(p=>{const b=dom('button','plan'+(p.key===selected?' active':''));b.disabled=busy;b.setAttribute('aria-current',String(p.key===selected));b.append(dom('span','plan-icon','⌑'));const text=dom('span');text.append(dom('span','plan-title',p.name),dom('small','',`${p.rooms} rooms · ${p.source}`));b.append(text);if(history.some(h=>h.key===p.key&&h.ok&&h.profile_valid!==false))b.append(dom('span','plan-dot','✓'));b.onclick=()=>choose(p.key);$('plans').append(b)});if(!visible().length)$('plans').append(dom('p','muted','No plans match your search.'))}
-function clearResult(){result=null;['h','j','l','x','o','b','latency'].forEach(k=>$('metric-'+k)&&($('metric-'+k).textContent='—'));$('download').disabled=true;$('play').disabled=true;$('save-svg').disabled=true;$('zones').replaceChildren(dom('p','muted','Generate rings to inspect each zone’s capacity and visiting order.'));$('score-bar').replaceChildren();$('proof-title').textContent='Geometry first';$('proof').textContent='Every output is checked before it appears as a valid design.';$('status').textContent='READY';$('status').className='pill';$('canvas-label').textContent='INPUT GEOMETRY';$('facts').replaceChildren()}
+function clearResult(){result=null;['h','j','l','x','o','b','latency'].forEach(k=>$('metric-'+k)&&($('metric-'+k).textContent='—'));$('download').disabled=true;$('play').disabled=true;$('save-svg').disabled=true;$('zones').replaceChildren(dom('p','muted','Generate rings to inspect each zone’s capacity and visiting order.'));$('score-bar').replaceChildren();$('proof-title').textContent='Geometry first';$('proof').textContent='Every output is checked before it appears as a valid design.';$('status').textContent='READY';$('status').className='pill';$('canvas-label').textContent='INPUT GEOMETRY';$('facts').replaceChildren();if(typeof stopTrace3D==='function')stopTrace3D();if(routesGroup)routesGroup.clear();if(typeof update3DLabels==='function')update3DLabels();}
 async function choose(key){setCanvasMode('2d');const version=++selectionVersion;selected=key;plan=null;clearResult();library();const item=catalog.find(p=>p.key===key);$('title').textContent=item?item.name:key;$('description').textContent=item?item.description:'';$('solve').disabled=true;$('empty').hidden=false;$('map').replaceChildren();$('rooms').replaceChildren();$('warnings').replaceChildren();notice('Loading floor-plan geometry…');try{const value=await api('/api/plan/'+key);if(version!==selectionVersion)return;plan=value;const [x0,y0,x1,y1]=plan.bounds,pad=Math.max(x1-x0,y1-y0)*.1;baseView=[x0-pad,-y1-pad,x1-x0+2*pad,y1-y0+2*pad];view=[...baseView];draw();inputDetails();$('solve').disabled=busy;if(value.solution){const solTime=value.solution.solver?.elapsed_s??value.solution.elapsed_s??null;showResult({ok:true,output:value.solution,solver_time_s:solTime,elapsed_s:solTime});notice(`${item?item.source:'Solution'} · Solution routes loaded · ${plan.rooms.filter(r=>r.node).length} fixed nodes · source coordinates preserved.`,'success')}else{notice(`${item?item.source:'Plan'} · ${plan.rooms.filter(r=>r.node).length} fixed nodes · source coordinates preserved.`)}}catch(e){if(version!==selectionVersion)return;notice(e.message,'error');$('empty').textContent='Input could not be loaded';warnings([{rule:'input',message:e.message}])}}
 function pathData(g){if(!g)return '';if(g.type==='Polygon')return g.coordinates.map(r=>r.map((p,i)=>(i?'L':'M')+p[0]+','+(-p[1])).join(' ')+'Z').join(' ');if(g.type==='MultiPolygon')return g.coordinates.map(c=>pathData({type:'Polygon',coordinates:c})).join(' ');if(g.type==='GeometryCollection')return g.geometries.map(pathData).join(' ');return ''}
 function polygon(parent,g,fill,opacity=1){const d=pathData(g);if(d)parent.append(el('path',{d,fill,opacity,'fill-rule':'evenodd'}))}
@@ -20,7 +20,7 @@ function inputDetails(){warnings(plan.warnings);$('provenance').textContent='Nod
 function showResult(value){result=value;const out=value.output,s=out.solver||{};const hubs=out.hubs||[];const calcLength=hubs.reduce((acc,h)=>(h.route_segments||[]).reduce((a,sg)=>a+(sg.length_m||0),acc),0);const m=out.reported_metrics||{hub_count:hubs.length,total_cost_J:calcLength,total_length_m:calcLength,total_crossings:0,total_overlap_m:0,total_bends:0};const solverSec=s.elapsed_s??value.solver_time_s??value.solve_time_s??(s.latency_ms?s.latency_ms/1000:null);const latencyDisplay=solverSec!=null?(Number(solverSec)<0.01&&Number(solverSec)>0?(Number(solverSec)*1000).toFixed(0)+' ms':Number(solverSec).toFixed(3)+' s'):(value.elapsed_s!=null?Number(value.elapsed_s).toFixed(2)+' s':'—');[['h',m.hub_count],['j',Number(m.total_cost_J??0).toFixed(2)],['l',Number(m.total_length_m??0).toFixed(2)],['x',m.total_crossings??0],['o',Number(m.total_overlap_m??0).toFixed(2)],['b',m.total_bends??0]].forEach(([k,v])=>$('metric-'+k)&&($('metric-'+k).textContent=v));$('status').textContent='VALIDATED';$('status').className='pill valid';$('canvas-label').textContent='VERIFIED ROUTES';$('proof-title').textContent=s.hub_count_proven?'Minimum hub count matched':'Valid design with extra hubs';$('proof').textContent=`Capacity bound ${plan.capacity_lower_bound} · graph partition minimum ${s.minimum_hubs??hubs.length}. Tried ${(s.attempted_hub_counts || [m.hub_count]).join(', ')} hubs. ${s.hub_count_proven?'Hub count is proven for the constructed graph.':'Minimum-hub routes were not found with this candidate search.'} Cable cost remains heuristic.`;
 $('zones').replaceChildren();out.hubs.forEach((h,i)=>{const area=h.assigned_rooms.reduce((sum,id)=>sum+plan.rooms.find(r=>r.id===id).area,0),card=dom('article','zone'),head=dom('label','zone-head'),check=dom('input');check.type='checkbox';check.checked=true;check.onchange=()=>document.querySelector(`[data-ring="${i}"]`).setAttribute('opacity',check.checked?1:.08);head.append(check,dom('span','',h.hub_id),dom('small','',h.assigned_nodes.length+' / 5 nodes'));head.style.color=colors[i%colors.length];const bar=dom('div','bar'),fill=dom('i');fill.style.width=Math.min(100,area)+'%';fill.style.background=colors[i%colors.length];bar.append(fill);card.append(head,dom('p','',h.closed_sequence.join(' → ')),bar,dom('small','',`${area.toFixed(1)} / 100 m² · ${h.ring_length_m.toFixed(2)} m cable`));$('zones').append(card)});
 $('facts').replaceChildren();[['Wire clearance',Number(s.wire_clearance_m ?? $('profile').value).toFixed(1)+' m required'],['Measured minimum',value.measured_clearance_m==null?'No wall/window':value.measured_clearance_m.toFixed(3)+' m'],['Solver latency',latencyDisplay],['Area gap',Number(s.area_gap_m2 ?? 0).toFixed(2)+' m²'],['Coordinates','Source origin / metres']].forEach(([k,v])=>{const d=dom('div');d.append(dom('span','',k),dom('b','',v));$('facts').append(d)});
-const costs=[m.total_length_m,5*m.total_crossings,m.total_overlap_m,.5*m.total_bends],bar=dom('div','cost-bars'),labels=dom('div','cost-labels');costs.forEach((v,i)=>{const part=dom('i');part.style.width=(m.total_cost_J?v/m.total_cost_J*100:0)+'%';part.style.background=colors[i];part.title=['Length','Crossings','Overlap','Bends'][i]+': '+v.toFixed(2);bar.append(part);labels.append(dom('span','',['L','5X','O','½B'][i]+' '+v.toFixed(1)))});$('score-bar').replaceChildren(bar,labels);const alerts=[...(out.warnings||out.validation?.warnings||plan.warnings||[])];const actual=value.measured_clearance_m,required=Number(s.wire_clearance_m ?? $('profile').value);const clearanceFailed=actual!=null&&actual<required-.001;if(clearanceFailed)alerts.push({rule:'wire_clearance',message:`This backend returned a wire ${actual.toFixed(3)} m from a wall/window; the selected profile requires ${required.toFixed(3)} m.`});warnings(alerts);draw();$('download').disabled=false;$('play').disabled=false;$('save-svg').disabled=false;notice(`Validated in ${latencyDisplay}. Every node is covered and every route passes the configured geometry checks.`,'success');if(clearanceFailed){$('status').textContent='CLEARANCE ISSUE';$('canvas-label').textContent='INSPECTION ONLY';$('status').className='pill failed';$('download').disabled=true;notice(`The route is shown for inspection, but wires pass within ${actual.toFixed(3)} m of a wall/door. Switch profile to "Slide rules" to export.`,'error')}}
+const costs=[m.total_length_m,5*m.total_crossings,m.total_overlap_m,.5*m.total_bends],bar=dom('div','cost-bars'),labels=dom('div','cost-labels');costs.forEach((v,i)=>{const part=dom('i');part.style.width=(m.total_cost_J?v/m.total_cost_J*100:0)+'%';part.style.background=colors[i];part.title=['Length','Crossings','Overlap','Bends'][i]+': '+v.toFixed(2);bar.append(part);labels.append(dom('span','',['L','5X','O','½B'][i]+' '+v.toFixed(1)))});$('score-bar').replaceChildren(bar,labels);const alerts=[...(out.warnings||out.validation?.warnings||plan.warnings||[])];const actual=value.measured_clearance_m,required=Number(s.wire_clearance_m ?? $('profile').value);const clearanceFailed=actual!=null&&actual<required-.001;if(clearanceFailed)alerts.push({rule:'wire_clearance',message:`This backend returned a wire ${actual.toFixed(3)} m from a wall/window; the selected profile requires ${required.toFixed(3)} m.`});warnings(alerts);draw();$('download').disabled=false;$('play').disabled=false;$('save-svg').disabled=false;notice(`Validated in ${latencyDisplay}. Every node is covered and every route passes the configured geometry checks.`,'success');if(clearanceFailed){$('status').textContent='CLEARANCE ISSUE';$('canvas-label').textContent='INSPECTION ONLY';$('status').className='pill failed';$('download').disabled=true;notice(`The route is shown for inspection, but wires pass within ${actual.toFixed(3)} m of a wall/door. Switch profile to "Slide rules" to export.`,'error');}if(typeof update3DRoutes==='function')update3DRoutes();if(typeof update3DLabels==='function')update3DLabels();}
 function setBusy(value){busy=value;['solve','batch','upload'].forEach(id=>{const el=$(id);if(el)el.disabled=value||(!plan&&id==='solve')});$('profile')?.querySelectorAll('.profile-btn').forEach(b=>b.disabled=value);$('solve').textContent=value?'Solving…':'Generate cable rings ↗';library()}
 async function run(key){clearResult();draw();const profile=Number($('profile').value),limit=Number($('budget')?.value||30),enhanced=Boolean($('enhanced')?.checked),start=performance.now();notice('Searching connected zones and clearance-safe routes…','busy');$('status').textContent='RUNNING';try{const {job_id}=await api('/api/solve',{key,wire_clearance:profile,timeout:limit,enhanced});let value;do{if(performance.now()-start>(limit+15)*1000)throw Error('The server has not finished within the time budget. Check that you are running the current server.');await new Promise(r=>setTimeout(r,450));value=await api('/api/jobs/'+job_id);if(value.status!=='done')notice(`Searching routes · ${((performance.now()-start)/1000).toFixed(0)} s elapsed`,'busy')}while(value.status!=='done');const solverSec=value.output?.solver?.elapsed_s??value.solver_time_s??value.solve_time_s;if(solverSec!=null)value.solver_time_s=solverSec;value.network_elapsed_s=(performance.now()-start)/1000;value.profile_valid=value.ok&&(value.measured_clearance_m==null||value.measured_clearance_m>=profile-.001);history.unshift({key,name:catalog.find(p=>p.key===key).name,profile,...value});renderHistory();if(value.ok)showResult(value);else{notice(value.error,'error');$('status').textContent='NOT SOLVED';$('status').className='pill failed';$('proof-title').textContent='No valid design emitted';$('proof').textContent=value.error;warnings([...(plan?.warnings||[]),{rule:'routing',message:value.error}])}return value}catch(e){notice(e.message,'error');$('status').textContent='ERROR';$('status').className='pill failed';history.unshift({key,name:catalog.find(p=>p.key===key).name,profile,ok:false,error:e.message,elapsed_s:(performance.now()-start)/1000});renderHistory();return {ok:false}}}
 function renderHistory(){$('history').replaceChildren();history.forEach(h=>{const row=dom('tr'),name=dom('td'),link=dom('button','text-button',h.name);link.onclick=async()=>{if(busy)return;$('profile').value=String(h.profile);await choose(h.key);if(plan&&h.ok)showResult(h);else if(h.error){notice(h.error,'error');$('status').textContent='NOT SOLVED';$('status').className='pill failed';$('proof-title').textContent='No valid design emitted';$('proof').textContent=h.error;warnings([...(plan?.warnings||[]),{rule:'routing',message:h.error}])}};name.append(link);name.append(dom('small','',h.profile===.5?'0.5 m clearance':'Slide rules'));row.title=h.error||'Validated for the selected profile';const m=h.output?.reported_metrics;const histTime=h.output?.solver?.elapsed_s??h.solver_time_s??h.elapsed_s;const histTimeStr=histTime!=null?(Number(histTime)<0.01&&Number(histTime)>0?(Number(histTime)*1000).toFixed(0)+' ms':Number(histTime).toFixed(3)+' s'):'—';row.append(name,...[h.profile_valid===false&&h.ok?'Clearance issue':h.ok?'✓ Valid':'Issue',m?.hub_count??'—',m?.total_cost_J.toFixed(2)??'—',histTimeStr].map(v=>dom('td','',v)));$('history').append(row)})}
@@ -31,9 +31,9 @@ $('upload').onchange=async e=>{try{const files=[...e.target.files];if(files.leng
 $('search').oninput=library;document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(n=>n.classList.toggle('active',n===b));library()});
 $('download').onclick=()=>result&&download(result.output,'sutrayana-result.json');$('export-history').onclick=()=>download({generated_at:new Date().toISOString(),scope:'Local runs; not a hidden-benchmark score',runs:history},'sutrayana-run-report.json');
 const pEl=$('profile');if(pEl){let curVal='0';pEl.dataset.value=curVal;Object.defineProperty(pEl,'value',{get(){return pEl.dataset.value||curVal},set(v){curVal=String(Number(v)===.5?.5:0);pEl.dataset.value=curVal;pEl.querySelectorAll('.profile-btn').forEach(b=>{const m=b.dataset.value===curVal;b.classList.toggle('active',m);b.setAttribute('aria-checked',String(m))})}});pEl.querySelectorAll('.profile-btn').forEach(b=>{b.onclick=()=>{if(busy||pEl.value===b.dataset.value)return;pEl.value=b.dataset.value;if(typeof pEl.onchange==='function')pEl.onchange()}})}
-$('profile').onchange=()=>{clearResult();draw();if(plan)inputDetails();notice('Routing profile changed. Generate again to score this configuration.')};$('clearance').onchange=draw;$('labels').onchange=draw;
+$('profile').onchange=()=>{clearResult();draw();if(plan)inputDetails();notice('Routing profile changed. Generate again to score this configuration.')};$('clearance').onchange=draw;$('labels').onchange=()=>{draw();if(labelsGroup)labelsGroup.visible=Boolean($('labels').checked)};
 function zoom(factor){if(!view)return;const [x,y,w,h]=view;view=[x+w*(1-factor)/2,y+h*(1-factor)/2,w*factor,h*factor];applyView()}
-$('zoom-in').onclick=()=>zoom(.8);$('zoom-out').onclick=()=>zoom(1.25);$('fit').onclick=()=>{if(baseView){view=[...baseView];applyView()}};$('play').onclick=()=>{$('map').classList.remove('tracing');void $('map').getBoundingClientRect();$('map').classList.add('tracing')};$('map').addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?1.1:.9)},{passive:false});let drag=null;$('map').onpointerdown=e=>{if(view){drag={x:e.clientX,y:e.clientY,view:[...view]};$('map').setPointerCapture(e.pointerId)}};$('map').onpointermove=e=>{if(!drag)return;const rect=$('map').getBoundingClientRect(),scale=Math.max(drag.view[2]/rect.width,drag.view[3]/rect.height);view=[drag.view[0]-(e.clientX-drag.x)*scale,drag.view[1]-(e.clientY-drag.y)*scale,...drag.view.slice(2)];applyView()};$('map').onpointerup=$('map').onpointercancel=()=>drag=null;
+$('zoom-in').onclick=()=>zoom(.8);$('zoom-out').onclick=()=>zoom(1.25);$('fit').onclick=()=>{if(baseView){view=[...baseView];applyView()}};$('play').onclick=()=>{if(canvasMode==='3d'){playTrace3D()}else{$('map').classList.remove('tracing');void $('map').getBoundingClientRect();$('map').classList.add('tracing')}};$('map').addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?1.1:.9)},{passive:false});let drag=null;$('map').onpointerdown=e=>{if(view){drag={x:e.clientX,y:e.clientY,view:[...view]};$('map').setPointerCapture(e.pointerId)}};$('map').onpointermove=e=>{if(!drag)return;const rect=$('map').getBoundingClientRect(),scale=Math.max(drag.view[2]/rect.width,drag.view[3]/rect.height);view=[drag.view[0]-(e.clientX-drag.x)*scale,drag.view[1]-(e.clientY-drag.y)*scale,...drag.view.slice(2)];applyView()};$('map').onpointerup=$('map').onpointercancel=()=>drag=null;
 api('/api/plans').then(async data=>{const stamp=++catalogVersion;if(stamp!==catalogVersion)return;catalog=data;library();if(data.length){const preferred=data.find(p=>p.name==='Open-plan studio')?.key||data[0].key;await choose(preferred);}else notice('No plans found. Import JSON to begin.')}).catch(e=>notice('Cannot reach the local solver: '+e.message,'error'));
 
 $('save-svg').onclick=()=>{if(!result)return;const copy=$('map').cloneNode(true);copy.setAttribute('xmlns',NS);copy.setAttribute('viewBox',baseView.join(' '));copy.setAttribute('width','1400');copy.setAttribute('height',String(Math.round(1400*baseView[3]/baseView[2])));copy.classList.remove('tracing');copy.querySelectorAll('[data-ring]').forEach(g=>g.setAttribute('opacity','1'));const title=el('title',{},'SutraYana / '+plan.id+' / '+result.output.reported_metrics.hub_count+' hubs / J '+result.output.reported_metrics.total_cost_J.toFixed(2));copy.prepend(title);const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml'}));const a=dom('a');a.href=url;a.download='sutrayana-overlay.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
@@ -42,6 +42,16 @@ let renderer = null, scene3d = null, camera = null, controls = null;
 let currentModel = null, autoRotate = false, modelCache = new Map();
 let canvasMode = '2d';
 let currentMaxDim = 15;
+let labelsGroup = null;
+let routesGroup = null;
+let tracePulsesGroup = null;
+let threeDOverlay = null;
+let isTracing3D = false;
+let traceStartTime = 0;
+let traceSplines = [];
+let traceTimeout = null;
+
+const ringColors = ['#00e5ff', '#ffb300', '#f43f5e', '#38bdf8', '#a855f7', '#22c55e'];
 
 function setCanvasMode(mode) {
   canvasMode = mode;
@@ -51,6 +61,7 @@ function setCanvasMode(mode) {
     if ($('view-mode-2d')) $('view-mode-2d').classList.add('active');
     if ($('view-mode-3d')) $('view-mode-3d').classList.remove('active');
     if ($('canvas-caption')) $('canvas-caption').innerHTML = 'METRES · Y UP <span>Scroll to zoom · Drag to pan</span>';
+    stopTrace3D();
   } else {
     if ($('map')) $('map').style.display = 'none';
     if ($('canvas-3d')) $('canvas-3d').style.display = 'block';
@@ -65,6 +76,311 @@ function setCanvasMode(mode) {
   }
 }
 
+function makeTextSprite(message, opts = {}) {
+  const {
+    textColor = '#ffffff',
+    backgroundColor = 'rgba(12, 20, 16, 0.92)',
+    borderColor = 'rgba(94, 234, 212, 0.6)',
+    borderWidth = 2,
+    fontSize = 28,
+    fontFamily = "'Segoe UI', system-ui, -apple-system, sans-serif",
+    fontWeight = '600',
+    paddingX = 18,
+    paddingY = 10,
+    radius = 10,
+    scaleFactor = 0.0035,
+  } = opts;
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const fontStr = `${fontWeight} ${fontSize}px ${fontFamily}`;
+  ctx.font = fontStr;
+
+  const textWidth = ctx.measureText(message).width;
+  const w = Math.ceil(textWidth + paddingX * 2);
+  const h = Math.ceil(fontSize + paddingY * 2);
+
+  const dpr = 2;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+
+  // Background rounded rectangle
+  ctx.fillStyle = backgroundColor;
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = borderWidth;
+  ctx.beginPath();
+  const r = Math.min(radius, h / 2, w / 2);
+  ctx.moveTo(r, 0);
+  ctx.lineTo(w - r, 0);
+  ctx.quadraticCurveTo(w, 0, w, r);
+  ctx.lineTo(w, h - r);
+  ctx.quadraticCurveTo(w, h, w - r, h);
+  ctx.lineTo(r, h);
+  ctx.quadraticCurveTo(0, h, 0, h - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fill();
+  if (borderWidth > 0) {
+    ctx.stroke();
+  }
+
+  // Draw text
+  ctx.font = fontStr;
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(message, w / 2, h / 2 + 1);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+
+  const spriteMaterial = new THREE.SpriteMaterial({
+    map: texture,
+    depthTest: false,
+    transparent: true,
+  });
+
+  const sprite = new THREE.Sprite(spriteMaterial);
+  sprite.renderOrder = 999;
+  sprite.scale.set(w * scaleFactor, h * scaleFactor, 1);
+  return sprite;
+}
+
+function update3DLabels() {
+  if (!labelsGroup) return;
+  labelsGroup.clear();
+
+  const showLabels = $('labels') ? $('labels').checked : true;
+  labelsGroup.visible = Boolean(showLabels);
+  if (!showLabels || !plan) return;
+
+  // 1. Hub labels
+  if (result && result.output && result.output.hubs) {
+    result.output.hubs.forEach((h, i) => {
+      const col = ringColors[i % ringColors.length];
+      const hubSprite = makeTextSprite(`◆ HUB ${h.hub_id}`, {
+        textColor: col,
+        backgroundColor: 'rgba(10, 18, 14, 0.95)',
+        borderColor: col,
+        borderWidth: 2.5,
+        fontSize: 28,
+        fontWeight: '700',
+        paddingX: 18,
+        paddingY: 9,
+        radius: 9,
+        scaleFactor: 0.0038,
+      });
+      hubSprite.position.set(h.location.x, 1.15, -h.location.y);
+      labelsGroup.add(hubSprite);
+    });
+  }
+
+  // 2. Fixed Node labels (terminals)
+  (plan.rooms || []).filter(r => r.node && r.node_id).forEach(r => {
+    let hubIdx = -1;
+    let visitStr = '';
+    if (result && result.output && result.output.hubs) {
+      hubIdx = result.output.hubs.findIndex(h => h.assigned_rooms && h.assigned_rooms.includes(r.id));
+      if (hubIdx >= 0) {
+        const hub = result.output.hubs[hubIdx];
+        const seqIdx = hub.closed_sequence ? hub.closed_sequence.indexOf(r.node_id) : -1;
+        if (seqIdx >= 0) {
+          visitStr = ` · #${seqIdx}`;
+        }
+      }
+    }
+    const col = hubIdx >= 0 ? ringColors[hubIdx % ringColors.length] : '#34d399';
+    const nodeSprite = makeTextSprite(`● ${r.node_id}${visitStr}`, {
+      textColor: '#ffffff',
+      backgroundColor: 'rgba(10, 18, 14, 0.92)',
+      borderColor: col,
+      borderWidth: 2,
+      fontSize: 26,
+      fontWeight: '700',
+      paddingX: 14,
+      paddingY: 8,
+      radius: 8,
+      scaleFactor: 0.0035,
+    });
+    nodeSprite.position.set(r.node[0], 0.45, -r.node[1]);
+    labelsGroup.add(nodeSprite);
+  });
+
+  // 3. Room place names & areas
+  (plan.rooms || []).filter(r => r.label).forEach(r => {
+    const roomSprite = makeTextSprite(`📍 ${r.id} · ${r.area.toFixed(1)} m²`, {
+      textColor: '#e2e8f0',
+      backgroundColor: 'rgba(16, 26, 21, 0.88)',
+      borderColor: 'rgba(94, 234, 212, 0.45)',
+      borderWidth: 1.5,
+      fontSize: 23,
+      fontWeight: '600',
+      paddingX: 14,
+      paddingY: 7,
+      radius: 7,
+      scaleFactor: 0.0032,
+    });
+    roomSprite.position.set(r.label[0], 0.85, -r.label[1]);
+    labelsGroup.add(roomSprite);
+  });
+}
+
+function update3DRoutes() {
+  if (!routesGroup) return;
+  routesGroup.clear();
+
+  if (!result || !result.output || !result.output.hubs) return;
+
+  result.output.hubs.forEach((h, i) => {
+    const col = ringColors[i % ringColors.length];
+    const conduitMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(col),
+      emissive: new THREE.Color(col),
+      emissiveIntensity: 0.95,
+      roughness: 0.2,
+      metalness: 0.1,
+    });
+    const racewayMat = new THREE.MeshStandardMaterial({
+      color: 0x0a120e,
+      roughness: 0.8,
+      metalness: 0.4,
+    });
+
+    (h.route_segments || []).forEach(seg => {
+      const pts = (seg.polyline || []).map(p => new THREE.Vector3(p[0], 0.045, -p[1]));
+      if (pts.length >= 2) {
+        const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.0);
+
+        // Glowing cable conduit
+        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 3, 8), 0.045, 8, false);
+        const tubeMesh = new THREE.Mesh(tubeGeo, conduitMat);
+        routesGroup.add(tubeMesh);
+
+        // Dark raceway contrast underlay
+        const racewayGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 3, 8), 0.065, 8, false);
+        const racewayMesh = new THREE.Mesh(racewayGeo, racewayMat);
+        racewayMesh.position.y = -0.012;
+        routesGroup.add(racewayMesh);
+      }
+    });
+  });
+}
+
+function startTrace3D() {
+  if (!result || !result.output || !result.output.hubs || result.output.hubs.length === 0) {
+    notice('No solved routes available to trace. Generate rings first.', 'error');
+    return;
+  }
+  stopTrace3D();
+  isTracing3D = true;
+  traceStartTime = performance.now();
+
+  if ($('btn-3d-trace')) {
+    $('btn-3d-trace').textContent = '⏹ Stop';
+    $('btn-3d-trace').classList.add('active');
+  }
+  if ($('play')) {
+    $('play').textContent = '⏹ Stop';
+  }
+
+  traceSplines = [];
+  result.output.hubs.forEach((h, hIdx) => {
+    const ringPolylines = [];
+    const seq = h.closed_sequence || [];
+    for (let s = 0; s < seq.length - 1; s++) {
+      const fromId = seq[s];
+      const toId = seq[s + 1];
+      let seg = (h.route_segments || []).find(sg => sg.from === fromId && sg.to === toId);
+      let pts;
+      if (seg) {
+        pts = seg.polyline;
+      } else {
+        seg = (h.route_segments || []).find(sg => sg.from === toId && sg.to === fromId);
+        if (seg) {
+          pts = [...seg.polyline].reverse();
+        }
+      }
+      if (pts && pts.length > 0) {
+        if (ringPolylines.length > 0) {
+          ringPolylines.push(...pts.slice(1));
+        } else {
+          ringPolylines.push(...pts);
+        }
+      }
+    }
+
+    if (ringPolylines.length >= 2) {
+      const points3D = ringPolylines.map(p => new THREE.Vector3(p[0], 0.08, -p[1]));
+      const isClosed = points3D[0].distanceTo(points3D[points3D.length - 1]) < 0.2;
+      const curve = new THREE.CatmullRomCurve3(points3D, isClosed, 'centripetal', 0.1);
+      const col = ringColors[hIdx % ringColors.length];
+
+      const pulses = [];
+      const pulseCount = 3;
+      for (let p = 0; p < pulseCount; p++) {
+        const pulseGroup = new THREE.Group();
+
+        // Core bright sphere
+        const coreGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        pulseGroup.add(new THREE.Mesh(coreGeo, coreMat));
+
+        // Outer glowing halo
+        const glowGeo = new THREE.SphereGeometry(0.24, 16, 16);
+        const glowMat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(col),
+          transparent: true,
+          opacity: 0.75,
+        });
+        pulseGroup.add(new THREE.Mesh(glowGeo, glowMat));
+
+        if (tracePulsesGroup) {
+          tracePulsesGroup.add(pulseGroup);
+        }
+        pulses.push(pulseGroup);
+      }
+
+      const ringLength = h.ring_length_m || 25;
+      const speed = Math.max(0.10, Math.min(0.35, 6.0 / ringLength));
+      traceSplines.push({ curve, pulses, speed });
+    }
+  });
+
+  traceTimeout = setTimeout(() => {
+    if (isTracing3D) stopTrace3D();
+  }, 25000);
+
+  notice('Tracing 3D cable circuits · 360° orbit active', 'success');
+}
+
+function stopTrace3D() {
+  isTracing3D = false;
+  traceSplines = [];
+  if (tracePulsesGroup) tracePulsesGroup.clear();
+  if (traceTimeout) {
+    clearTimeout(traceTimeout);
+    traceTimeout = null;
+  }
+  if ($('btn-3d-trace')) {
+    $('btn-3d-trace').textContent = '▶ Trace';
+    $('btn-3d-trace').classList.remove('active');
+  }
+  if ($('play')) {
+    $('play').textContent = '▶ Trace';
+  }
+}
+
+function playTrace3D() {
+  if (isTracing3D) {
+    stopTrace3D();
+  } else {
+    startTrace3D();
+  }
+}
+
 function init3D() {
   const container = $('canvas-3d-viewport');
   if (!container || renderer || typeof THREE === 'undefined') return;
@@ -73,10 +389,10 @@ function init3D() {
   const height = container.clientHeight || 460;
 
   scene3d = new THREE.Scene();
-  scene3d.background = new THREE.Color(0x0e1713);
+  scene3d.background = new THREE.Color(0x0d1410);
 
   // Studio floor grid
-  const grid = new THREE.GridHelper(80, 80, 0x253d30, 0x182820);
+  const grid = new THREE.GridHelper(80, 80, 0x22362a, 0x142018);
   grid.position.y = -0.01;
   scene3d.add(grid);
 
@@ -84,19 +400,23 @@ function init3D() {
   camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
   camera.position.set(16, 14, 18);
 
-  // Lighting setup for architectural visualization
-  const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+  // Lighting setup for balanced architectural visualization
+  const ambient = new THREE.AmbientLight(0xd4e2d8, 0.40);
   scene3d.add(ambient);
 
-  const dirLight1 = new THREE.DirectionalLight(0xfff6ea, 0.85);
-  dirLight1.position.set(25, 40, 25);
+  const hemiLight = new THREE.HemisphereLight(0xedf5f0, 0x142018, 0.50);
+  hemiLight.position.set(0, 50, 0);
+  scene3d.add(hemiLight);
+
+  const dirLight1 = new THREE.DirectionalLight(0xfff5e6, 0.75);
+  dirLight1.position.set(25, 45, 25);
   scene3d.add(dirLight1);
 
-  const dirLight2 = new THREE.DirectionalLight(0xa5c9b2, 0.45);
-  dirLight2.position.set(-25, -15, -20);
+  const dirLight2 = new THREE.DirectionalLight(0x5eead4, 0.25);
+  dirLight2.position.set(-25, 30, -25);
   scene3d.add(dirLight2);
 
-  const dirLight3 = new THREE.DirectionalLight(0x5eead4, 0.25);
+  const dirLight3 = new THREE.DirectionalLight(0xa5c9b2, 0.35);
   dirLight3.position.set(0, -25, 20);
   scene3d.add(dirLight3);
 
@@ -120,6 +440,15 @@ function init3D() {
   controls.maxDistance = 250;
   controls.maxPolarAngle = Math.PI / 2 + 0.05;
 
+  // Root 3D Overlay containers
+  threeDOverlay = new THREE.Group();
+  labelsGroup = new THREE.Group();
+  routesGroup = new THREE.Group();
+  tracePulsesGroup = new THREE.Group();
+  threeDOverlay.add(routesGroup);
+  threeDOverlay.add(tracePulsesGroup);
+  threeDOverlay.add(labelsGroup);
+
   // Animation loop
   function animate() {
     requestAnimationFrame(animate);
@@ -127,6 +456,19 @@ function init3D() {
       controls.autoRotate = autoRotate;
       controls.autoRotateSpeed = 1.8;
       controls.update();
+    }
+    if (isTracing3D && traceSplines.length > 0) {
+      const elapsed = (performance.now() - traceStartTime) / 1000;
+      traceSplines.forEach(({ curve, pulses, speed }) => {
+        pulses.forEach((pulse, idx) => {
+          const offset = idx / pulses.length;
+          const t = ((elapsed * speed) + offset) % 1.0;
+          const pt = curve.getPointAt(t);
+          if (pt) {
+            pulse.position.set(pt.x, pt.y + 0.02, pt.z);
+          }
+        });
+      });
     }
     if (renderer && scene3d && camera) {
       renderer.render(scene3d, camera);
@@ -182,9 +524,14 @@ async function load3DModel(key) {
     const cached = modelCache.get(key);
     if (currentModel && scene3d) scene3d.remove(currentModel);
     currentModel = cached.model;
+    if (threeDOverlay && !currentModel.children.includes(threeDOverlay)) {
+      currentModel.add(threeDOverlay);
+    }
     scene3d.add(currentModel);
     if ($('btn-3d-blend')) $('btn-3d-blend').href = cached.blend_url || '#';
     if ($('btn-3d-glb')) $('btn-3d-glb').href = cached.glb_url || '#';
+    update3DLabels();
+    update3DRoutes();
     fitCamera(cached.maxDim);
     if ($('canvas-3d-loading')) $('canvas-3d-loading').style.display = 'none';
     return;
@@ -218,16 +565,22 @@ async function load3DModel(key) {
       obj.traverse((child) => {
         if (child.isMesh && child.material) {
           if (child.name.includes('Cable') || child.name.includes('Led') || child.name.includes('Ring')) {
-            if (child.material.emissive) child.material.emissiveIntensity = 1.2;
+            if (child.material.emissive) child.material.emissiveIntensity = 1.4;
           }
         }
       });
+
+      if (threeDOverlay) {
+        obj.add(threeDOverlay);
+      }
 
       if (currentModel && scene3d) scene3d.remove(currentModel);
       currentModel = obj;
       scene3d.add(obj);
 
       modelCache.set(key, { model: obj, maxDim, blend_url: data.blend_url, glb_url: data.glb_url });
+      update3DLabels();
+      update3DRoutes();
       fitCamera(maxDim);
       if ($('canvas-3d-loading')) $('canvas-3d-loading').style.display = 'none';
     }, undefined, (err) => {
@@ -255,4 +608,5 @@ if ($('btn-3d-autorotate')) {
 if ($('btn-3d-iso')) $('btn-3d-iso').onclick = () => set3DAngle('iso');
 if ($('btn-3d-top')) $('btn-3d-top').onclick = () => set3DAngle('top');
 if ($('btn-3d-reset')) $('btn-3d-reset').onclick = () => set3DAngle('reset');
+if ($('btn-3d-trace')) $('btn-3d-trace').onclick = () => playTrace3D();
 
