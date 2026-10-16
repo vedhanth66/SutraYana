@@ -85,12 +85,12 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
             if dpoly.is_empty:
                 continue
 
-            # Buffer door by 0.15m to reliably capture wall thickness contacts
-            d_buf = dpoly.buffer(max(0.15 * scale, 2.0))
+            # Buffer door by 0.25m to reliably capture wall thickness contacts
+            d_buf = dpoly.buffer(max(0.25 * scale, 3.5))
 
             # Compute contact metrics with each room to prevent corner-clipping slivers
             # from falsely linking unrelated rooms or blocking open-concept passages
-            min_contact_area = 0.04 * (scale ** 2)
+            min_contact_area = 0.02 * (scale ** 2)
             room_contacts = []
             for rid, rpoly in room_geoms.items():
                 if d_buf.intersects(rpoly):
@@ -116,9 +116,9 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
                         connected_pairs.add(pair_key)
                         d_idx += 1
 
-    # 2. Open-concept passages and adjacent rooms (touching or within 0.15m without barrier)
+    # 2. Open-concept passages and adjacent rooms (touching or within 0.35m without barrier)
     rids = list(room_geoms.keys())
-    prox_thresh = max(0.15 * scale, 2.0)
+    prox_thresh = max(0.35 * scale, 5.0)
     for i in range(len(rids)):
         for j in range(i + 1, len(rids)):
             ra, rb = rids[i], rids[j]
@@ -127,18 +127,22 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
                 continue
             pa, pb = room_geoms[ra], room_geoms[rb]
             
-            # Check contact or proximity within 0.15m
+            # Check contact or proximity within 0.35m
             if pa.intersects(pb) or pa.distance(pb) <= prox_thresh:
                 shared = pa.buffer(prox_thresh).intersection(pb.buffer(prox_thresh))
                 if not shared.is_empty:
                     if barrier is not None and not barrier.is_empty:
                         open_part = shared.difference(barrier)
+                        if open_part.is_empty or open_part.area < 0.02 * (scale ** 2):
+                            # Collinear wall boundary: preserve shared passage between adjacent rooms
+                            if shared.area >= 0.04 * (scale ** 2) or pa.distance(pb) <= 0.25 * scale:
+                                open_part = shared
                     else:
                         open_part = shared
 
                     # Require at least minimal opening width
-                    min_opening_area = 0.05 * (scale ** 2)
-                    if not open_part.is_empty and (open_part.area >= min_opening_area or open_part.length / scale >= 0.3):
+                    min_opening_area = 0.02 * (scale ** 2)
+                    if not open_part.is_empty and (open_part.area >= min_opening_area or open_part.length / scale >= 0.25):
                         pas_poly = open_part.buffer(scale * 0.1) if hasattr(open_part, 'buffer') else open_part
                         doors_data.append({
                             "id": f"D{d_idx:02d}",

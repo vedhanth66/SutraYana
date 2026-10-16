@@ -52,14 +52,27 @@ def process_single_plan_task(args):
         if not eligible_rooms:
             return {"plan_idx": plan_idx, "skipped": True, "reason": "No eligible rooms"}
 
-        # Run complete Phase 1 - 4 pipeline in-memory
-        output_data, total_J, hubs_routed = run_phase4(
-            formatted,
-            show_plot=False,
-            save_img=None,
-            resolution=resolution,
-            verbose=False
-        )
+        # Run complete Phase 1 - 4 pipeline in-memory with automatic 4cm fallback
+        try:
+            output_data, total_J, hubs_routed = run_phase4(
+                formatted,
+                show_plot=False,
+                save_img=None,
+                resolution=resolution,
+                verbose=False
+            )
+        except Exception as e_run:
+            # Gracefully retry at high-precision 4cm resolution if 8cm encountered doorway bottlenecks
+            if resolution > 0.04:
+                output_data, total_J, hubs_routed = run_phase4(
+                    formatted,
+                    show_plot=False,
+                    save_img=None,
+                    resolution=0.04,
+                    verbose=False
+                )
+            else:
+                raise e_run
         dt = time.time() - t0
         rep = output_data["reported_metrics"]
 

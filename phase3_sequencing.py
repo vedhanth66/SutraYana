@@ -151,15 +151,140 @@ def calculate_ring_metrics(polyline_pts, tol_mm=0.001):
     }
 
 
+def get_room_metric_coord(r, G, nodes_dict=None, scale=1.0, pair_paths=None):
+    """
+    Extracts the (x, y) coordinates of a room node strictly in METRES.
+    """
+    if pair_paths is not None and (r, r) in pair_paths and pair_paths[(r, r)]:
+        return pair_paths[(r, r)][0]
+    if nodes_dict is not None and r in nodes_dict:
+        pt = nodes_dict[r]
+        s = scale if scale and scale > 0 else 1.0
+        return (pt.x / s, pt.y / s)
+    if G is not None and G.has_node(r):
+        nd = G.nodes[r]
+        s = scale if scale and scale > 0 else 1.0
+        if "node" in nd and isinstance(nd["node"], dict) and "x" in nd["node"]:
+            return (float(nd["node"]["x"]) / s, float(nd["node"]["y"]) / s)
+        if "centroid" in nd and isinstance(nd["centroid"], dict) and "x" in nd["centroid"]:
+            return (float(nd["centroid"]["x"]) / s, float(nd["centroid"]["y"]) / s)
+    return (0.0, 0.0)
+
+
+def segments_intersect(p1, p2, p3, p4):
+    """
+    Checks if line segment (p1, p2) and line segment (p3, p4) strictly cross each other in 2D.
+    """
+    def ccw(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+    d1 = ccw(p1, p2, p3)
+    d2 = ccw(p1, p2, p4)
+    d3 = ccw(p3, p4, p1)
+    d4 = ccw(p3, p4, p2)
+
+    return ((d1 * d2 < -1e-6) and (d3 * d4 < -1e-6))
+
+
+def count_tour_segment_crossings(sequence, coords_map):
+    """
+    Counts self-intersections among non-adjacent segments of the closed sequence polyline.
+    Non-adjacent intersections guarantee transverse cable crossings and figure-8 paths.
+    """
+    n = len(sequence) - 1
+    if n < 4:
+        return 0
+
+    pts = [coords_map.get(r, (0.0, 0.0)) for r in sequence]
+    crossings = 0
+    for i in range(n):
+        for j in range(i + 2, n):
+            if i == 0 and j == n - 1:
+                continue
+            if segments_intersect(pts[i], pts[i + 1], pts[j], pts[j + 1]):
+                crossings += 1
+    return crossings
+
+
+def calculate_angular_sweep_penalty(sequence, hub_room, coords_map):
+    """
+    Penalizes zigzagging across the apartment by measuring polar angle monotonicity
+    around the Hub (or territory centroid).
+    A smooth circular sweep visits rooms in consistent rotational order (pure perimeter loop).
+    Direction reversals (jumping across the central room and back) incur heavy penalties.
+    """
+    if len(sequence) <= 3:
+        return 0.0
+
+    hx, hy = coords_map.get(hub_room, (0.0, 0.0))
+    non_hub = [r for r in sequence[:-1] if r != hub_room]
+    if len(non_hub) <= 1:
+        return 0.0
+
+    angles = []
+    for r in non_hub:
+        rx, ry = coords_map.get(r, (hx, hy))
+        angles.append(math.atan2(ry - hy, rx - hx))
+
+    # Calculate angular steps between consecutive rooms
+    diffs = []
+    for k in range(len(angles) - 1):
+        d = (angles[k + 1] - angles[k] + math.pi) % (2 * math.pi) - math.pi
+        diffs.append(d)
+
+    # Count sign reversals (jumping back and forth across the center)
+    reversals = 0
+    for k in range(len(diffs) - 1):
+        if diffs[k] * diffs[k + 1] < -1e-4:
+            reversals += 1
+
+    return reversals * 25.0
+
+
+def calculate_doorway_flow_penalty(sequence, G, hub_room):
+    """
+    Factors in doorway connectivity weights and penalizes non-adjacent room leaps
+    or cutting across the central hub room.
+    """
+    if G is None:
+        return 0.0
+
+    hop_penalty = 0.0
+    chord_cut_penalty = 0.0
+
+    for i in range(len(sequence) - 1):
+        u = sequence[i]
+        v = sequence[i + 1]
+        if u == v:
+            continue
+
+        try:
+            sp = nx.shortest_path(G, u, v)
+            hops = len(sp) - 1
+            if hops > 1:
+                # Extra hops through intermediate rooms add bends and congestion
+                hop_penalty += (hops - 1) * 15.0
+
+            # If moving between two non-hub rooms cuts across the central hub room
+            if u != hub_room and v != hub_room and hub_room in sp[1:-1]:
+                chord_cut_penalty += 20.0
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            hop_penalty += 50.0
+
+    return hop_penalty + chord_cut_penalty
+
+
 def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=None, pairwise_dist=None, pair_paths=None):
     """
-    Finds the optimal closed sequence for a single hub using brute-force permutations.
+    Finds the optimal closed sequence for a single hub using brute-force permutations
+    guided by doorway connectivity weights and circular perimeter sweeps.
     Evaluates every permutation of visiting the assigned rooms:
         Hub -> N1 -> N2 -> ... -> Nn -> Hub
-    If pair_paths is provided: directly evaluates the TRUE closed-ring objective cost J
-    (L + 5X + 1.0O + 0.5B) over all permutations, prioritizing zero crossings and minimum J.
-    If pairwise_dist is provided: minimizes physical path distance (in metres).
-    Otherwise: minimizes graph hop-distance, using physical Euclidean length as tie-breaker.
+    Prioritizes:
+      1. Zero transverse crossings (X = 0) by eliminating self-intersecting chords.
+      2. Minimum 90° bends (B) by following circular perimeter order around the hub.
+      3. Physical doorway flow (preferring direct door adjacency and penalizing central room zigzags).
+      4. Lowest total system cost J (L + 5X + 1.0O + 0.5B).
     """
     nodes_to_visit = sorted([n for n in assigned_nodes if n != hub_room])
 
@@ -167,15 +292,28 @@ def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=No
     if not nodes_to_visit:
         return [hub_room], 0.0
 
-    best_sequence = None
-    best_dist = float('inf')
-    best_score_tuple = (float('inf'), float('inf'), float('inf'), float('inf'), float('inf'))
-    best_max_hops = float('inf')
-    best_phys_len = float('inf')
+    # Build metric coordinates map for all rooms in territory
+    coords_map = {}
+    for r in assigned_nodes:
+        coords_map[r] = get_room_metric_coord(r, G, nodes_dict, scale, pair_paths)
 
-    # Try every possible order of visiting the nodes
+    best_sequence = None
+    best_ranking = (float('inf'), float('inf'), float('inf'), float('inf'), float('inf'))
+    best_dist = float('inf')
+
+    # Try every permutation of visiting the non-hub rooms
     for perm in itertools.permutations(nodes_to_visit):
         sequence = [hub_room] + list(perm) + [hub_room]
+
+        # 1. Doorway connectivity flow penalty
+        doorway_penalty = calculate_doorway_flow_penalty(sequence, G, hub_room)
+
+        # 2. Geometric tour self-crossing penalty (identifies figure-8 zigzags)
+        tour_crossings = count_tour_segment_crossings(sequence, coords_map)
+        crossing_penalty = tour_crossings * 50.0
+
+        # 3. Angular sweep reversal penalty (penalizes jumping across hub room)
+        angular_penalty = calculate_angular_sweep_penalty(sequence, hub_room, coords_map)
 
         if pair_paths is not None:
             # Reconstruct the closed loop polyline using precomputed leg paths
@@ -191,35 +329,49 @@ def find_optimal_sequence(G, hub_room, assigned_nodes, nodes_dict=None, scale=No
             if valid:
                 comp = compress_orthogonal_path(full_path)
                 m = calculate_ring_metrics(comp)
-                # Primary: lowest J. Ties: lowest crossings X, lowest overlap O, shortest length L, fewest bends B
-                score_tuple = (round(m["J"], 3), m["X"], round(m["O"], 3), round(m["L"], 3), m["B"])
-                if score_tuple < best_score_tuple:
-                    best_score_tuple = score_tuple
+
+                # Composite cost emphasizing zero crossings and minimum bends:
+                effective_cost = (
+                    m["J"]
+                    + 25.0 * m["X"]
+                    + 1.0 * m["B"]
+                    + doorway_penalty
+                    + crossing_penalty
+                    + angular_penalty
+                )
+
+                # Ranking tuple:
+                # 1. Minimum actual transverse crossings m["X"] (strictly 0)
+                # 2. Minimum tour segment crossings (no figure-8s)
+                # 3. Lowest composite score (effective_cost)
+                # 4. Lowest true objective J
+                # 5. Fewest bends B
+                ranking = (m["X"], tour_crossings, round(effective_cost, 2), round(m["J"], 3), m["B"])
+                if ranking < best_ranking:
+                    best_ranking = ranking
                     best_dist = m["J"]
                     best_sequence = sequence
+
         elif pairwise_dist is not None:
-            dist = sum(pairwise_dist.get((sequence[i], sequence[i + 1]), float('inf')) for i in range(len(sequence) - 1))
-            # Tie breaker: prefer sequence with smaller maximum hop jump between consecutive rooms
-            max_hops = max(
-                nx.shortest_path_length(G, sequence[i], sequence[i + 1])
-                for i in range(len(sequence) - 1)
-            )
+            phys_dist = sum(pairwise_dist.get((sequence[i], sequence[i + 1]), float('inf')) for i in range(len(sequence) - 1))
             total_hops = calculate_tour_distance(sequence, G)
 
-            # Prioritize distance, then minimize max single jump (avoiding skipping rooms), then total hops
-            if (dist < best_dist - 1e-4) or (
-                abs(dist - best_dist) <= 1e-4 and (max_hops, total_hops) < (best_max_hops, best_dist)
-            ):
-                best_dist = dist
-                best_max_hops = max_hops
+            effective_cost = phys_dist + doorway_penalty + crossing_penalty + angular_penalty
+            ranking = (tour_crossings, round(effective_cost, 2), total_hops, round(phys_dist, 3))
+            if ranking < best_ranking:
+                best_ranking = ranking
+                best_dist = phys_dist
                 best_sequence = sequence
+
         else:
-            dist = calculate_tour_distance(sequence, G)
+            hop_dist = calculate_tour_distance(sequence, G)
             phys_len = calculate_physical_tour_length(sequence, nodes_dict, scale)
 
-            if dist < best_dist or (dist == best_dist and phys_len < best_phys_len):
-                best_dist = dist
-                best_phys_len = phys_len
+            effective_cost = hop_dist * 10.0 + doorway_penalty + crossing_penalty + angular_penalty + phys_len
+            ranking = (tour_crossings, round(effective_cost, 2), hop_dist, round(phys_len, 3))
+            if ranking < best_ranking:
+                best_ranking = ranking
+                best_dist = hop_dist
                 best_sequence = sequence
 
     if best_sequence is None:

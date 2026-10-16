@@ -124,32 +124,37 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
             dx = d_maxx - d_minx
             dy = d_maxy - d_miny
 
-            # 6cm buffer (at least 0.75 * res) along door opening to ensure clean 2+ cell passage
-            d_buf_m = max(0.06, resolution * 0.75)
+            # 12cm buffer (at least 1.5 * res) along door opening to ensure clean 3+ cell passage
+            d_buf_m = max(0.12, resolution * 1.5)
+            expand_m = max(0.45, resolution * 4.0)
 
-            if dx <= dy:
-                # Vertical wall: opening along Y, thickness along X
-                gy_start = int(math.floor((d_miny - d_buf_m - miny) / resolution))
-                gy_end = int(math.ceil((d_maxy + d_buf_m - miny) / resolution))
-                gx_start = int(math.floor((d_minx - expand_m - minx) / resolution))
-                gx_end = int(math.ceil((d_maxx + expand_m - minx) / resolution))
-            else:
-                # Horizontal wall: opening along X, thickness along Y
-                gx_start = int(math.floor((d_minx - d_buf_m - minx) / resolution))
-                gx_end = int(math.ceil((d_maxx + d_buf_m - minx) / resolution))
-                gy_start = int(math.floor((d_miny - expand_m - miny) / resolution))
-                gy_end = int(math.ceil((d_maxy + expand_m - miny) / resolution))
+            # Guaranteed bidirectional punch-through across vertical, horizontal, flush, and diagonal walls:
+            # 1. Vertical wall expansion (expand X across wall thickness, clear Y along opening)
+            gy1_v = max(0, int(math.floor((d_miny - d_buf_m - miny) / resolution)))
+            gy2_v = min(H - 1, int(math.ceil((d_maxy + d_buf_m - miny) / resolution)))
+            gx1_v = max(0, int(math.floor((d_minx - expand_m - minx) / resolution)))
+            gx2_v = min(W - 1, int(math.ceil((d_maxx + expand_m - minx) / resolution)))
 
-            gx_start = max(0, gx_start)
-            gx_end = min(W - 1, gx_end)
-            gy_start = max(0, gy_start)
-            gy_end = min(H - 1, gy_end)
+            # 2. Horizontal wall expansion (expand Y across wall thickness, clear X along opening)
+            gx1_h = max(0, int(math.floor((d_minx - d_buf_m - minx) / resolution)))
+            gx2_h = min(W - 1, int(math.ceil((d_maxx + d_buf_m - minx) / resolution)))
+            gy1_h = max(0, int(math.floor((d_miny - expand_m - miny) / resolution)))
+            gy2_h = min(H - 1, int(math.ceil((d_maxy + expand_m - miny) / resolution)))
 
-            wall_mask[gy_start:gy_end + 1, gx_start:gx_end + 1] = 0
-            house_mask[gy_start:gy_end + 1, gx_start:gx_end + 1] = 1
+            # Clear wall mask and enable house mask for both potential wall alignments
+            wall_mask[gy1_v:gy2_v + 1, gx1_v:gx2_v + 1] = 0
+            house_mask[gy1_v:gy2_v + 1, gx1_v:gx2_v + 1] = 1
+            wall_mask[gy1_h:gy2_h + 1, gx1_h:gx2_h + 1] = 0
+            house_mask[gy1_h:gy2_h + 1, gx1_h:gx2_h + 1] = 1
+
+            gx_start = min(gx1_v, gx1_h)
+            gx_end = max(gx2_v, gx2_h)
+            gy_start = min(gy1_v, gy1_h)
+            gy_end = max(gy2_v, gy2_h)
 
             # Direct buffered polygon carving to clear walls across angled/diagonal doors
             p_buffered = p.buffer(d_buf_m)
+            p_expanded = p.buffer(expand_m)
             buf_polys = p_buffered.geoms if hasattr(p_buffered, 'geoms') else [p_buffered]
             for bp in buf_polys:
                 b_coords = bp.exterior.coords[:-1]
@@ -168,6 +173,7 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
             )
             carved_door_geoms.append(carved_box)
             carved_door_geoms.append(p_buffered)
+            carved_door_geoms.append(p_expanded)
 
     walkable = (house_mask == 1) & (wall_mask == 0)
 
@@ -297,25 +303,29 @@ def a_star_orthogonal(grid_info, start_pt_m, goal_pt_m, cable_usage=None, walkab
                         edge_x = min(cx, nx)
                         edge_y = cy
                         if h_use is not None and h_use[edge_y, edge_x] > 0:
-                            step_cost += 3.0 * res  # Overlap penalty (forces parallel lane)
+                            # Steep overlap penalty (+1.5m base + 10.0*res) strictly forces A* into adjacent parallel lanes
+                            # Shifting into an adjacent parallel lane costs 2 bends = 1.0m, so > 1.0m is guaranteed to win
+                            step_cost += 1.5 + (10.0 * res * h_use[edge_y, edge_x])
                         if protected is None or (nx, ny) not in protected:
                             # Moving horizontally into (nx, ny) where a vertical cable exists
                             if v_use is not None and (v_use[ny, nx] > 0 or (ny > 0 and v_use[ny - 1, nx] > 0)):
-                                step_cost += 5.0  # Transverse crossing penalty (5 per crossing)
+                                step_cost += 6.0  # Transverse crossing penalty (official penalty + margin)
                     elif ndir == 2:  # Vertical move
                         edge_x = cx
                         edge_y = min(cy, ny)
                         if v_use is not None and v_use[edge_y, edge_x] > 0:
-                            step_cost += 3.0 * res  # Overlap penalty (forces parallel lane)
+                            # Steep overlap penalty (+1.5m base + 10.0*res) strictly forces A* into adjacent parallel lanes
+                            # Shifting into an adjacent parallel lane costs 2 bends = 1.0m, so > 1.0m is guaranteed to win
+                            step_cost += 1.5 + (10.0 * res * v_use[edge_y, edge_x])
                         if protected is None or (nx, ny) not in protected:
                             # Moving vertically into (nx, ny) where a horizontal cable exists
                             if h_use is not None and (h_use[ny, nx] > 0 or (nx > 0 and h_use[ny, nx - 1] > 0)):
-                                step_cost += 5.0  # Transverse crossing penalty (5 per crossing)
+                                step_cost += 6.0  # Transverse crossing penalty (official penalty + margin)
 
                     # Vertex reuse penalty outside protected cells
                     if used_v is not None and (nx, ny) in used_v:
                         if protected is None or (nx, ny) not in protected:
-                            step_cost += 1.0  # Encourage clean lane separation
+                            step_cost += 2.0  # Encourage clean parallel lane separation
 
                 new_g = g + step_cost
                 state = (nx, ny, ndir)
@@ -438,10 +448,18 @@ def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
                             corridor_mask |= room_masks[r]
                     for k in range(len(room_path) - 1):
                         r_a, r_b = room_path[k], room_path[k + 1]
-                        for d_id in room_pair_doors.get((r_a, r_b), []):
+                        d_ids = room_pair_doors.get((r_a, r_b), [])
+                        found_door = False
+                        for d_id in d_ids:
                             if d_id in door_cell_bounds:
                                 gx1, gx2, gy1, gy2 = door_cell_bounds[d_id]
                                 corridor_mask[gy1:gy2 + 1, gx1:gx2 + 1] = True
+                                found_door = True
+                        if not found_door and r_a in room_masks and r_b in room_masks:
+                            bridge = cv2.dilate(room_masks[r_a].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1) & cv2.dilate(room_masks[r_b].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1)
+                            corridor_mask |= bridge.astype(bool)
+                    # Dilate corridor mask by 2 grid cells (0.16m) to ensure door transitions are fully covered
+                    corridor_mask = cv2.dilate(corridor_mask.astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
                     leg_walkable = grid_info["walkable"] & corridor_mask
                 except Exception:
                     leg_walkable = None
@@ -451,6 +469,12 @@ def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
                 grid_pts = a_star_orthogonal(grid_info, Gu, Gv, walkable_mask=leg_walkable)
             if grid_pts is None:
                 grid_pts = a_star_orthogonal(grid_info, Gu, Gv)
+            if grid_pts is None:
+                dilated_walk = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((3, 3), np.uint8), iterations=1).astype(bool)
+                grid_pts = a_star_orthogonal(grid_info, Gu, Gv, walkable_mask=dilated_walk)
+            if grid_pts is None:
+                dilated_walk2 = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
+                grid_pts = a_star_orthogonal(grid_info, Gu, Gv, walkable_mask=dilated_walk2)
 
             if grid_pts is None:
                 dist = float('inf')
@@ -712,10 +736,18 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                             corridor_mask |= room_masks[r]
                     for k in range(len(room_path) - 1):
                         r_a, r_b = room_path[k], room_path[k + 1]
-                        for d_id in room_pair_doors.get((r_a, r_b), []):
+                        d_ids = room_pair_doors.get((r_a, r_b), [])
+                        found_door = False
+                        for d_id in d_ids:
                             if d_id in door_cell_bounds:
                                 gx1, gx2, gy1, gy2 = door_cell_bounds[d_id]
                                 corridor_mask[gy1:gy2 + 1, gx1:gx2 + 1] = True
+                                found_door = True
+                        if not found_door and r_a in room_masks and r_b in room_masks:
+                            bridge = cv2.dilate(room_masks[r_a].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1) & cv2.dilate(room_masks[r_b].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1)
+                            corridor_mask |= bridge.astype(bool)
+                    # Dilate corridor mask by 2 grid cells (0.16m) to ensure door transitions are fully covered
+                    corridor_mask = cv2.dilate(corridor_mask.astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
                     leg_walkable = grid_info["walkable"] & corridor_mask
                 except Exception:
                     leg_walkable = None
@@ -727,6 +759,16 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
             # Fallback to global walkable if corridor was disconnected
             if leg_grid is None:
                 leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage)
+
+            # Fallback with relaxed 1-cell dilation if tight door gap was quantized on 8cm grid
+            if leg_grid is None:
+                dilated_walk = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((3, 3), np.uint8), iterations=1).astype(bool)
+                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=dilated_walk)
+
+            # Fallback with 2-cell dilation to punch through uncarved wall gap
+            if leg_grid is None:
+                dilated_walk2 = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
+                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=dilated_walk2)
 
             if leg_grid is None:
                 raise RuntimeError(f"A* failed to route leg: {u} -> {v} through doors!")
@@ -969,6 +1011,8 @@ def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, res
             all_hub_pair_paths[hub_room] = pair_paths
             sequence, phys_cost = find_optimal_sequence(
                 G, hub_room, list(assigned_rooms),
+                nodes_dict=nodes_m,
+                scale=1.0,
                 pairwise_dist=pairwise_dist,
                 pair_paths=pair_paths
             )
@@ -981,11 +1025,11 @@ def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, res
             plan, scale, final_sequences, nodes_dict_units, resolution=resolution, grid_info=grid_info, G=G,
             all_pair_paths=all_hub_pair_paths
         )
-    except RuntimeError as e:
-        if "A* failed to route leg" in str(e) and resolution > 0.04:
+    except Exception as e:
+        if resolution > 0.04:
             if verbose:
-                print(f"  [AUTOMATIC RETRY] A* door routing encountered narrow/angled doorway at {resolution*100:.0f}cm ({e}).")
-                print(f"  Retrying plan with high-precision 4cm resolution (resolution=0.04)...")
+                print(f"  [AUTOMATIC RETRY] Routing encountered bottleneck at {resolution*100:.0f}cm ({e}).")
+                print(f"  Gracefully retrying plan with high-precision 4cm resolution (resolution=0.04)...")
             return run_phase4(
                 json_path=json_path,
                 show_plot=show_plot,

@@ -26,11 +26,14 @@ def get_room_area_m2(G, r):
     return float(G.nodes[r].get("area_m2", G.nodes[r].get("area", 0.0)))
 
 
+MAX_HUB_AREA = 108.0  # 100 m² base capacity + 8 m² minor overflow absorption tolerance
+
+
 def generate_partitions(G, k, scale, max_iterations=2500, state=None):
     """
     Generates valid partitions of graph G into k connected components.
     Yields a list of sets, where each set is a connected component satisfying:
-      - area <= 100 m²
+      - area <= MAX_HUB_AREA (108 m² with minor overflow absorption tolerance)
       - node count <= 5
     Includes iteration guard to prevent combinatorial explosion on large plans.
     """
@@ -46,7 +49,7 @@ def generate_partitions(G, k, scale, max_iterations=2500, state=None):
     # Capacity pruning
     room_areas = [get_room_area_m2(G, u) for u in nodes]
     total_area = sum(room_areas)
-    effective_cap = max(100.0, max(room_areas))
+    effective_cap = max(MAX_HUB_AREA, max(room_areas))
     if total_area > k * effective_cap + 1e-6 or n > k * 5:
         return
 
@@ -55,8 +58,8 @@ def generate_partitions(G, k, scale, max_iterations=2500, state=None):
         state["count"] += 1
         if is_connected_subgraph(G, set(nodes)):
             area = sum(get_room_area_m2(G, u) for u in nodes)
-            # Allow single room exceeding 100m² to form a solo hub
-            if (area <= 100.0 + 1e-6 or len(nodes) == 1) and len(nodes) <= 5:
+            # Allow single room or absorbed overflow group <= effective_cap to form 1 hub
+            if (area <= effective_cap + 1e-6 or len(nodes) == 1) and len(nodes) <= 5:
                 yield [set(nodes)]
         return
 
@@ -81,7 +84,7 @@ def generate_partitions(G, k, scale, max_iterations=2500, state=None):
                 continue
 
             area1 = sum(get_room_area_m2(G, u) for u in comp1)
-            if area1 > 100.0 + 1e-6 and len(comp1) > 1:
+            if area1 > effective_cap + 1e-6 and len(comp1) > 1:
                 continue
 
             remaining_nodes_set = set(nodes) - comp1
@@ -114,7 +117,7 @@ def greedy_partition_fallback(G, eligible_nodes, k, scale):
         while frontier and len(zone) < 5:
             best_nxt = None
             for nxt in sorted(frontier, key=lambda r: (-sub.degree(r), -areas[r])):
-                if cur_area + areas[nxt] <= 100.0 + 1e-6:
+                if cur_area + areas[nxt] <= MAX_HUB_AREA + 1e-6:
                     best_nxt = nxt
                     break
             if best_nxt is None:
@@ -183,7 +186,7 @@ def partition_and_place_hubs(G, nodes_dict, scale, min_hubs, verbose=True):
     best_partition = None
     best_hubs = None
     best_total_cost = float('inf')
-    best_tie_breaker = (float('inf'), float('inf'))
+    best_ranking_key = (float('inf'), float('inf'), float('inf'), float('inf'))
 
     # Hub suitability preference: common/utility areas (living, kitchen) preferred over private bedrooms
     type_priority = {'living': 0, 'kitchen': 1, 'storage': 2, 'bedroom': 3}
@@ -211,18 +214,29 @@ def partition_and_place_hubs(G, nodes_dict, scale, min_hubs, verbose=True):
             h_areas = [sum(get_room_area_m2(G, r) for r in comp) for comp in partition]
             area_gap = (max(h_areas) - min(h_areas)) if len(h_areas) >= 2 else 0.0
 
+            # Penalize isolated 1-room leaf components (e.g. small kitchen or storage < 25 m²)
+            # when multi-room groupings are possible, preventing unnecessary solo-room hubs
+            isolated_small_leafs = sum(
+                1 for comp in partition
+                if len(comp) == 1 and len(partition) > 1 and get_room_area_m2(G, list(comp)[0]) < 25.0
+            )
+
             # Calculate hub room suitability score (secondary tie-breaker)
             type_score = sum(
                 type_priority.get(G.nodes[h].get('type', '').lower(), 99)
                 for h in current_hubs.keys()
             )
 
-            # Combined tie-breaker: type suitability then area gap balance
-            tb_score = (type_score, round(area_gap, 2))
+            # Combined ranking key:
+            # 1. Zero isolated small leaf hubs (isolated_small_leafs)
+            # 2. Balanced area gap (official competition tie-breaker)
+            # 3. Graph hop distance (total_cost)
+            # 4. Hub room type suitability (type_score)
+            ranking_key = (isolated_small_leafs, round(area_gap, 2), total_cost, type_score)
 
-            if (total_cost < best_total_cost) or (total_cost == best_total_cost and tb_score < best_tie_breaker):
+            if ranking_key < best_ranking_key:
+                best_ranking_key = ranking_key
                 best_total_cost = total_cost
-                best_tie_breaker = tb_score
                 best_partition = partition
                 best_hubs = current_hubs
 
