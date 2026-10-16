@@ -49,9 +49,29 @@ let threeDOverlay = null;
 let isTracing3D = false;
 let traceStartTime = 0;
 let traceSplines = [];
-let traceTimeout = null;
 
-const ringColors = ['#00e5ff', '#ffb300', '#f43f5e', '#38bdf8', '#a855f7', '#22c55e'];
+// High-contrast, saturated circuit palette matching the 2D zone cards
+const circuitColors = [
+  '#00e676', // Zone 1: Vibrant Emerald Green
+  '#ff9100', // Zone 2: Safety Amber / Orange
+  '#00b0ff', // Zone 3: Electric Sky Blue
+  '#f50057', // Zone 4: Neon Rose / Pink
+  '#d500f9', // Zone 5: Electric Purple
+  '#00e5ff', // Zone 6: Bright Turquoise Cyan
+];
+
+function getPlanCenter() {
+  if (!plan || !plan.bounds) return { cx: 0, cy: 0 };
+  return {
+    cx: (plan.bounds[0] + plan.bounds[2]) / 2.0,
+    cy: (plan.bounds[1] + plan.bounds[3]) / 2.0,
+  };
+}
+
+function planTo3D(px, py, elevation = 0.05) {
+  const { cx, cy } = getPlanCenter();
+  return new THREE.Vector3(px - cx, elevation, -(py - cy));
+}
 
 function setCanvasMode(mode) {
   canvasMode = mode;
@@ -79,16 +99,16 @@ function setCanvasMode(mode) {
 function makeTextSprite(message, opts = {}) {
   const {
     textColor = '#ffffff',
-    backgroundColor = 'rgba(12, 20, 16, 0.92)',
-    borderColor = 'rgba(94, 234, 212, 0.6)',
-    borderWidth = 2,
-    fontSize = 28,
+    backgroundColor = 'rgba(15, 23, 42, 0.94)',
+    borderColor = 'rgba(94, 234, 212, 0.8)',
+    borderWidth = 3,
+    fontSize = 30,
     fontFamily = "'Segoe UI', system-ui, -apple-system, sans-serif",
-    fontWeight = '600',
-    paddingX = 18,
-    paddingY = 10,
-    radius = 10,
-    scaleFactor = 0.0035,
+    fontWeight = '700',
+    paddingX = 22,
+    paddingY = 12,
+    radius = 12,
+    scaleFactor = 0.0065,
   } = opts;
 
   const canvas = document.createElement('canvas');
@@ -157,28 +177,29 @@ function update3DLabels() {
   labelsGroup.visible = Boolean(showLabels);
   if (!showLabels || !plan) return;
 
-  // 1. Hub labels
+  // 1. Hub labels (elevated directly above hub cabinet)
   if (result && result.output && result.output.hubs) {
     result.output.hubs.forEach((h, i) => {
-      const col = ringColors[i % ringColors.length];
-      const hubSprite = makeTextSprite(`◆ HUB ${h.hub_id}`, {
-        textColor: col,
-        backgroundColor: 'rgba(10, 18, 14, 0.95)',
+      const col = circuitColors[i % circuitColors.length];
+      const hubSprite = makeTextSprite(`◆ ${h.hub_id} · Circuit ${i + 1}`, {
+        textColor: '#ffffff',
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
         borderColor: col,
-        borderWidth: 2.5,
-        fontSize: 28,
+        borderWidth: 3.5,
+        fontSize: 32,
         fontWeight: '700',
-        paddingX: 18,
-        paddingY: 9,
-        radius: 9,
-        scaleFactor: 0.0038,
+        paddingX: 22,
+        paddingY: 11,
+        radius: 12,
+        scaleFactor: 0.0070,
       });
-      hubSprite.position.set(h.location.x, 1.15, -h.location.y);
+      const pos = planTo3D(h.location.x, h.location.y, 1.15);
+      hubSprite.position.copy(pos);
       labelsGroup.add(hubSprite);
     });
   }
 
-  // 2. Fixed Node labels (terminals)
+  // 2. Fixed Node labels (terminals, elevated above terminal base plate)
   (plan.rooms || []).filter(r => r.node && r.node_id).forEach(r => {
     let hubIdx = -1;
     let visitStr = '';
@@ -188,42 +209,44 @@ function update3DLabels() {
         const hub = result.output.hubs[hubIdx];
         const seqIdx = hub.closed_sequence ? hub.closed_sequence.indexOf(r.node_id) : -1;
         if (seqIdx >= 0) {
-          visitStr = ` · #${seqIdx}`;
+          visitStr = ` · Stop #${seqIdx}`;
         }
       }
     }
-    const col = hubIdx >= 0 ? ringColors[hubIdx % ringColors.length] : '#34d399';
+    const col = hubIdx >= 0 ? circuitColors[hubIdx % circuitColors.length] : '#10b981';
     const nodeSprite = makeTextSprite(`● ${r.node_id}${visitStr}`, {
       textColor: '#ffffff',
-      backgroundColor: 'rgba(10, 18, 14, 0.92)',
+      backgroundColor: 'rgba(15, 23, 42, 0.94)',
       borderColor: col,
-      borderWidth: 2,
-      fontSize: 26,
+      borderWidth: 3,
+      fontSize: 28,
       fontWeight: '700',
-      paddingX: 14,
-      paddingY: 8,
-      radius: 8,
-      scaleFactor: 0.0035,
+      paddingX: 18,
+      paddingY: 10,
+      radius: 10,
+      scaleFactor: 0.0060,
     });
-    nodeSprite.position.set(r.node[0], 0.45, -r.node[1]);
+    const pos = planTo3D(r.node[0], r.node[1], 0.50);
+    nodeSprite.position.copy(pos);
     labelsGroup.add(nodeSprite);
   });
 
-  // 3. Room place names & areas
+  // 3. Room place names & areas (elevated above room center)
   (plan.rooms || []).filter(r => r.label).forEach(r => {
     const roomSprite = makeTextSprite(`📍 ${r.id} · ${r.area.toFixed(1)} m²`, {
-      textColor: '#e2e8f0',
-      backgroundColor: 'rgba(16, 26, 21, 0.88)',
-      borderColor: 'rgba(94, 234, 212, 0.45)',
-      borderWidth: 1.5,
-      fontSize: 23,
+      textColor: '#f8fafc',
+      backgroundColor: 'rgba(15, 23, 42, 0.88)',
+      borderColor: 'rgba(56, 189, 248, 0.65)',
+      borderWidth: 2,
+      fontSize: 26,
       fontWeight: '600',
-      paddingX: 14,
-      paddingY: 7,
-      radius: 7,
-      scaleFactor: 0.0032,
+      paddingX: 18,
+      paddingY: 9,
+      radius: 9,
+      scaleFactor: 0.0055,
     });
-    roomSprite.position.set(r.label[0], 0.85, -r.label[1]);
+    const pos = planTo3D(r.label[0], r.label[1], 0.75);
+    roomSprite.position.copy(pos);
     labelsGroup.add(roomSprite);
   });
 }
@@ -235,35 +258,25 @@ function update3DRoutes() {
   if (!result || !result.output || !result.output.hubs) return;
 
   result.output.hubs.forEach((h, i) => {
-    const col = ringColors[i % ringColors.length];
+    const col = circuitColors[i % circuitColors.length];
     const conduitMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(col),
       emissive: new THREE.Color(col),
-      emissiveIntensity: 0.95,
-      roughness: 0.2,
-      metalness: 0.1,
-    });
-    const racewayMat = new THREE.MeshStandardMaterial({
-      color: 0x0a120e,
-      roughness: 0.8,
-      metalness: 0.4,
+      emissiveIntensity: 1.25,
+      roughness: 0.15,
+      metalness: 0.2,
     });
 
     (h.route_segments || []).forEach(seg => {
-      const pts = (seg.polyline || []).map(p => new THREE.Vector3(p[0], 0.045, -p[1]));
-      if (pts.length >= 2) {
+      const rawPts = seg.polyline || [];
+      if (rawPts.length >= 2) {
+        const pts = rawPts.map(p => planTo3D(p[0], p[1], 0.055));
         const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.0);
 
-        // Glowing cable conduit
-        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 3, 8), 0.045, 8, false);
+        // Solid, glowing 3D conduit pipe (11cm diameter)
+        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 4, 12), 0.055, 10, false);
         const tubeMesh = new THREE.Mesh(tubeGeo, conduitMat);
         routesGroup.add(tubeMesh);
-
-        // Dark raceway contrast underlay
-        const racewayGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 3, 8), 0.065, 8, false);
-        const racewayMesh = new THREE.Mesh(racewayGeo, racewayMat);
-        racewayMesh.position.y = -0.012;
-        routesGroup.add(racewayMesh);
       }
     });
   });
@@ -271,7 +284,7 @@ function update3DRoutes() {
 
 function startTrace3D() {
   if (!result || !result.output || !result.output.hubs || result.output.hubs.length === 0) {
-    notice('No solved routes available to trace. Generate rings first.', 'error');
+    notice('Please click "Generate cable rings ↗" first to calculate and trace routes.', 'busy');
     return;
   }
   stopTrace3D();
@@ -279,63 +292,75 @@ function startTrace3D() {
   traceStartTime = performance.now();
 
   if ($('btn-3d-trace')) {
-    $('btn-3d-trace').textContent = '⏹ Stop';
+    $('btn-3d-trace').textContent = '⏹ Stop Trace';
     $('btn-3d-trace').classList.add('active');
   }
   if ($('play')) {
-    $('play').textContent = '⏹ Stop';
+    $('play').textContent = '⏹ Stop Trace';
   }
 
   traceSplines = [];
   result.output.hubs.forEach((h, hIdx) => {
     const ringPolylines = [];
     const seq = h.closed_sequence || [];
-    for (let s = 0; s < seq.length - 1; s++) {
-      const fromId = seq[s];
-      const toId = seq[s + 1];
-      let seg = (h.route_segments || []).find(sg => sg.from === fromId && sg.to === toId);
-      let pts;
-      if (seg) {
-        pts = seg.polyline;
-      } else {
-        seg = (h.route_segments || []).find(sg => sg.from === toId && sg.to === fromId);
+    
+    // Connect segments in closed loop sequence
+    if (seq.length >= 2) {
+      for (let s = 0; s < seq.length - 1; s++) {
+        const fromId = seq[s];
+        const toId = seq[s + 1];
+        let seg = (h.route_segments || []).find(sg => sg.from === fromId && sg.to === toId);
+        let pts = null;
         if (seg) {
-          pts = [...seg.polyline].reverse();
-        }
-      }
-      if (pts && pts.length > 0) {
-        if (ringPolylines.length > 0) {
-          ringPolylines.push(...pts.slice(1));
+          pts = seg.polyline;
         } else {
-          ringPolylines.push(...pts);
+          seg = (h.route_segments || []).find(sg => sg.from === toId && sg.to === fromId);
+          if (seg) {
+            pts = [...seg.polyline].reverse();
+          }
+        }
+        if (pts && pts.length > 0) {
+          if (ringPolylines.length > 0) {
+            ringPolylines.push(...pts.slice(1));
+          } else {
+            ringPolylines.push(...pts);
+          }
         }
       }
+    } else {
+      (h.route_segments || []).forEach(seg => {
+        if (seg.polyline) ringPolylines.push(...seg.polyline);
+      });
     }
 
     if (ringPolylines.length >= 2) {
-      const points3D = ringPolylines.map(p => new THREE.Vector3(p[0], 0.08, -p[1]));
-      const isClosed = points3D[0].distanceTo(points3D[points3D.length - 1]) < 0.2;
-      const curve = new THREE.CatmullRomCurve3(points3D, isClosed, 'centripetal', 0.1);
-      const col = ringColors[hIdx % ringColors.length];
+      const points3D = ringPolylines.map(p => planTo3D(p[0], p[1], 0.08));
+      const isClosed = points3D[0].distanceTo(points3D[points3D.length - 1]) < 0.3;
+      const curve = new THREE.CatmullRomCurve3(points3D, isClosed, 'catmullrom', 0.0);
+      const col = circuitColors[hIdx % circuitColors.length];
 
       const pulses = [];
       const pulseCount = 3;
       for (let p = 0; p < pulseCount; p++) {
         const pulseGroup = new THREE.Group();
 
-        // Core bright sphere
-        const coreGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        // White-hot core sphere (radius 0.14m = 28cm)
+        const coreGeo = new THREE.SphereGeometry(0.14, 16, 16);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         pulseGroup.add(new THREE.Mesh(coreGeo, coreMat));
 
-        // Outer glowing halo
-        const glowGeo = new THREE.SphereGeometry(0.24, 16, 16);
+        // Outer glowing colored halo (radius 0.28m = 56cm)
+        const glowGeo = new THREE.SphereGeometry(0.28, 16, 16);
         const glowMat = new THREE.MeshBasicMaterial({
           color: new THREE.Color(col),
           transparent: true,
-          opacity: 0.75,
+          opacity: 0.85,
         });
         pulseGroup.add(new THREE.Mesh(glowGeo, glowMat));
+
+        // Point light on pulse to illuminate rooms as it races through
+        const pLight = new THREE.PointLight(col, 2.0, 3.5);
+        pulseGroup.add(pLight);
 
         if (tracePulsesGroup) {
           tracePulsesGroup.add(pulseGroup);
@@ -344,14 +369,10 @@ function startTrace3D() {
       }
 
       const ringLength = h.ring_length_m || 25;
-      const speed = Math.max(0.10, Math.min(0.35, 6.0 / ringLength));
+      const speed = Math.max(0.12, Math.min(0.35, 6.0 / ringLength));
       traceSplines.push({ curve, pulses, speed });
     }
   });
-
-  traceTimeout = setTimeout(() => {
-    if (isTracing3D) stopTrace3D();
-  }, 25000);
 
   notice('Tracing 3D cable circuits · 360° orbit active', 'success');
 }
@@ -360,10 +381,6 @@ function stopTrace3D() {
   isTracing3D = false;
   traceSplines = [];
   if (tracePulsesGroup) tracePulsesGroup.clear();
-  if (traceTimeout) {
-    clearTimeout(traceTimeout);
-    traceTimeout = null;
-  }
   if ($('btn-3d-trace')) {
     $('btn-3d-trace').textContent = '▶ Trace';
     $('btn-3d-trace').classList.remove('active');
@@ -465,7 +482,7 @@ function init3D() {
           const t = ((elapsed * speed) + offset) % 1.0;
           const pt = curve.getPointAt(t);
           if (pt) {
-            pulse.position.set(pt.x, pt.y + 0.02, pt.z);
+            pulse.position.copy(pt);
           }
         });
       });
@@ -563,9 +580,14 @@ async function load3DModel(key) {
       obj.position.z -= center.z;
 
       obj.traverse((child) => {
-        if (child.isMesh && child.material) {
-          if (child.name.includes('Cable') || child.name.includes('Led') || child.name.includes('Ring')) {
-            if (child.material.emissive) child.material.emissiveIntensity = 1.4;
+        if (child.isMesh) {
+          if (child.name.includes('Cable')) {
+            child.visible = false; // Hide faint GLB static lines, replaced by vibrant 3D conduits
+          }
+          if (child.name.includes('Terminal_Glow') || child.name.includes('Hub_LED')) {
+            if (child.material && child.material.emissive) {
+              child.material.emissiveIntensity = 2.5;
+            }
           }
         }
       });
