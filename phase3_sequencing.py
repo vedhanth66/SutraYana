@@ -500,6 +500,8 @@ def run_phase3(json_path="sample_plan.json", show_plot=False, save_img=None, pla
         from phase4_routing import build_orthogonal_grid, compute_pairwise_physical_distances
         with open(json_path, 'r', encoding='utf-8') as f:
             plan = json.load(f)
+        if "doors" in G.graph:
+            plan["doors"] = G.graph["doors"]
         grid_info = build_orthogonal_grid(plan, scale)
         nodes_m = {r: (round(pt.x / scale, 4), round(pt.y / scale, 4)) for r, pt in nodes_dict.items()}
     except Exception:

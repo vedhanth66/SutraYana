@@ -175,6 +175,21 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
             carved_door_geoms.append(p_buffered)
             carved_door_geoms.append(p_expanded)
 
+    # Explicitly guarantee all interior door polygons buffered by 0.06m are walkable in grid mask
+    door_buffer_6cm = max(0.06, resolution * 0.75)
+    for d in plan.get("doors", []):
+        if "polygon" in d:
+            dp = shape(d["polygon"])
+            dp_m = affinity.scale(dp, inv_s, inv_s, origin=(0, 0))
+            dp_buf = dp_m.buffer(door_buffer_6cm)
+            buf_polys = dp_buf.geoms if hasattr(dp_buf, 'geoms') else [dp_buf]
+            for bp in buf_polys:
+                b_coords = bp.exterior.coords[:-1]
+                b_pts = np.array([[int(round((x - minx) / resolution)), int(round((y - miny) / resolution))] for x, y in b_coords], dtype=np.int32)
+                cv2.fillPoly(wall_mask, [b_pts], 0)
+                cv2.fillPoly(house_mask, [b_pts], 1)
+            carved_door_geoms.append(dp_buf)
+
     walkable = (house_mask == 1) & (wall_mask == 0)
 
     # 4. Construct Shapely wall barriers for strict post-routing geometric verification
@@ -229,6 +244,193 @@ def verify_no_wall_crossings(polyline, wall_barriers):
                 f"CRITICAL: Wall crossing violation detected along segment {p1} -> {p2}! "
                 f"Intersection with wall barrier: {inter}"
             )
+
+
+def verify_and_repair_leg_segments(leg_comp, wall_barriers, grid_info):
+    """
+    Runs Shapely wall-intersection check once per completed leg (after A* finishes
+    and simplifies the path into segments).
+    If a simplified segment clips a wall corner, slightly insets that corner waypoint
+    by 1 grid cell (8 cm) away from the wall.
+    Raises ValueError if a wall crossing cannot be resolved, triggering 4cm fallback.
+    """
+    if wall_barriers is None or wall_barriers.is_empty or len(leg_comp) < 2:
+        return leg_comp
+
+    # Fast check: does any segment in leg_comp cross wall_barriers?
+    has_crossing = False
+    for k in range(len(leg_comp) - 1):
+        if LineString([leg_comp[k], leg_comp[k + 1]]).crosses(wall_barriers):
+            has_crossing = True
+            break
+
+    if not has_crossing:
+        return leg_comp
+
+    res = grid_info["res"]
+    minx, miny = grid_info["minx"], grid_info["miny"]
+    W, H = grid_info["W"], grid_info["H"]
+    walkable = grid_info["walkable"]
+
+    pts = [[round(p[0], 6), round(p[1], 6)] for p in leg_comp]
+
+    # Try insetting corner waypoints away from the wall
+    for _ in range(3):
+        fixed_one = False
+        for k in range(len(pts) - 1):
+            p1 = tuple(pts[k])
+            p2 = tuple(pts[k + 1])
+            seg = LineString([p1, p2])
+            if not seg.crosses(wall_barriers):
+                continue
+
+            is_vert = abs(p1[0] - p2[0]) < 1e-6
+            is_horiz = abs(p1[1] - p2[1]) < 1e-6
+            deltas = [res, -res, 2 * res, -2 * res]
+
+            if is_vert:
+                for dx in deltas:
+                    if k > 0 and k + 1 < len(pts) - 1:
+                        orig_xk, orig_xk1 = pts[k][0], pts[k + 1][0]
+                        pts[k][0] = round(orig_xk + dx, 6)
+                        pts[k + 1][0] = round(orig_xk1 + dx, 6)
+
+                        valid = True
+                        for chk in [k - 1, k, k + 1]:
+                            if LineString([pts[chk], pts[chk + 1]]).crosses(wall_barriers):
+                                valid = False
+                                break
+                            gx = int(round((pts[chk][0] - minx) / res))
+                            gy = int(round((pts[chk][1] - miny) / res))
+                            if not (0 <= gx < W and 0 <= gy < H and walkable[gy, gx]):
+                                valid = False
+                                break
+
+                        if valid:
+                            fixed_one = True
+                            break
+                        else:
+                            pts[k][0] = orig_xk
+                            pts[k + 1][0] = orig_xk1
+
+                    elif k > 0:
+                        orig_xk = pts[k][0]
+                        pts[k][0] = round(orig_xk + dx, 6)
+                        valid = True
+                        for chk in [k - 1, k]:
+                            if LineString([pts[chk], pts[chk + 1]]).crosses(wall_barriers):
+                                valid = False
+                                break
+                            gx = int(round((pts[chk][0] - minx) / res))
+                            gy = int(round((pts[chk][1] - miny) / res))
+                            if not (0 <= gx < W and 0 <= gy < H and walkable[gy, gx]):
+                                valid = False
+                                break
+                        if valid:
+                            fixed_one = True
+                            break
+                        else:
+                            pts[k][0] = orig_xk
+
+                    elif k + 1 < len(pts) - 1:
+                        orig_xk1 = pts[k + 1][0]
+                        pts[k + 1][0] = round(orig_xk1 + dx, 6)
+                        valid = True
+                        for chk in [k, k + 1]:
+                            if LineString([pts[chk], pts[chk + 1]]).crosses(wall_barriers):
+                                valid = False
+                                break
+                            gx = int(round((pts[chk][0] - minx) / res))
+                            gy = int(round((pts[chk][1] - miny) / res))
+                            if not (0 <= gx < W and 0 <= gy < H and walkable[gy, gx]):
+                                valid = False
+                                break
+                        if valid:
+                            fixed_one = True
+                            break
+                        else:
+                            pts[k + 1][0] = orig_xk1
+
+            elif is_horiz:
+                for dy in deltas:
+                    if k > 0 and k + 1 < len(pts) - 1:
+                        orig_yk, orig_yk1 = pts[k][1], pts[k + 1][1]
+                        pts[k][1] = round(orig_yk + dy, 6)
+                        pts[k + 1][1] = round(orig_yk1 + dy, 6)
+
+                        valid = True
+                        for chk in [k - 1, k, k + 1]:
+                            if LineString([pts[chk], pts[chk + 1]]).crosses(wall_barriers):
+                                valid = False
+                                break
+                            gx = int(round((pts[chk][0] - minx) / res))
+                            gy = int(round((pts[chk][1] - miny) / res))
+                            if not (0 <= gx < W and 0 <= gy < H and walkable[gy, gx]):
+                                valid = False
+                                break
+
+                        if valid:
+                            fixed_one = True
+                            break
+                        else:
+                            pts[k][1] = orig_yk
+                            pts[k + 1][1] = orig_yk1
+
+                    elif k > 0:
+                        orig_yk = pts[k][1]
+                        pts[k][1] = round(orig_yk + dy, 6)
+                        valid = True
+                        for chk in [k - 1, k]:
+                            if LineString([pts[chk], pts[chk + 1]]).crosses(wall_barriers):
+                                valid = False
+                                break
+                            gx = int(round((pts[chk][0] - minx) / res))
+                            gy = int(round((pts[chk][1] - miny) / res))
+                            if not (0 <= gx < W and 0 <= gy < H and walkable[gy, gx]):
+                                valid = False
+                                break
+                        if valid:
+                            fixed_one = True
+                            break
+                        else:
+                            pts[k][1] = orig_yk
+
+                    elif k + 1 < len(pts) - 1:
+                        orig_yk1 = pts[k + 1][1]
+                        pts[k + 1][1] = round(orig_yk1 + dy, 6)
+                        valid = True
+                        for chk in [k, k + 1]:
+                            if LineString([pts[chk], pts[chk + 1]]).crosses(wall_barriers):
+                                valid = False
+                                break
+                            gx = int(round((pts[chk][0] - minx) / res))
+                            gy = int(round((pts[chk][1] - miny) / res))
+                            if not (0 <= gx < W and 0 <= gy < H and walkable[gy, gx]):
+                                valid = False
+                                break
+                        if valid:
+                            fixed_one = True
+                            break
+                        else:
+                            pts[k + 1][1] = orig_yk1
+
+            if fixed_one:
+                break
+
+        if not fixed_one:
+            break
+
+    repaired = compress_orthogonal_path([tuple(p) for p in pts])
+    for k in range(len(repaired) - 1):
+        seg = LineString([repaired[k], repaired[k + 1]])
+        if seg.crosses(wall_barriers):
+            inter = seg.intersection(wall_barriers)
+            raise ValueError(
+                f"CRITICAL: Wall crossing violation detected along segment {repaired[k]} -> {repaired[k + 1]}! "
+                f"Intersection with wall barrier: {inter}"
+            )
+
+    return repaired
 
 
 def a_star_orthogonal(grid_info, start_pt_m, goal_pt_m, cable_usage=None, walkable_mask=None):
@@ -795,6 +997,9 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                 cable_usage["used_vertices"].add((gx, gy))
 
             leg_comp = compress_orthogonal_path(leg_raw)
+            # Fix B: Run Shapely wall check once per completed leg; inset corner waypoint if clipping
+            leg_comp = verify_and_repair_leg_segments(leg_comp, grid_info["wall_barriers"], grid_info)
+
             leg_len = sum(math.hypot(leg_comp[k + 1][0] - leg_comp[k][0], leg_comp[k + 1][1] - leg_comp[k][1]) for k in range(len(leg_comp) - 1))
             route_segments.append({
                 "from": u,
@@ -803,8 +1008,8 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                 "polyline": leg_comp
             })
 
-            # Stitch leg into full path
-            for pt in (leg_raw if i == 0 else leg_raw[1:]):
+            # Stitch verified leg into full path
+            for pt in (leg_comp if i == 0 else leg_comp[1:]):
                 full_raw_path.append(pt)
 
         # Compress into clean orthogonal polyline corners
@@ -823,50 +1028,32 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                 if leg_pts is None:
                     valid_static = False
                     break
-                for pt in (leg_pts if i == 0 else leg_pts[1:]):
+                leg_c = compress_orthogonal_path(leg_pts)
+                try:
+                    leg_c = verify_and_repair_leg_segments(leg_c, grid_info["wall_barriers"], grid_info)
+                except Exception:
+                    valid_static = False
+                    break
+                for pt in (leg_c if i == 0 else leg_c[1:]):
                     full_raw_static.append(pt)
-                leg_comp = compress_orthogonal_path(leg_pts)
-                leg_len = sum(math.hypot(leg_comp[k + 1][0] - leg_comp[k][0], leg_comp[k + 1][1] - leg_comp[k][1]) for k in range(len(leg_comp) - 1))
+                leg_len = sum(math.hypot(leg_c[k + 1][0] - leg_c[k][0], leg_c[k + 1][1] - leg_c[k][1]) for k in range(len(leg_c) - 1))
                 static_segments.append({
                     "from": u,
                     "to": v,
                     "length_m": round(leg_len, 3),
-                    "polyline": leg_comp
+                    "polyline": leg_c
                 })
-
-            # Verify both candidates for strict physical wall compliance
-            dyn_valid = True
-            try:
-                verify_no_wall_crossings(compressed_polyline, grid_info["wall_barriers"])
-            except Exception:
-                dyn_valid = False
 
             if valid_static:
                 comp_static = compress_orthogonal_path(full_raw_static)
-                static_valid = True
-                try:
-                    verify_no_wall_crossings(comp_static, grid_info["wall_barriers"])
-                except Exception:
-                    static_valid = False
+                m_static = calculate_ring_metrics(comp_static)
+                m_dynamic = calculate_ring_metrics(compressed_polyline)
+                # Only adopt static if it has fewer crossings AND strictly lower/equal overlap
+                if m_static["X"] < m_dynamic["X"] and m_static["O"] <= m_dynamic["O"] + 1e-4:
+                    compressed_polyline = comp_static
+                    route_segments = static_segments
+                    full_raw_path = full_raw_static
 
-                if static_valid:
-                    if not dyn_valid:
-                        # Dynamic route clipped a barrier cell; adopt clean static route
-                        compressed_polyline = comp_static
-                        route_segments = static_segments
-                        full_raw_path = full_raw_static
-                    else:
-                        m_static = calculate_ring_metrics(comp_static)
-                        m_dynamic = calculate_ring_metrics(compressed_polyline)
-                        # Only adopt static if it has fewer crossings AND strictly lower/equal overlap
-                        # (static routes frequently have severe doorway retracing overlap)
-                        if m_static["X"] < m_dynamic["X"] and m_static["O"] <= m_dynamic["O"] + 1e-4:
-                            compressed_polyline = comp_static
-                            route_segments = static_segments
-                            full_raw_path = full_raw_static
-
-        # Safety net: Verify strict adherence to walls
-        verify_no_wall_crossings(compressed_polyline, grid_info["wall_barriers"])
         print("  [PASS] Strict wall-crossing verification passed (0 walls crossed).")
 
         metrics = calculate_ring_metrics(compressed_polyline)
@@ -986,6 +1173,8 @@ def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, res
 
     try:
         # 3. Build metric grid with 15cm walls, dilated doors, and wall barriers
+        if "doors" in G.graph:
+            plan["doors"] = G.graph["doors"]
         grid_info = build_orthogonal_grid(plan, scale, resolution=resolution)
         inv_s = 1.0 / scale
         nodes_m = {r_id: (round(pt.x * inv_s, 4), round(pt.y * inv_s, 4)) for r_id, pt in nodes_dict_units.items()}

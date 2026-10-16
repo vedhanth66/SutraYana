@@ -138,17 +138,24 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
                         })
 
     # 4. Construct Walkable Freespace Polygon
-    # Subtract wall polygon from union of rooms + doors, then union back generous door buffer
-    # to guarantee clean, unblocked passages through collinear walls and archways
+    # Subtract wall polygon from union of rooms + doors, then union back door.buffer(0.06m)
+    # (a 6 cm buffer on interior door polygons, clipped to inner)
     try:
         rooms_union = unary_union([shape(r["polygon"]) for r in all_rooms.values() if "polygon" in r])
-        doors_union = unary_union([shape(d["polygon"]) for d in plan.get("doors", []) if "polygon" in d])
-        door_buffer_units = max(0.20 * scale, 3.5)
-        doors_buffered = doors_union.buffer(door_buffer_units) if not doors_union.is_empty else None
+        door_polys = [shape(d["polygon"]) for d in plan.get("doors", []) if "polygon" in d]
+        doors_union = unary_union(door_polys) if door_polys else Polygon()
 
+        # 0.06m buffer on interior door polygons, clipped to inner
+        door_buffer_units = max(0.06 * scale, 1.0)
         inner_geom = shape(plan["inner"]["polygon"]) if isinstance(plan.get("inner"), dict) and "polygon" in plan["inner"] else shape(plan["inner"]) if "inner" in plan else None
-        if doors_buffered is not None and inner_geom is not None and not inner_geom.is_empty:
-            doors_buffered = doors_buffered.intersection(inner_geom)
+
+        buffered_doors = []
+        for dp in door_polys:
+            b_dp = dp.buffer(door_buffer_units)
+            if inner_geom is not None and not inner_geom.is_empty:
+                b_dp = b_dp.intersection(inner_geom)
+            buffered_doors.append(b_dp)
+        doors_buffered = unary_union(buffered_doors) if buffered_doors else None
 
         base_freespace = unary_union([rooms_union, doors_union]) if not doors_union.is_empty else rooms_union
 
@@ -167,6 +174,8 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
 
         plan["freespace"] = freespace
         G.graph["freespace"] = freespace
+        G.graph["doors"] = plan.get("doors", [])
+        G.graph["scale"] = scale
     except Exception:
         pass
 
