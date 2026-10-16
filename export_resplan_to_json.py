@@ -105,16 +105,15 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
 
             if len(touching) >= 2:
                 for ra, rb in itertools.combinations(touching, 2):
+                    doors_data.append({
+                        "id": f"D{d_idx:02d}",
+                        "room_a": ra,
+                        "room_b": rb,
+                        "polygon": mapping(dpoly)
+                    })
                     pair_key = (min(ra, rb), max(ra, rb))
-                    if pair_key not in connected_pairs:
-                        doors_data.append({
-                            "id": f"D{d_idx:02d}",
-                            "room_a": ra,
-                            "room_b": rb,
-                            "polygon": mapping(dpoly)
-                        })
-                        connected_pairs.add(pair_key)
-                        d_idx += 1
+                    connected_pairs.add(pair_key)
+                    d_idx += 1
 
     # 2. Open-concept passages and adjacent rooms (touching or within 0.35m without barrier)
     rids = list(room_geoms.keys())
@@ -122,9 +121,6 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
     for i in range(len(rids)):
         for j in range(i + 1, len(rids)):
             ra, rb = rids[i], rids[j]
-            pair_key = (min(ra, rb), max(ra, rb))
-            if pair_key in connected_pairs:
-                continue
             pa, pb = room_geoms[ra], room_geoms[rb]
             
             # Check contact or proximity within 0.35m
@@ -150,6 +146,7 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
                             "room_b": rb,
                             "polygon": mapping(pas_poly)
                         })
+                        pair_key = (min(ra, rb), max(ra, rb))
                         connected_pairs.add(pair_key)
                         d_idx += 1
 

@@ -122,13 +122,13 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
     for i in range(len(r_list)):
         for j in range(i + 1, len(r_list)):
             r1, r2 = r_list[i], r_list[j]
-            if not G.has_edge(r1, r2):
-                p1 = shape(all_rooms[r1]["polygon"])
-                p2 = shape(all_rooms[r2]["polygon"])
-                if p1.intersects(p2) or p1.distance(p2) <= prox_units:
-                    shared = p1.buffer(prox_units).intersection(p2.buffer(prox_units))
-                    if not shared.is_empty and (shared.area >= 0.02 * (scale ** 2) or shared.length / scale >= 0.25):
-                        p_id = f"open_{r1}_{r2}"
+            p1 = shape(all_rooms[r1]["polygon"])
+            p2 = shape(all_rooms[r2]["polygon"])
+            if p1.intersects(p2) or p1.distance(p2) <= prox_units:
+                shared = p1.buffer(prox_units).intersection(p2.buffer(prox_units))
+                if not shared.is_empty and (shared.area >= 0.02 * (scale ** 2) or shared.length / scale >= 0.25):
+                    p_id = f"open_{r1}_{r2}"
+                    if not any(d.get("id") == p_id for d in plan["doors"]):
                         G.add_edge(r1, r2, type="passage", door_id=p_id)
                         plan["doors"].append({
                             "id": p_id,
@@ -145,17 +145,20 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
         door_polys = [shape(d["polygon"]) for d in plan.get("doors", []) if "polygon" in d]
         doors_union = unary_union(door_polys) if door_polys else Polygon()
 
-        # 0.06m buffer on interior door polygons, clipped to inner
-        door_buffer_units = max(0.06 * scale, 1.0)
+        # Guarantee 4-Connected Doorway Bridges (Fix 2):
+        # Buffer interior doors by max(resolution * 1.5, 0.12) (12cm) using square caps/joins (cap_style=3, join_style=2)
+        # to guarantee 4-connected orthogonal grid traversal across every doorway
+        resolution_m = 0.08
+        door_buffer_units = max(resolution_m * 1.5, 0.12) * scale
         inner_geom = shape(plan["inner"]["polygon"]) if isinstance(plan.get("inner"), dict) and "polygon" in plan["inner"] else shape(plan["inner"]) if "inner" in plan else None
+        outer_boundary_poly = inner_geom if (inner_geom is not None and not inner_geom.is_empty) else rooms_union
 
-        buffered_doors = []
-        for dp in door_polys:
-            b_dp = dp.buffer(door_buffer_units)
-            if inner_geom is not None and not inner_geom.is_empty:
-                b_dp = b_dp.intersection(inner_geom)
-            buffered_doors.append(b_dp)
-        doors_buffered = unary_union(buffered_doors) if buffered_doors else None
+        if doors_union and not doors_union.is_empty:
+            door_carve = doors_union.buffer(door_buffer_units, cap_style=3, join_style=2)
+            if outer_boundary_poly is not None and not outer_boundary_poly.is_empty:
+                door_carve = door_carve.intersection(outer_boundary_poly.buffer(-resolution_m * 0.25 * scale))
+        else:
+            door_carve = None
 
         base_freespace = unary_union([rooms_union, doors_union]) if not doors_union.is_empty else rooms_union
 
@@ -163,14 +166,19 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
         if "wall" in plan and plan["wall"]:
             wall_geom = shape(plan["wall"]) if isinstance(plan["wall"], dict) else plan["wall"]
 
+        # Buffer wall_barrier by half a grid cell (resolution * 0.501) so any grid node within res/2
+        # of a wall is blocked, preventing orthogonal steps between two grid centers from clipping a wall between them!
+        wall_buffer_units = (resolution_m * 0.501) * scale
+
         if wall_geom is not None and not wall_geom.is_empty:
-            freespace = base_freespace.difference(wall_geom)
-            if doors_buffered is not None and not doors_buffered.is_empty:
-                freespace = freespace.union(doors_buffered)
+            wall_raster_poly = wall_geom.buffer(wall_buffer_units)
+            freespace = base_freespace.difference(wall_raster_poly)
+            if door_carve is not None and not door_carve.is_empty:
+                freespace = freespace.union(door_carve)
         else:
             freespace = base_freespace
-            if doors_buffered is not None and not doors_buffered.is_empty:
-                freespace = freespace.union(doors_buffered)
+            if door_carve is not None and not door_carve.is_empty:
+                freespace = freespace.union(door_carve)
 
         plan["freespace"] = freespace
         G.graph["freespace"] = freespace

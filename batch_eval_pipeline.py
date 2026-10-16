@@ -64,8 +64,9 @@ def process_single_plan_task(args):
         except Exception as e_run:
             # Gracefully retry at high-precision 4cm resolution if 8cm encountered doorway bottlenecks
             if resolution > 0.04:
+                formatted_retry = extract_rooms_and_doors(plan_raw, plan_id=f"plan_{plan_idx:05d}")
                 output_data, total_J, hubs_routed = run_phase4(
-                    formatted,
+                    formatted_retry,
                     show_plot=False,
                     save_img=None,
                     resolution=0.04,

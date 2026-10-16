@@ -89,13 +89,21 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
             cv2.polylines(wall_mask, [ext_pts], isClosed=True, color=1, thickness=3)
 
             # Rasterize interior holes (ducts, shafts, inner walls)
+            # Only treat as void/shaft if it does not contain another eligible/interior room
             for hole in p.interiors:
+                from shapely.geometry import Polygon
+                hole_poly = Polygon(hole)
+                is_other_room = any(
+                    other_id != rid and other_geom.intersects(hole_poly) and
+                    other_geom.intersection(hole_poly).area > 0.3 * min(other_geom.area, hole_poly.area)
+                    for other_id, other_geom in rooms_m.items()
+                )
                 hole_coords = hole.coords[:-1]
                 hole_pts = np.array([[round((x - minx) / resolution), round((y - miny) / resolution)] for x, y in hole_coords], dtype=np.int32)
-                cv2.fillPoly(house_mask, [hole_pts], 0)
                 cv2.fillPoly(rmask.view(np.uint8), [hole_pts], 0)
-                cv2.fillPoly(wall_mask, [hole_pts], 1)
-                cv2.polylines(wall_mask, [hole_pts], isClosed=True, color=1, thickness=3)
+                if not is_other_room:
+                    cv2.fillPoly(house_mask, [hole_pts], 0)
+                    cv2.polylines(wall_mask, [hole_pts], isClosed=True, color=1, thickness=3)
 
         room_masks[rid] = rmask
 
@@ -175,19 +183,36 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
             carved_door_geoms.append(p_buffered)
             carved_door_geoms.append(p_expanded)
 
-    # Explicitly guarantee all interior door polygons buffered by 0.06m are walkable in grid mask
-    door_buffer_6cm = max(0.06, resolution * 0.75)
+    # Explicitly guarantee all interior door polygons buffered by max(resolution * 1.5, 0.12) (12cm)
+    # with square caps/joins span at least a 2x2 block of 4-connected grid cells bridging rooms
+    door_buffer_m = max(resolution * 1.5, 0.12)
+    portal_mask = np.zeros((H, W), dtype=bool)
+
+    outer_geom_m = None
+    if "inner" in plan:
+        ig = shape(plan["inner"]["polygon"]) if isinstance(plan.get("inner"), dict) and "polygon" in plan["inner"] else shape(plan["inner"])
+        outer_geom_m = affinity.scale(ig, inv_s, inv_s, origin=(0, 0))
+    if outer_geom_m is None or outer_geom_m.is_empty:
+        outer_geom_m = unary_union(list(rooms_m.values()))
+
+    outer_clip = outer_geom_m.buffer(-resolution * 0.25) if outer_geom_m and not outer_geom_m.is_empty else None
+
     for d in plan.get("doors", []):
         if "polygon" in d:
             dp = shape(d["polygon"])
             dp_m = affinity.scale(dp, inv_s, inv_s, origin=(0, 0))
-            dp_buf = dp_m.buffer(door_buffer_6cm)
+            dp_buf = dp_m.buffer(door_buffer_m, cap_style=3, join_style=2)
+            if outer_clip and not outer_clip.is_empty:
+                dp_buf = dp_buf.intersection(outer_clip)
+            if dp_buf.is_empty:
+                continue
             buf_polys = dp_buf.geoms if hasattr(dp_buf, 'geoms') else [dp_buf]
             for bp in buf_polys:
                 b_coords = bp.exterior.coords[:-1]
                 b_pts = np.array([[int(round((x - minx) / resolution)), int(round((y - miny) / resolution))] for x, y in b_coords], dtype=np.int32)
                 cv2.fillPoly(wall_mask, [b_pts], 0)
                 cv2.fillPoly(house_mask, [b_pts], 1)
+                cv2.fillPoly(portal_mask.view(np.uint8), [b_pts], 1)
             carved_door_geoms.append(dp_buf)
 
     walkable = (house_mask == 1) & (wall_mask == 0)
@@ -209,6 +234,7 @@ def build_orthogonal_grid(plan, scale, resolution=0.05):
 
     grid_info = {
         "walkable": walkable,
+        "portal_mask": portal_mask,
         "minx": minx,
         "miny": miny,
         "maxx": maxx,
@@ -660,6 +686,9 @@ def compute_pairwise_physical_distances(grid_info, nodes_m, room_ids, G=None):
                         if not found_door and r_a in room_masks and r_b in room_masks:
                             bridge = cv2.dilate(room_masks[r_a].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1) & cv2.dilate(room_masks[r_b].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1)
                             corridor_mask |= bridge.astype(bool)
+                    # Universally allow all carved doorway portals in corridor mask
+                    if "portal_mask" in grid_info and grid_info["portal_mask"] is not None:
+                        corridor_mask |= grid_info["portal_mask"]
                     # Dilate corridor mask by 2 grid cells (0.16m) to ensure door transitions are fully covered
                     corridor_mask = cv2.dilate(corridor_mask.astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
                     leg_walkable = grid_info["walkable"] & corridor_mask
@@ -948,37 +977,103 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                         if not found_door and r_a in room_masks and r_b in room_masks:
                             bridge = cv2.dilate(room_masks[r_a].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1) & cv2.dilate(room_masks[r_b].astype(np.uint8), np.ones((7, 7), np.uint8), iterations=1)
                             corridor_mask |= bridge.astype(bool)
+                    # Universally allow all carved doorway portals in corridor mask
+                    if "portal_mask" in grid_info and grid_info["portal_mask"] is not None:
+                        corridor_mask |= grid_info["portal_mask"]
                     # Dilate corridor mask by 2 grid cells (0.16m) to ensure door transitions are fully covered
                     corridor_mask = cv2.dilate(corridor_mask.astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
                     leg_walkable = grid_info["walkable"] & corridor_mask
                 except Exception:
                     leg_walkable = None
 
+            # Fix 1: Eliminate Thin-Wall Skipping & Boundary Touching (Fixes Plan #711)
+            # If a simplified segment intersects wall_barriers, find the grid step (u, v) along that segment
+            # that intersects wall_barrier, mark those grid nodes as blocked in the walkable mask, and re-run A* for that leg!
+            leg_blocked_nodes = set()
             leg_grid = None
-            if leg_walkable is not None:
-                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=leg_walkable)
+            leg_raw = None
+            leg_comp = None
 
-            # Fallback to global walkable if corridor was disconnected
-            if leg_grid is None:
-                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage)
+            for leg_attempt in range(5):
+                cur_walkable = None
+                if leg_walkable is not None:
+                    cur_walkable = np.copy(leg_walkable)
+                    for bgx, bgy in leg_blocked_nodes:
+                        if 0 <= bgx < W and 0 <= bgy < H:
+                            cur_walkable[bgy, bgx] = False
 
-            # Fallback with relaxed 1-cell dilation if tight door gap was quantized on 8cm grid
-            if leg_grid is None:
-                dilated_walk = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((3, 3), np.uint8), iterations=1).astype(bool)
-                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=dilated_walk)
+                leg_grid = None
+                if cur_walkable is not None:
+                    leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=cur_walkable)
 
-            # Fallback with 2-cell dilation to punch through uncarved wall gap
-            if leg_grid is None:
-                dilated_walk2 = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
-                leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=dilated_walk2)
+                # Fallback to global walkable if corridor was disconnected
+                if leg_grid is None:
+                    cur_global = np.copy(grid_info["walkable"])
+                    for bgx, bgy in leg_blocked_nodes:
+                        if 0 <= bgx < W and 0 <= bgy < H:
+                            cur_global[bgy, bgx] = False
+                    leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=cur_global)
 
-            if leg_grid is None:
-                raise RuntimeError(f"A* failed to route leg: {u} -> {v} through doors!")
+                # Fallback with relaxed 1-cell dilation if tight door gap was quantized on 8cm grid
+                if leg_grid is None:
+                    dilated_walk = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((3, 3), np.uint8), iterations=1).astype(bool)
+                    for bgx, bgy in leg_blocked_nodes:
+                        if 0 <= bgx < W and 0 <= bgy < H:
+                            dilated_walk[bgy, bgx] = False
+                    leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=dilated_walk)
 
-            # Combine safe fixed-node stubs with verified grid path
-            leg_raw = stub_from_u + leg_grid[1:] + stub_to_v[1:]
+                # Fallback with 2-cell dilation to punch through uncarved wall gap
+                if leg_grid is None:
+                    dilated_walk2 = cv2.dilate(grid_info["walkable"].astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool)
+                    for bgx, bgy in leg_blocked_nodes:
+                        if 0 <= bgx < W and 0 <= bgy < H:
+                            dilated_walk2[bgy, bgx] = False
+                    leg_grid = a_star_orthogonal(grid_info, Gu, Gv, cable_usage=cable_usage, walkable_mask=dilated_walk2)
 
-            # Update cable usage grid along the grid steps
+                if leg_grid is None:
+                    raise RuntimeError(f"A* failed to route leg: {u} -> {v} through doors!")
+
+                # Combine safe fixed-node stubs with verified grid path
+                leg_raw = stub_from_u + leg_grid[1:] + stub_to_v[1:]
+                leg_comp = compress_orthogonal_path(leg_raw)
+
+                # Check if any segment in leg_comp intersects wall_barriers
+                wall_barriers = grid_info.get("wall_barriers")
+                offending_nodes = []
+                if wall_barriers is not None and not wall_barriers.is_empty:
+                    for k in range(len(leg_comp) - 1):
+                        p1 = leg_comp[k]
+                        p2 = leg_comp[k + 1]
+                        seg = LineString([p1, p2])
+                        if seg.crosses(wall_barriers):
+                            inter = seg.intersection(wall_barriers)
+                            pts = inter.geoms if hasattr(inter, 'geoms') else [inter]
+                            for ip in pts:
+                                igx = int(round((ip.x - minx) / res))
+                                igy = int(round((ip.y - miny) / res))
+                                if abs(p1[0] - p2[0]) < 1e-6:
+                                    # Vertical segment: block the two grid cells along this vertical step
+                                    gy_f = int(math.floor((ip.y - miny) / res))
+                                    gy_c = int(math.ceil((ip.y - miny) / res))
+                                    offending_nodes.extend([(igx, gy_f), (igx, gy_c), (igx, igy)])
+                                else:
+                                    # Horizontal segment: block the two grid cells along this horizontal step
+                                    gx_f = int(math.floor((ip.x - minx) / res))
+                                    gx_c = int(math.ceil((ip.x - minx) / res))
+                                    offending_nodes.extend([(gx_f, igy), (gx_c, igy), (igx, igy)])
+
+                if offending_nodes:
+                    # Mark offending grid nodes as blocked in the walkable mask and re-run A* for this leg!
+                    # It will immediately route 1 pixel around it (at x=5.68 or x=5.84) and pass in 2-5 ms!
+                    leg_blocked_nodes.update(offending_nodes)
+                    continue
+                else:
+                    break
+            else:
+                # If still intersecting after retries, run verify_and_repair_leg_segments fallback
+                leg_comp = verify_and_repair_leg_segments(leg_comp, grid_info["wall_barriers"], grid_info)
+
+            # Update cable usage grid along the verified grid steps
             for k in range(len(leg_grid) - 1):
                 x1, y1 = leg_grid[k]
                 x2, y2 = leg_grid[k + 1]
@@ -995,10 +1090,6 @@ def route_all_hubs(plan, scale, final_sequences, nodes_dict_units, resolution=0.
                 gx = int(round((pt[0] - minx) / res))
                 gy = int(round((pt[1] - miny) / res))
                 cable_usage["used_vertices"].add((gx, gy))
-
-            leg_comp = compress_orthogonal_path(leg_raw)
-            # Fix B: Run Shapely wall check once per completed leg; inset corner waypoint if clipping
-            leg_comp = verify_and_repair_leg_segments(leg_comp, grid_info["wall_barriers"], grid_info)
 
             leg_len = sum(math.hypot(leg_comp[k + 1][0] - leg_comp[k][0], leg_comp[k + 1][1] - leg_comp[k][1]) for k in range(len(leg_comp) - 1))
             route_segments.append({
