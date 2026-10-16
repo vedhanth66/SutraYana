@@ -3,6 +3,7 @@ from functools import lru_cache
 from itertools import combinations, permutations
 import copy
 import math
+import time
 import networkx as nx
 from shapely.geometry import Point, LineString
 from .model import Plan
@@ -42,6 +43,7 @@ def minimum_partitions(plan):
 
 
 def solve_plan(source, *, open_min=0.5):
+    t0 = time.perf_counter()
     plan = source if isinstance(source, Plan) else Plan(source, open_min=open_min)
     open_min = plan.open_min
     minimum, partitions = minimum_partitions(plan)
@@ -166,13 +168,17 @@ def solve_plan(source, *, open_min=0.5):
                     h["ring_length_m"] = sum(l["length_m"] for l in legs)
         if not improved:
             break
+    elapsed_s = round(time.perf_counter() - t0, 3)
+    for h in best:
+        h["assigned_area_m2"] = round(sum(plan.rooms[r].area for r in h["assigned_rooms"]), 2)
     output = {"plan_id": plan.id, "units":"m", "hubs":best, "reported_metrics":score(best,nodes),
               "solver": {"minimum_hubs":minimum, "hub_count_proven":True,
                          "minimum_hub_partitions":len(partitions), "routable_partitions":feasible_partitions,
                          "area_gap_m2":best_rank[1], "cost_optimality":"heuristic finite hub/route candidates",
                          "cost_before_rerouting":initial_cost,
                          "open_passage_min_m":open_min, "zone_transit":"assigned eligible rooms only",
-                         "coordinate_transform":{"origin_drawing_units":list(plan.origin), "units_per_metre":plan.scale, "source_y_down":plan.y_down}}}
+                         "coordinate_transform":{"origin_drawing_units":list(plan.origin), "units_per_metre":plan.scale, "source_y_down":plan.y_down},
+                         "elapsed_s": elapsed_s}}
     report = validate(plan,output)
     if not report["valid"]:
         raise ValueError("Output failed validation: " + "; ".join(e["message"] for e in report["errors"][:8]))

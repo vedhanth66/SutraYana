@@ -65,4 +65,6 @@ def solve_bounded(source, *, timeout=30, enhanced=False, **options):
             elif not wider["ok"]:
                 result["output"]["warnings"].append({"rule":"search_budget", "message":"Kept the validated base result. Expanded search: " + wider["error"]})
     result["elapsed_s"] = round(time.monotonic() - started, 3)
+    if result.get("ok") and "output" in result:
+        result["solver_time_s"] = result["output"].get("solver", {}).get("elapsed_s")
     return result

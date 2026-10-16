@@ -101,24 +101,83 @@ def render(plan,output,image_path=None,html_path=None):
         fig.savefig(stream,format="svg")
         svg = stream.getvalue()
         svg = svg[svg.index("<svg"):]
-        cards = "".join(f'<div class="metric"><span>{label}</span><strong>{value}</strong></div>' for label,value in [
-            ("Hubs",str(m["hub_count"])),("Objective J",f'{m["total_cost_J"]:.2f}'),("Cable length",f'{m["total_length_m"]:.2f} m'),
-            ("Crossings",str(m["total_crossings"])),("Overlap",f'{m["total_overlap_m"]:.2f} m'),("Bends",str(m["total_bends"]))])
+        latency_val = output.get("solver", {}).get("elapsed_s") or output.get("solver_time_s")
+        if latency_val is not None:
+            latency_str = f'{latency_val * 1000:.0f} ms' if 0 < latency_val < 0.01 else f'{latency_val:.3f} s'
+        else:
+            latency_str = '—'
+        cards = "".join(f'<div class="metric"><span>{label}</span><strong id="{mid}">{value}</strong></div>' for label,value,mid in [
+            ("Hubs",str(m["hub_count"]),"metric-h"),
+            ("Objective J",f'{m["total_cost_J"]:.2f}',"metric-j"),
+            ("Cable length",f'{m["total_length_m"]:.2f} m',"metric-l"),
+            ("Crossings",str(m["total_crossings"]),"metric-x"),
+            ("Overlap",f'{m["total_overlap_m"]:.2f} m',"metric-o"),
+            ("Bends",str(m["total_bends"]),"metric-b"),
+            ("Latency",latency_str,"metric-latency")])
         hubs = ""
         for i,h in enumerate(output["hubs"]):
-            area = sum(plan.rooms[r].area for r in h["assigned_rooms"])
-            hubs += f'<article class="hub"><label><input type="checkbox" checked data-ring="{i}"><b style="color:{COLORS[i%len(COLORS)]}">{html.escape(h["hub_id"])}</b><span>{area:.1f} / 100 m² · {len(h["assigned_nodes"])} / 5 nodes</span></label><p>{html.escape(" → ".join(h["closed_sequence"]))}</p><small>{html.escape(", ".join(h["assigned_rooms"]))}</small><div class="bar"><i style="width:{area}%;background:{COLORS[i%len(COLORS)]}"></i></div></article>'
+            area = round(sum(plan.rooms[r].area for r in h["assigned_rooms"]), 2)
+            h["assigned_area_m2"] = area
+            color = COLORS[i%len(COLORS)]
+            hubs += f'<article class="hub"><label><input type="checkbox" checked data-ring="{i}"><b style="color:{color}">{html.escape(h["hub_id"])}</b><span>{area:.1f} / 100 m² · {len(h["assigned_nodes"])} / 5 nodes</span></label><p>{html.escape(" → ".join(h["closed_sequence"]))}</p><small>{html.escape(", ".join(h["assigned_rooms"]))}</small><div class="bar"><i style="width:{min(100, area)}%;background:{color}"></i></div></article>'
         data = json.dumps(output,ensure_ascii=True).replace("<","\\u003c")
         status = "Validated geometry" if report["valid"] else "Validation failed"
         document = '''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SutraYana · Cable ring review</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f0f3ef;color:#203c30;font:15px system-ui,sans-serif}header{padding:28px 4vw;background:#173e32;color:white;display:flex;justify-content:space-between;align-items:center}h1{font-size:25px;margin:0;letter-spacing:-1px}header p{margin:6px 0 0;color:#bad2c4;font-size:13px}.badge{padding:8px 14px;background:#d6f5dd;color:#215c39;border-radius:30px;font-size:12px;font-weight:700}main{padding:25px 4vw;max-width:1700px;margin:auto}.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:22px}.metric{background:white;border:1px solid #dce4dc;border-radius:12px;padding:17px}.metric span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#64796b}.metric strong{font-size:26px;display:block;margin-top:8px;font-weight:600}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px}.drawing,aside{background:#fafbf9;border:1px solid #dce4dc;border-radius:16px;overflow:hidden}.drawing{position:relative;overflow:auto}.drawing svg{width:100%;height:auto;display:block}aside{padding:22px;height:fit-content}h2{font-size:16px;margin:0 0 8px}.muted,small{color:#748477;font-size:12px;line-height:1.6}.hub{padding:20px 0;border-bottom:1px solid #dfe7df}.hub label{display:flex;gap:8px;align-items:center;cursor:pointer}.hub label span{margin-left:auto;font-size:11px;color:#64796b}.hub p{font-size:13px;line-height:1.8;margin:10px 0 4px}.bar{height:4px;border-radius:3px;background:#e5ebe4;margin-top:12px}.bar i{display:block;height:100%;border-radius:3px}button{background:#173e32;color:white;border:0;padding:12px 15px;border-radius:8px;cursor:pointer;font:inherit;font-size:12px;margin:12px 5px 0 0}button:hover{background:#28634e}.legend{display:flex;gap:16px;padding:16px 22px;border-top:1px solid #dfe7df;font-size:11px;color:#617369;flex-wrap:wrap}.legend i{width:12px;height:9px;display:inline-block;margin-right:5px}.foot{font-size:12px;line-height:1.8;color:#6c7c70;margin-top:24px}details{margin-top:22px;font-size:12px}summary{cursor:pointer;font-weight:600}pre{overflow:auto;background:#edf1eb;padding:12px;max-height:260px;font-size:10px}@media(max-width:1000px){.workspace{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}}@media(max-width:500px){.metrics{grid-template-columns:repeat(2,1fr)}header{gap:16px}.badge{font-size:10px}.metric strong{font-size:22px}}@media print{button,input{display:none}header{background:white;color:#173e32}.workspace{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(6,1fr)}aside{break-inside:avoid}}
-</style></head><body><header><div><h1>SutraYana<span style="font-weight:300;color:#b4d0bf"> / Cable rings</span></h1><p>Geometry you can inspect. Results you can verify.</p></div><div class="badge">STATUS</div></header><main><section class="metrics">CARDS</section><div class="workspace"><section class="drawing">DRAWING<div class="legend"><span><i style="background:#35443e"></i>Wall</span><span><i style="background:#71b9de"></i>Window</span><span><i style="background:#e9cb81"></i>Door</span><span>◆ Hub · ● Fixed node · → Cable direction</span></div></section><aside><h2>Connected zones</h2><p class="muted">Toggle a ring to inspect its route. Node labels show the visiting order.</p>HUBS<button id="download">Download result JSON</button><button id="print">Print review</button><details><summary>Validation & search details</summary><pre id="validation"></pre></details><p class="foot">Fewest hubs first. Then J = L + 5X + O + 0.5B.<br>Hub count is proven for the configured connectivity rule. Cable cost uses finite candidate search.<br><br>Research prototype for the Cable Ring Challenge. Open-passage threshold: OPENMIN m. Excluded rooms do not connect zones.</p></aside></div><p class="foot">Input coordinates are converted once to metres with lower-left origin. Every route edge is checked against inner − wall − window. Fixed input nodes are preserved.</p></main><script type="application/json" id="result">DATA</script><script>
-const data=JSON.parse(document.getElementById('result').textContent);document.getElementById('validation').textContent=JSON.stringify({validation:data.validation,solver:data.solver},null,2);document.querySelectorAll('[data-ring]').forEach(el=>el.addEventListener('change',()=>document.querySelectorAll('[id^="ring-'+el.dataset.ring+'-"]').forEach(g=>g.style.opacity=el.checked?'1':'0')));document.getElementById('print').onclick=()=>window.print();document.getElementById('download').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='sutrayana-result.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+*{box-sizing:border-box}body{margin:0;background:#f4f6f3;color:#1e362d;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}header{padding:24px 4vw;background:#173e32;color:white;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.06)}h1{font-size:24px;margin:0;letter-spacing:-0.5px;font-weight:700}header p{margin:4px 0 0;color:#b7cebf;font-size:13px}.badge{padding:6px 14px;background:#d6f5dd;color:#1a5632;border-radius:999px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px}.badge::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor}main{padding:24px 4vw;max-width:1700px;margin:auto}.metrics{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:22px}.metric{background:#ffffff;border:1px solid #dce4dc;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.02);transition:transform 0.15s ease,box-shadow 0.15s ease}.metric:hover{transform:translateY(-1px);box-shadow:0 4px 8px rgba(0,0,0,0.04)}.metric span{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#627768}.metric strong{font-size:24px;display:block;margin-top:8px;font-weight:700;color:#1a3328}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px}.drawing,aside{background:#fafbf9;border:1px solid #dce4dc;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.02)}.drawing{position:relative;overflow:auto;display:flex;flex-direction:column}.drawing svg{width:100%;height:auto;display:block}aside{padding:22px;height:fit-content}h2{font-size:16px;font-weight:700;margin:0 0 6px;color:#173e32}.muted,small{color:#6f8072;font-size:12px;line-height:1.5}.hub{padding:18px 0;border-bottom:1px solid #dfe7df}.hub label{display:flex;gap:8px;align-items:center;cursor:pointer;user-select:none}.hub label input[type="checkbox"]{cursor:pointer;accent-color:#173e32;width:15px;height:15px}.hub label b{font-size:14px}.hub label span{margin-left:auto;font-size:11px;font-weight:500;color:#64796b}.hub p{font-size:12.5px;line-height:1.7;margin:8px 0 4px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:#274438}.hub small{display:block;font-size:11.5px;color:#6e7f73}.bar{height:5px;border-radius:3px;background:#e3eae2;margin-top:10px;overflow:hidden}.bar i{display:block;height:100%;border-radius:3px;transition:width 0.3s ease}.btn-group{display:flex;gap:8px;margin-top:16px}button{background:#173e32;color:white;border:0;padding:11px 16px;border-radius:8px;cursor:pointer;font:inherit;font-size:12px;font-weight:600;margin:12px 6px 0 0;transition:background 0.15s ease}button:hover{background:#235d4b}button.secondary{background:#e6ece4;color:#173e32}button.secondary:hover{background:#d4ded1}.legend{display:flex;gap:16px;padding:14px 20px;border-top:1px solid #dfe7df;font-size:11px;color:#5d7065;flex-wrap:wrap;align-items:center;background:#ffffff}.legend span{display:inline-flex;align-items:center}.legend i{width:12px;height:9px;display:inline-block;margin-right:6px;border-radius:2px}.foot{font-size:11.5px;line-height:1.7;color:#6b7d70;margin-top:20px}details{margin-top:20px;font-size:12px;border-top:1px solid #dfe7df;padding-top:14px}summary{cursor:pointer;font-weight:600;color:#204135;user-select:none}summary:hover{color:#112920}pre{overflow:auto;background:#edf1eb;padding:12px;border-radius:6px;max-height:260px;font-size:10.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;margin-top:10px;color:#213a2f}@media(max-width:1200px){.metrics{grid-template-columns:repeat(4,1fr)}}@media(max-width:1000px){.workspace{grid-template-columns:1fr}}@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}header{flex-direction:column;align-items:flex-start;gap:12px}.badge{font-size:11px}.metric strong{font-size:20px}}@media print{button,input{display:none!important}header{background:white;color:#173e32;padding:12px 0}.workspace{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(7,1fr)}aside{break-inside:avoid;border:none;padding:0}}
+</style></head><body><header><div><h1>SutraYana<span style="font-weight:300;color:#b4d0bf"> / Cable rings</span></h1><p>Geometry you can inspect. Results you can verify.</p></div><div class="badge" id="status-badge">STATUS</div></header><main><section class="metrics" id="metrics-panel">CARDS</section><div class="workspace"><section class="drawing">DRAWING<div class="legend"><span><i style="background:#35443e"></i>Wall</span><span><i style="background:#71b9de"></i>Window</span><span><i style="background:#e9cb81"></i>Door</span><span>◆ Hub · ● Fixed node · → Cable direction</span></div></section><aside><h2>Connected zones</h2><p class="muted">Toggle a ring to inspect its route. Node labels show the visiting order.</p><div id="hubs-container">HUBS</div><button id="download">Download result JSON</button><button id="print">Print review</button><details><summary>Validation & search details</summary><pre id="validation"></pre></details><p class="foot">Fewest hubs first. Then J = L + 5X + O + 0.5B.<br>Hub count is proven for the configured connectivity rule. Cable cost uses finite candidate search.<br><br>Research prototype for the Cable Ring Challenge. Open-passage threshold: OPENMIN m. Excluded rooms do not connect zones.</p></aside></div><p class="foot">Input coordinates are converted once to metres with lower-left origin. Every route edge is checked against inner − wall − window. Fixed input nodes are preserved.</p></main><script type="application/json" id="result">DATA</script><script>
+(function(){
+  const resultEl=document.getElementById('result');
+  if(!resultEl)return;
+  try{
+    const data=JSON.parse(resultEl.textContent);
+    const m=data.reported_metrics||{};
+    const solver=data.solver||{};
+    const val=data.validation||{};
+
+    // Dynamic metrics hydration
+    const setTxt=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=v;};
+    setTxt('metric-h',m.hub_count??(data.hubs?data.hubs.length:'—'));
+    setTxt('metric-j',m.total_cost_J!=null?Number(m.total_cost_J).toFixed(2):'—');
+    setTxt('metric-l',m.total_length_m!=null?Number(m.total_length_m).toFixed(2)+' m':'—');
+    setTxt('metric-x',m.total_crossings??0);
+    setTxt('metric-o',m.total_overlap_m!=null?Number(m.total_overlap_m).toFixed(2)+' m':'0.00 m');
+    setTxt('metric-b',m.total_bends??0);
+
+    const solverSec=solver.elapsed_s??data.solver_time_s??data.solve_time_s;
+    const latStr=solverSec!=null?(Number(solverSec)<0.01&&Number(solverSec)>0?(Number(solverSec)*1000).toFixed(0)+' ms':Number(solverSec).toFixed(3)+' s'):'—';
+    setTxt('metric-latency',latStr);
+
+    const valPre=document.getElementById('validation');
+    if(valPre)valPre.textContent=JSON.stringify({validation:val,solver:solver},null,2);
+
+    document.querySelectorAll('[data-ring]').forEach(el=>{
+      el.addEventListener('change',()=>{
+        const r=el.dataset.ring,vis=el.checked;
+        document.querySelectorAll('[id^="ring-'+r+'-"]').forEach(g=>g.style.opacity=vis?'1':'0');
+        document.querySelectorAll('[id^="zone-'+r+'-"]').forEach(g=>g.style.opacity=vis?'0.13':'0');
+      });
+    });
+
+    const pBtn=document.getElementById('print');
+    if(pBtn)pBtn.onclick=()=>window.print();
+
+    const dBtn=document.getElementById('download');
+    if(dBtn)dBtn.onclick=()=>{
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=`sutrayana-${data.plan_id||'result'}.json`;
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    };
+  }catch(e){console.error(e);}
+})();
 </script></body></html>'''
         for key,value in [("STATUS",status),("CARDS",cards),("DRAWING",svg),("HUBS",hubs),("OPENMIN",str(plan.open_min)),("DATA",data)]:
             document = document.replace(key,value)
         if not report["valid"]:
-            document = document.replace('<div class="badge">','<div class="badge" style="background:#fde5e5;color:#b32727">')
+            document = document.replace('<div class="badge" id="status-badge">','<div class="badge" id="status-badge" style="background:#fde5e5;color:#b32727">')
         Path(html_path).parent.mkdir(parents=True,exist_ok=True)
         Path(html_path).write_text(document,encoding="utf-8")
     plt.close(fig)
