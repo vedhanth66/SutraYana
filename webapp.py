@@ -237,6 +237,7 @@ class Handler(BaseHTTPRequestHandler):
                     raw = CATALOG[data["key"]]["raw"]
                 clearance = float(data.get("wire_clearance", 0))
                 timeout = float(data.get("timeout",30))
+                use_rl = bool(data.get("use_rl", False))
                 if clearance not in (0,.5) or not math.isfinite(timeout) or not 1 <= timeout <= 120:
                     raise ValueError("Invalid clearance profile or time limit (1–120 seconds).")
                 if not SLOT.acquire(blocking=False):
@@ -249,7 +250,7 @@ class Handler(BaseHTTPRequestHandler):
                         if JOBS[key]["status"] == "done":
                             del JOBS[key]
                     JOBS[job_id] = {"status":"running", "started":time.time()}
-                threading.Thread(target=work,args=(job_id,raw,{"wire_clearance":clearance,"timeout":timeout,"enhanced":bool(data.get("enhanced"))}),daemon=True).start()
+                threading.Thread(target=work,args=(job_id,raw,{"wire_clearance":clearance,"timeout":timeout,"enhanced":bool(data.get("enhanced")),"use_rl":use_rl}),daemon=True).start()
                 self.respond({"job_id":job_id},202)
             else:
                 self.respond({"error":"Not found"},404)

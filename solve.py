@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--validate-only",action="store_true")
     parser.add_argument("--open-min",type=float,default=.5,help="Minimum open-passage width in metres (assumption: 0.5)")
     parser.add_argument("--wire-clearance",type=float,default=0.0,help="Wall-to-wire clearance in metres (default: 0.0 for slide rules, 0.5 for 0.5m clearance)")
+    parser.add_argument("--rl",action="store_true",help="Enable Reinforcement Learning (RL) adaptive routing")
     args = parser.parse_args()
     started = time.perf_counter()
     try:
@@ -33,7 +34,7 @@ def main():
                 output["validation"] = report
                 render(plan,output,image_path=args.image,html_path=args.html)
             return 0 if report["valid"] else 1
-        output = solve_plan(plan,open_min=args.open_min,wire_clearance=args.wire_clearance)
+        output = solve_plan(plan,open_min=args.open_min,wire_clearance=args.wire_clearance,use_rl=args.rl)
         target = Path(args.output)
         target.parent.mkdir(parents=True,exist_ok=True)
         temporary = target.with_suffix(target.suffix+".tmp")

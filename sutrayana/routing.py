@@ -12,8 +12,16 @@ from .metrics import compact
 
 
 class Router:
-    def __init__(self, plan, hubs):
+    def __init__(self, plan, hubs, use_rl=False):
         self.plan = plan
+        self.use_rl = use_rl
+        self.rl_router = None
+        if use_rl:
+            try:
+                from .rl import RLAdaptiveRouter
+                self.rl_router = RLAdaptiveRouter()
+            except Exception:
+                self.rl_router = None
         terminals = [r.node for r in plan.eligible.values()] + [p for ps in hubs.values() for p in ps]
         if getattr(plan, "wire_clearance", 0.0) > 0 and not plan.barriers.is_empty:
             routing_space = plan.wire_free
@@ -130,6 +138,14 @@ class Router:
         dist, predecessor = dijkstra(graph, directed=True, indices=start, return_predecessors=True)
         self.cache[source] = (dist, predecessor)
         return dist, predecessor
+
+    def rl_path(self, a, b, occupied=None):
+        if not self.use_rl or self.rl_router is None or not getattr(self.rl_router, "loaded", False):
+            return None
+        try:
+            return self.rl_router.route_leg(self.plan, a, b, occupied=occupied)
+        except Exception:
+            return None
 
     def path(self, a, b):
         if a == b:

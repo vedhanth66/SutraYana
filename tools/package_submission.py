@@ -8,9 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     destination = ROOT / "results" / "SutraYana-submission.zip"
     files = [ROOT/name for name in ["README.md","THIRD_PARTY_NOTICES.md","requirements.txt","solve.py",
-             "batch_eval_pipeline.py","check.py","export_resplan_to_json.py","phase1_pipeline.py",
-             "phase2_partition.py","phase3_sequencing.py","phase4_routing.py","sample_plan.json","output_plan.json","floor_plan_phase4.png"]]
-    for directory,pattern in [("sutrayana","*.py"),("tests","*.py"),("tools","*.py"),("audit_tools","*.py"),("examples","*")]:
+             "train_rl.py","batch_eval_pipeline.py","check.py","export_resplan_to_json.py","phase1_pipeline.py",
+             "phase2_partition.py","phase3_sequencing.py","phase4_routing.py","sample_plan.json","output_plan.json","floor_plan_phase4.png","webapp.py"]]
+    for directory,pattern in [("sutrayana","**/*.py"),("tests","*.py"),("tools","*.py"),("audit_tools","*.py"),("examples","*"),("sutrayana/rl/models","*.pt"),("web","*")]:
         files.extend(p for p in (ROOT/directory).glob(pattern) if p.is_file())
     files.extend((ROOT/"tests/fixtures").glob("*.json"))
     files.extend(ROOT/"results"/name for name in ["review.html","final_120.json","independent_audit.json","verification.json"])

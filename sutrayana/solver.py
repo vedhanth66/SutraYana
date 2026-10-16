@@ -43,7 +43,7 @@ def minimum_partitions(plan):
     return int(optimum(full)), list(enumerate_best(full))
 
 
-def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None):
+def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=False):
     t0 = time.perf_counter()
     if isinstance(source, Plan):
         plan = source
@@ -55,7 +55,7 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None):
     minimum, partitions = minimum_partitions(plan)
     nodes = [r.node for r in plan.eligible.values()]
     candidates = {rid: plan.hub_candidates(rid, wide=wide) for rid in plan.eligible}
-    router = Router(plan, candidates) if minimum else None
+    router = Router(plan, candidates, use_rl=use_rl) if minimum else None
     path_cache = {}
     def path(a, b):
         key = (a,b)
@@ -156,22 +156,31 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None):
                 previous = legs[li-1]["polyline"]
                 following = legs[(li+1)%len(legs)]["polyline"]
                 hp = (h["location"]["x"],h["location"]["y"])
+                candidates_alt = []
                 try:
-                    alt = router.alternative(tuple(leg["polyline"][0]),tuple(leg["polyline"][-1]),occupied,terminals,hp,
-                                             direction(previous[-2],previous[-1]),direction(following[0],following[1]))
+                    candidates_alt.append(router.alternative(tuple(leg["polyline"][0]),tuple(leg["polyline"][-1]),occupied,terminals,hp,
+                                             direction(previous[-2],previous[-1]),direction(following[0],following[1])))
                 except ValueError:
+                    pass
+                if use_rl:
+                    rl_cand = router.rl_path(tuple(leg["polyline"][0]), tuple(leg["polyline"][-1]), occupied=occupied)
+                    if rl_cand is not None:
+                        candidates_alt.append(rl_cand)
+                if not candidates_alt:
                     continue
                 old_points,old_length = leg["polyline"],leg["length_m"]
-                current = score(best,nodes)["total_cost_J"]
-                leg["polyline"],leg["length_m"] = alt,length(alt)
-                h["ring_length_m"] = sum(l["length_m"] for l in legs)
-                metrics = score(best,nodes)
-                trial = {"plan_id":plan.id,"units":"m","hubs":best,"reported_metrics":metrics}
-                if metrics["total_cost_J"] < current-1e-8 and validate(plan,trial)["valid"]:
-                    improved = True
-                else:
-                    leg["polyline"],leg["length_m"] = old_points,old_length
+                for alt in candidates_alt:
+                    current = score(best,nodes)["total_cost_J"]
+                    leg["polyline"],leg["length_m"] = alt,length(alt)
                     h["ring_length_m"] = sum(l["length_m"] for l in legs)
+                    metrics = score(best,nodes)
+                    trial = {"plan_id":plan.id,"units":"m","hubs":best,"reported_metrics":metrics}
+                    if metrics["total_cost_J"] < current-1e-8 and validate(plan,trial)["valid"]:
+                        improved = True
+                        break
+                    else:
+                        leg["polyline"],leg["length_m"] = old_points,old_length
+                        h["ring_length_m"] = sum(l["length_m"] for l in legs)
         if not improved:
             break
     elapsed_s = round(time.perf_counter() - t0, 3)
@@ -231,7 +240,7 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None):
                          "area_gap_m2":best_rank[1], "cost_optimality":"heuristic finite hub/route candidates",
                          "cost_before_rerouting":initial_cost,
                          "cost_before_hub_refinement":cost_before_hub_refinement,
-                         "expanded_hub_search":wide,
+                         "expanded_hub_search":wide, "rl_adaptive_routing":use_rl,
                          "wire_clearance_m": plan.wire_clearance,
                          "open_passage_min_m":open_min, "zone_transit":"inner free space; assignment connectivity uses eligible rooms",
                          "coordinate_transform":{"origin_drawing_units":list(plan.origin), "units_per_metre":plan.scale, "source_y_down":plan.y_down},
