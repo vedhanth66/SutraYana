@@ -1,5 +1,5 @@
 {
-  "timestamp": "20261016_092848",
+  "timestamp": "20261016_094032",
   "config": {
     "num_plans": 500,
     "workers": 4,
@@ -11,15 +11,15 @@
     "total_evaluated": 500,
     "passed": 500,
     "pass_rate_pct": 100.0,
-    "wall_time_sec": 25.99,
-    "throughput_plans_per_sec": 19.24,
-    "avg_runtime_ms": 192.38,
-    "avg_hub_count": 1.49,
-    "avg_length_m": 30.03,
-    "avg_bends": 19.13,
+    "wall_time_sec": 26.12,
+    "throughput_plans_per_sec": 19.14,
+    "avg_runtime_ms": 194.53,
+    "avg_hub_count": 1.6,
+    "avg_length_m": 29.43,
+    "avg_bends": 19.1,
     "avg_overlap_m": 0.24,
-    "avg_crossings": 0.17,
-    "avg_cost_J": 40.68
+    "avg_crossings": 0.14,
+    "avg_cost_J": 39.93
   },
   "detailed_results": [
     {
@@ -34,7 +34,7 @@
       "total_X": 1,
       "total_J": 40.12,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11680054664611816
+      "time_sec": 0.09396123886108398
     },
     {
       "plan_idx": 819,
@@ -42,13 +42,13 @@
       "skipped": false,
       "eligible_rooms": 6,
       "hub_count": 2,
-      "total_L": 47.846,
-      "total_B": 20,
-      "total_O": 0.313,
+      "total_L": 48.006,
+      "total_B": 22,
+      "total_O": 0.354,
       "total_X": 0,
-      "total_J": 58.157,
+      "total_J": 59.359,
       "area_gap_m2": 61.68,
-      "time_sec": 0.18733835220336914
+      "time_sec": 0.18002009391784668
     },
     {
       "plan_idx": 8024,
@@ -62,7 +62,7 @@
       "total_X": 0,
       "total_J": 38.281,
       "area_gap_m2": 0.0,
-      "time_sec": 0.24097704887390137
+      "time_sec": 0.18302130699157715
     },
     {
       "plan_idx": 7314,
@@ -76,21 +76,35 @@
       "total_X": 0,
       "total_J": 35.675,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2261033058166504
+      "time_sec": 0.186143159866333
+    },
+    {
+      "plan_idx": 4572,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 20.827,
+      "total_B": 16,
+      "total_O": 0.206,
+      "total_X": 0,
+      "total_J": 29.033,
+      "area_gap_m2": 12.51,
+      "time_sec": 0.1570751667022705
     },
     {
       "plan_idx": 3358,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 28.24,
+      "hub_count": 2,
+      "total_L": 33.681,
       "total_B": 22,
-      "total_O": 0.263,
+      "total_O": 0.267,
       "total_X": 0,
-      "total_J": 39.504,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.16152691841125488
+      "total_J": 44.948,
+      "area_gap_m2": 56.25,
+      "time_sec": 0.16961264610290527
     },
     {
       "plan_idx": 9012,
@@ -104,21 +118,7 @@
       "total_X": 0,
       "total_J": 63.063,
       "area_gap_m2": 1.76,
-      "time_sec": 0.43550586700439453
-    },
-    {
-      "plan_idx": 4572,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 32.667,
-      "total_B": 18,
-      "total_O": 0.199,
-      "total_X": 0,
-      "total_J": 41.866,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.27770161628723145
+      "time_sec": 0.4021627902984619
     },
     {
       "plan_idx": 13825,
@@ -132,7 +132,7 @@
       "total_X": 0,
       "total_J": 35.171,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12675738334655762
+      "time_sec": 0.15659785270690918
     },
     {
       "plan_idx": 976,
@@ -146,7 +146,7 @@
       "total_X": 0,
       "total_J": 32.55,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14977145195007324
+      "time_sec": 0.17655372619628906
     },
     {
       "plan_idx": 2848,
@@ -160,21 +160,7 @@
       "total_X": 0,
       "total_J": 51.309,
       "area_gap_m2": 3.45,
-      "time_sec": 0.28489065170288086
-    },
-    {
-      "plan_idx": 7164,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 25.473,
-      "total_B": 10,
-      "total_O": 0.25,
-      "total_X": 0,
-      "total_J": 30.723,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.11427044868469238
+      "time_sec": 0.38214945793151855
     },
     {
       "plan_idx": 3070,
@@ -188,7 +174,21 @@
       "total_X": 1,
       "total_J": 33.877,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20830631256103516
+      "time_sec": 0.18754863739013672
+    },
+    {
+      "plan_idx": 7164,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 20.673,
+      "total_B": 12,
+      "total_O": 0.216,
+      "total_X": 0,
+      "total_J": 26.889,
+      "area_gap_m2": 13.51,
+      "time_sec": 0.11005377769470215
     },
     {
       "plan_idx": 7623,
@@ -202,7 +202,7 @@
       "total_X": 0,
       "total_J": 39.542,
       "area_gap_m2": 6.7,
-      "time_sec": 0.17528200149536133
+      "time_sec": 0.14285969734191895
     },
     {
       "plan_idx": 869,
@@ -216,7 +216,7 @@
       "total_X": 0,
       "total_J": 31.366,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1514577865600586
+      "time_sec": 0.12630367279052734
     },
     {
       "plan_idx": 16559,
@@ -230,7 +230,7 @@
       "total_X": 0,
       "total_J": 42.19,
       "area_gap_m2": 23.13,
-      "time_sec": 0.29863476753234863
+      "time_sec": 0.24505209922790527
     },
     {
       "plan_idx": 1041,
@@ -244,21 +244,21 @@
       "total_X": 0,
       "total_J": 71.12,
       "area_gap_m2": 51.72,
-      "time_sec": 0.6550076007843018
+      "time_sec": 0.6659460067749023
     },
     {
       "plan_idx": 6515,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 39.275,
-      "total_B": 20,
-      "total_O": 0.252,
-      "total_X": 0,
-      "total_J": 49.526,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.31549572944641113
+      "hub_count": 2,
+      "total_L": 48.235,
+      "total_B": 22,
+      "total_O": 0.251,
+      "total_X": 1,
+      "total_J": 64.486,
+      "area_gap_m2": 28.92,
+      "time_sec": 0.24900150299072266
     },
     {
       "plan_idx": 13746,
@@ -272,7 +272,7 @@
       "total_X": 0,
       "total_J": 42.538,
       "area_gap_m2": 0.0,
-      "time_sec": 0.3022947311401367
+      "time_sec": 0.285400390625
     },
     {
       "plan_idx": 9115,
@@ -286,7 +286,21 @@
       "total_X": 1,
       "total_J": 33.438,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12823796272277832
+      "time_sec": 0.10116124153137207
+    },
+    {
+      "plan_idx": 7223,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 33.798,
+      "total_B": 24,
+      "total_O": 0.34,
+      "total_X": 0,
+      "total_J": 46.138,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2584190368652344
     },
     {
       "plan_idx": 14719,
@@ -300,35 +314,7 @@
       "total_X": 0,
       "total_J": 42.486,
       "area_gap_m2": 32.82,
-      "time_sec": 0.2444310188293457
-    },
-    {
-      "plan_idx": 7223,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 39.078,
-      "total_B": 24,
-      "total_O": 0.371,
-      "total_X": 1,
-      "total_J": 56.449,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.3413429260253906
-    },
-    {
-      "plan_idx": 5231,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 23.989,
-      "total_B": 16,
-      "total_O": 0.232,
-      "total_X": 1,
-      "total_J": 37.221,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.14317822456359863
+      "time_sec": 0.19366955757141113
     },
     {
       "plan_idx": 212,
@@ -342,7 +328,21 @@
       "total_X": 0,
       "total_J": 46.789,
       "area_gap_m2": 55.01,
-      "time_sec": 0.17980694770812988
+      "time_sec": 0.15893864631652832
+    },
+    {
+      "plan_idx": 5231,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 23.829,
+      "total_B": 16,
+      "total_O": 0.2,
+      "total_X": 0,
+      "total_J": 32.029,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.12118196487426758
     },
     {
       "plan_idx": 11149,
@@ -356,7 +356,7 @@
       "total_X": 0,
       "total_J": 32.544,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12987232208251953
+      "time_sec": 0.13093233108520508
     },
     {
       "plan_idx": 9105,
@@ -370,7 +370,7 @@
       "total_X": 0,
       "total_J": 43.51,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1409437656402588
+      "time_sec": 0.15175127983093262
     },
     {
       "plan_idx": 5094,
@@ -384,7 +384,7 @@
       "total_X": 0,
       "total_J": 43.438,
       "area_gap_m2": 6.19,
-      "time_sec": 0.1565685272216797
+      "time_sec": 0.18275713920593262
     },
     {
       "plan_idx": 13848,
@@ -392,13 +392,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 36.499,
+      "total_L": 40.819,
       "total_B": 22,
       "total_O": 0.323,
-      "total_X": 1,
-      "total_J": 52.821,
+      "total_X": 0,
+      "total_J": 52.141,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2895383834838867
+      "time_sec": 0.2779369354248047
     },
     {
       "plan_idx": 7055,
@@ -406,13 +406,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 34.233,
-      "total_B": 22,
-      "total_O": 0.265,
+      "total_L": 33.593,
+      "total_B": 18,
+      "total_O": 0.301,
       "total_X": 0,
-      "total_J": 45.498,
+      "total_J": 42.894,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20177483558654785
+      "time_sec": 0.21291613578796387
     },
     {
       "plan_idx": 11029,
@@ -420,13 +420,13 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 31.644,
+      "total_L": 26.684,
       "total_B": 16,
-      "total_O": 0.197,
+      "total_O": 0.185,
       "total_X": 0,
-      "total_J": 39.841,
+      "total_J": 34.869,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1766965389251709
+      "time_sec": 0.17336177825927734
     },
     {
       "plan_idx": 3039,
@@ -440,7 +440,7 @@
       "total_X": 0,
       "total_J": 36.546,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11882472038269043
+      "time_sec": 0.14287924766540527
     },
     {
       "plan_idx": 12449,
@@ -454,21 +454,21 @@
       "total_X": 0,
       "total_J": 7.094,
       "area_gap_m2": 97.62,
-      "time_sec": 0.07492780685424805
+      "time_sec": 0.07298564910888672
     },
     {
       "plan_idx": 3349,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 7,
-      "hub_count": 5,
-      "total_L": 29.431,
-      "total_B": 30,
-      "total_O": 0.521,
+      "hub_count": 6,
+      "total_L": 10.551,
+      "total_B": 28,
+      "total_O": 0.669,
       "total_X": 0,
-      "total_J": 44.953,
-      "area_gap_m2": 78.79,
-      "time_sec": 0.2892177104949951
+      "total_J": 25.221,
+      "area_gap_m2": 92.12,
+      "time_sec": 0.26554155349731445
     },
     {
       "plan_idx": 3169,
@@ -482,7 +482,7 @@
       "total_X": 0,
       "total_J": 33.808,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1792747974395752
+      "time_sec": 0.190185546875
     },
     {
       "plan_idx": 11270,
@@ -496,7 +496,7 @@
       "total_X": 0,
       "total_J": 45.279,
       "area_gap_m2": 44.65,
-      "time_sec": 0.2091836929321289
+      "time_sec": 0.18416476249694824
     },
     {
       "plan_idx": 11763,
@@ -510,7 +510,7 @@
       "total_X": 0,
       "total_J": 43.238,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2427690029144287
+      "time_sec": 0.2517073154449463
     },
     {
       "plan_idx": 1423,
@@ -524,35 +524,21 @@
       "total_X": 0,
       "total_J": 44.962,
       "area_gap_m2": 36.36,
-      "time_sec": 0.18018412590026855
+      "time_sec": 0.14114141464233398
     },
     {
       "plan_idx": 8667,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 37.392,
+      "hub_count": 2,
+      "total_L": 36.431,
       "total_B": 22,
-      "total_O": 0.264,
+      "total_O": 0.344,
       "total_X": 0,
-      "total_J": 48.656,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.297576904296875
-    },
-    {
-      "plan_idx": 4090,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 28.208,
-      "total_B": 20,
-      "total_O": 0.225,
-      "total_X": 0,
-      "total_J": 38.433,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.21680760383605957
+      "total_J": 47.775,
+      "area_gap_m2": 67.13,
+      "time_sec": 0.3288877010345459
     },
     {
       "plan_idx": 15054,
@@ -566,7 +552,21 @@
       "total_X": 1,
       "total_J": 45.87,
       "area_gap_m2": 79.1,
-      "time_sec": 0.24484539031982422
+      "time_sec": 0.25438404083251953
+    },
+    {
+      "plan_idx": 4090,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 28.208,
+      "total_B": 20,
+      "total_O": 0.225,
+      "total_X": 0,
+      "total_J": 38.433,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.22289013862609863
     },
     {
       "plan_idx": 12403,
@@ -580,7 +580,7 @@
       "total_X": 0,
       "total_J": 37.392,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19403672218322754
+      "time_sec": 0.18527960777282715
     },
     {
       "plan_idx": 9606,
@@ -594,7 +594,21 @@
       "total_X": 0,
       "total_J": 43.818,
       "area_gap_m2": 6.27,
-      "time_sec": 0.14357566833496094
+      "time_sec": 0.14992356300354004
+    },
+    {
+      "plan_idx": 6300,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 31.254,
+      "total_B": 18,
+      "total_O": 0.285,
+      "total_X": 0,
+      "total_J": 40.54,
+      "area_gap_m2": 26.33,
+      "time_sec": 0.18851232528686523
     },
     {
       "plan_idx": 11850,
@@ -608,21 +622,7 @@
       "total_X": 0,
       "total_J": 41.129,
       "area_gap_m2": 4.03,
-      "time_sec": 0.18776845932006836
-    },
-    {
-      "plan_idx": 6300,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 39.574,
-      "total_B": 16,
-      "total_O": 0.26,
-      "total_X": 0,
-      "total_J": 47.834,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.16468238830566406
+      "time_sec": 0.22352027893066406
     },
     {
       "plan_idx": 1501,
@@ -632,11 +632,11 @@
       "hub_count": 1,
       "total_L": 23.382,
       "total_B": 16,
-      "total_O": 0.225,
-      "total_X": 1,
-      "total_J": 36.607,
+      "total_O": 0.263,
+      "total_X": 0,
+      "total_J": 31.645,
       "area_gap_m2": 0.0,
-      "time_sec": 0.08789610862731934
+      "time_sec": 0.08341455459594727
     },
     {
       "plan_idx": 2582,
@@ -650,7 +650,7 @@
       "total_X": 0,
       "total_J": 52.503,
       "area_gap_m2": 16.71,
-      "time_sec": 0.3708040714263916
+      "time_sec": 0.41688013076782227
     },
     {
       "plan_idx": 2279,
@@ -664,21 +664,7 @@
       "total_X": 0,
       "total_J": 48.435,
       "area_gap_m2": 14.18,
-      "time_sec": 0.21161913871765137
-    },
-    {
-      "plan_idx": 2614,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 30.093,
-      "total_B": 20,
-      "total_O": 0.297,
-      "total_X": 0,
-      "total_J": 40.39,
-      "area_gap_m2": 14.24,
-      "time_sec": 0.12554502487182617
+      "time_sec": 0.24542713165283203
     },
     {
       "plan_idx": 7467,
@@ -692,7 +678,21 @@
       "total_X": 0,
       "total_J": 47.636,
       "area_gap_m2": 18.05,
-      "time_sec": 0.2304365634918213
+      "time_sec": 0.22453546524047852
+    },
+    {
+      "plan_idx": 2614,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 30.093,
+      "total_B": 20,
+      "total_O": 0.297,
+      "total_X": 0,
+      "total_J": 40.39,
+      "area_gap_m2": 14.24,
+      "time_sec": 0.1154623031616211
     },
     {
       "plan_idx": 9482,
@@ -706,7 +706,7 @@
       "total_X": 0,
       "total_J": 43.444,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1992337703704834
+      "time_sec": 0.26676344871520996
     },
     {
       "plan_idx": 3309,
@@ -720,7 +720,7 @@
       "total_X": 0,
       "total_J": 33.871,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13893365859985352
+      "time_sec": 0.19710040092468262
     },
     {
       "plan_idx": 7628,
@@ -734,7 +734,7 @@
       "total_X": 0,
       "total_J": 50.923,
       "area_gap_m2": 4.01,
-      "time_sec": 0.25916504859924316
+      "time_sec": 0.31559133529663086
     },
     {
       "plan_idx": 9108,
@@ -748,21 +748,7 @@
       "total_X": 0,
       "total_J": 31.032,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13847064971923828
-    },
-    {
-      "plan_idx": 12455,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 32.06,
-      "total_B": 20,
-      "total_O": 0.383,
-      "total_X": 0,
-      "total_J": 42.443,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.21930408477783203
+      "time_sec": 0.14874887466430664
     },
     {
       "plan_idx": 14857,
@@ -776,7 +762,21 @@
       "total_X": 0,
       "total_J": 9.496,
       "area_gap_m2": 234.64,
-      "time_sec": 0.09339714050292969
+      "time_sec": 0.08473730087280273
+    },
+    {
+      "plan_idx": 12455,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 32.06,
+      "total_B": 20,
+      "total_O": 0.383,
+      "total_X": 0,
+      "total_J": 42.443,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2881035804748535
     },
     {
       "plan_idx": 5329,
@@ -790,7 +790,7 @@
       "total_X": 0,
       "total_J": 23.991,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12543511390686035
+      "time_sec": 0.11433887481689453
     },
     {
       "plan_idx": 12130,
@@ -804,21 +804,7 @@
       "total_X": 0,
       "total_J": 41.358,
       "area_gap_m2": 35.71,
-      "time_sec": 0.1339716911315918
-    },
-    {
-      "plan_idx": 11641,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 31.169,
-      "total_B": 18,
-      "total_O": 0.193,
-      "total_X": 0,
-      "total_J": 40.362,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.14800667762756348
+      "time_sec": 0.13322114944458008
     },
     {
       "plan_idx": 11954,
@@ -832,7 +818,21 @@
       "total_X": 0,
       "total_J": 46.431,
       "area_gap_m2": 4.93,
-      "time_sec": 0.19366741180419922
+      "time_sec": 0.19586920738220215
+    },
+    {
+      "plan_idx": 11641,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 31.169,
+      "total_B": 18,
+      "total_O": 0.193,
+      "total_X": 0,
+      "total_J": 40.362,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1603679656982422
     },
     {
       "plan_idx": 5607,
@@ -846,21 +846,7 @@
       "total_X": 0,
       "total_J": 37.613,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14136600494384766
-    },
-    {
-      "plan_idx": 6865,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 25.72,
-      "total_B": 16,
-      "total_O": 0.22,
-      "total_X": 0,
-      "total_J": 33.94,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.21383285522460938
+      "time_sec": 0.11153602600097656
     },
     {
       "plan_idx": 8748,
@@ -874,7 +860,21 @@
       "total_X": 0,
       "total_J": 45.287,
       "area_gap_m2": 0.51,
-      "time_sec": 0.21443867683410645
+      "time_sec": 0.19919896125793457
+    },
+    {
+      "plan_idx": 6865,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 25.72,
+      "total_B": 16,
+      "total_O": 0.22,
+      "total_X": 0,
+      "total_J": 33.94,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2470855712890625
     },
     {
       "plan_idx": 2339,
@@ -888,7 +888,7 @@
       "total_X": 0,
       "total_J": 31.273,
       "area_gap_m2": 64.3,
-      "time_sec": 0.22060012817382812
+      "time_sec": 0.19354963302612305
     },
     {
       "plan_idx": 15147,
@@ -896,13 +896,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 2,
-      "total_L": 29.175,
-      "total_B": 22,
+      "total_L": 28.855,
+      "total_B": 20,
       "total_O": 0.217,
-      "total_X": 2,
-      "total_J": 50.392,
+      "total_X": 1,
+      "total_J": 44.072,
       "area_gap_m2": 20.7,
-      "time_sec": 0.1798710823059082
+      "time_sec": 0.18558788299560547
     },
     {
       "plan_idx": 5354,
@@ -916,21 +916,7 @@
       "total_X": 0,
       "total_J": 43.903,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2963693141937256
-    },
-    {
-      "plan_idx": 8021,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 3,
-      "total_L": 39.0,
-      "total_B": 28,
-      "total_O": 0.396,
-      "total_X": 0,
-      "total_J": 53.394,
-      "area_gap_m2": 62.81,
-      "time_sec": 0.3785555362701416
+      "time_sec": 0.29622912406921387
     },
     {
       "plan_idx": 8845,
@@ -944,21 +930,21 @@
       "total_X": 0,
       "total_J": 39.414,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19907903671264648
+      "time_sec": 0.15366339683532715
     },
     {
-      "plan_idx": 7196,
+      "plan_idx": 8021,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 19.394,
-      "total_B": 14,
-      "total_O": 0.139,
+      "eligible_rooms": 6,
+      "hub_count": 3,
+      "total_L": 39.0,
+      "total_B": 28,
+      "total_O": 0.396,
       "total_X": 0,
-      "total_J": 26.533,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.13084769248962402
+      "total_J": 53.394,
+      "area_gap_m2": 62.81,
+      "time_sec": 0.3742685317993164
     },
     {
       "plan_idx": 12433,
@@ -972,7 +958,21 @@
       "total_X": 0,
       "total_J": 62.857,
       "area_gap_m2": 21.48,
-      "time_sec": 0.39752793312072754
+      "time_sec": 0.35643553733825684
+    },
+    {
+      "plan_idx": 7196,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 19.394,
+      "total_B": 14,
+      "total_O": 0.139,
+      "total_X": 0,
+      "total_J": 26.533,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.12572503089904785
     },
     {
       "plan_idx": 1832,
@@ -986,7 +986,7 @@
       "total_X": 0,
       "total_J": 18.673,
       "area_gap_m2": 7.51,
-      "time_sec": 0.08233237266540527
+      "time_sec": 0.08268857002258301
     },
     {
       "plan_idx": 7505,
@@ -1000,7 +1000,7 @@
       "total_X": 0,
       "total_J": 35.418,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10483121871948242
+      "time_sec": 0.1142435073852539
     },
     {
       "plan_idx": 10626,
@@ -1008,13 +1008,13 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 26.86,
-      "total_B": 20,
-      "total_O": 0.19,
+      "total_L": 37.74,
+      "total_B": 22,
+      "total_O": 0.208,
       "total_X": 1,
-      "total_J": 42.049,
+      "total_J": 53.948,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1700727939605713
+      "time_sec": 0.22345590591430664
     },
     {
       "plan_idx": 13145,
@@ -1028,21 +1028,7 @@
       "total_X": 0,
       "total_J": 33.943,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09850692749023438
-    },
-    {
-      "plan_idx": 8773,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 32.219,
-      "total_B": 20,
-      "total_O": 0.265,
-      "total_X": 0,
-      "total_J": 42.484,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.19025683403015137
+      "time_sec": 0.09705090522766113
     },
     {
       "plan_idx": 1051,
@@ -1056,7 +1042,21 @@
       "total_X": 1,
       "total_J": 43.693,
       "area_gap_m2": 0.0,
-      "time_sec": 0.28929758071899414
+      "time_sec": 0.3071553707122803
+    },
+    {
+      "plan_idx": 8773,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 32.219,
+      "total_B": 20,
+      "total_O": 0.265,
+      "total_X": 0,
+      "total_J": 42.484,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.16991877555847168
     },
     {
       "plan_idx": 2168,
@@ -1070,7 +1070,7 @@
       "total_X": 0,
       "total_J": 41.509,
       "area_gap_m2": 0.0,
-      "time_sec": 0.21479463577270508
+      "time_sec": 0.14738965034484863
     },
     {
       "plan_idx": 10336,
@@ -1084,7 +1084,7 @@
       "total_X": 0,
       "total_J": 57.499,
       "area_gap_m2": 91.98,
-      "time_sec": 0.3718240261077881
+      "time_sec": 0.37021470069885254
     },
     {
       "plan_idx": 6913,
@@ -1098,21 +1098,7 @@
       "total_X": 0,
       "total_J": 49.113,
       "area_gap_m2": 57.5,
-      "time_sec": 0.1630537509918213
-    },
-    {
-      "plan_idx": 10311,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 36.468,
-      "total_B": 18,
-      "total_O": 0.286,
-      "total_X": 0,
-      "total_J": 45.754,
-      "area_gap_m2": 55.44,
-      "time_sec": 0.2192249298095703
+      "time_sec": 0.17096209526062012
     },
     {
       "plan_idx": 6967,
@@ -1126,7 +1112,21 @@
       "total_X": 0,
       "total_J": 42.092,
       "area_gap_m2": 37.54,
-      "time_sec": 0.15419697761535645
+      "time_sec": 0.15845203399658203
+    },
+    {
+      "plan_idx": 10311,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 3,
+      "total_L": 22.707,
+      "total_B": 16,
+      "total_O": 0.366,
+      "total_X": 0,
+      "total_J": 31.073,
+      "area_gap_m2": 55.94,
+      "time_sec": 0.19044804573059082
     },
     {
       "plan_idx": 16358,
@@ -1140,21 +1140,7 @@
       "total_X": 1,
       "total_J": 43.099,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1647641658782959
-    },
-    {
-      "plan_idx": 12964,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 36.506,
-      "total_B": 20,
-      "total_O": 0.203,
-      "total_X": 0,
-      "total_J": 46.709,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2017655372619629
+      "time_sec": 0.14143061637878418
     },
     {
       "plan_idx": 4681,
@@ -1168,7 +1154,7 @@
       "total_X": 0,
       "total_J": 47.349,
       "area_gap_m2": 37.63,
-      "time_sec": 0.1517632007598877
+      "time_sec": 0.14182329177856445
     },
     {
       "plan_idx": 15035,
@@ -1182,7 +1168,21 @@
       "total_X": 0,
       "total_J": 37.121,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2087705135345459
+      "time_sec": 0.1935286521911621
+    },
+    {
+      "plan_idx": 12964,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 36.506,
+      "total_B": 20,
+      "total_O": 0.203,
+      "total_X": 0,
+      "total_J": 46.709,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.22294282913208008
     },
     {
       "plan_idx": 4575,
@@ -1196,7 +1196,7 @@
       "total_X": 0,
       "total_J": 28.842,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1527235507965088
+      "time_sec": 0.14925003051757812
     },
     {
       "plan_idx": 8081,
@@ -1210,7 +1210,7 @@
       "total_X": 0,
       "total_J": 31.374,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12463760375976562
+      "time_sec": 0.12956476211547852
     },
     {
       "plan_idx": 8609,
@@ -1224,7 +1224,7 @@
       "total_X": 0,
       "total_J": 42.418,
       "area_gap_m2": 22.5,
-      "time_sec": 0.12765073776245117
+      "time_sec": 0.13913631439208984
     },
     {
       "plan_idx": 8679,
@@ -1238,7 +1238,7 @@
       "total_X": 2,
       "total_J": 60.895,
       "area_gap_m2": 0.0,
-      "time_sec": 0.34237217903137207
+      "time_sec": 0.3425743579864502
     },
     {
       "plan_idx": 11861,
@@ -1252,21 +1252,7 @@
       "total_X": 0,
       "total_J": 29.375,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09508752822875977
-    },
-    {
-      "plan_idx": 14038,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 4,
-      "total_L": 0.864,
-      "total_B": 16,
-      "total_O": 0.431,
-      "total_X": 0,
-      "total_J": 9.295,
-      "area_gap_m2": 59.26,
-      "time_sec": 0.1779921054840088
+      "time_sec": 0.08925390243530273
     },
     {
       "plan_idx": 13087,
@@ -1280,7 +1266,21 @@
       "total_X": 0,
       "total_J": 34.904,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19040131568908691
+      "time_sec": 0.18872737884521484
+    },
+    {
+      "plan_idx": 14038,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 4,
+      "total_L": 0.864,
+      "total_B": 16,
+      "total_O": 0.431,
+      "total_X": 0,
+      "total_J": 9.295,
+      "area_gap_m2": 59.26,
+      "time_sec": 0.20224213600158691
     },
     {
       "plan_idx": 7186,
@@ -1294,7 +1294,7 @@
       "total_X": 0,
       "total_J": 30.655,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14240169525146484
+      "time_sec": 0.13694143295288086
     },
     {
       "plan_idx": 4532,
@@ -1308,35 +1308,21 @@
       "total_X": 0,
       "total_J": 19.339,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1278548240661621
+      "time_sec": 0.13956713676452637
     },
     {
       "plan_idx": 1543,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 24.908,
+      "hub_count": 2,
+      "total_L": 24.427,
       "total_B": 16,
-      "total_O": 0.139,
+      "total_O": 0.135,
       "total_X": 0,
-      "total_J": 33.047,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.12787580490112305
-    },
-    {
-      "plan_idx": 16171,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 7,
-      "hub_count": 4,
-      "total_L": 36.605,
-      "total_B": 28,
-      "total_O": 0.529,
-      "total_X": 0,
-      "total_J": 51.133,
-      "area_gap_m2": 85.49,
-      "time_sec": 0.25720739364624023
+      "total_J": 32.563,
+      "area_gap_m2": 5.42,
+      "time_sec": 0.10775279998779297
     },
     {
       "plan_idx": 2978,
@@ -1350,21 +1336,21 @@
       "total_X": 0,
       "total_J": 43.351,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20566272735595703
+      "time_sec": 0.18560409545898438
     },
     {
-      "plan_idx": 16696,
+      "plan_idx": 16171,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 42.179,
-      "total_B": 16,
-      "total_O": 0.075,
-      "total_X": 3,
-      "total_J": 65.253,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.3021972179412842
+      "eligible_rooms": 7,
+      "hub_count": 4,
+      "total_L": 37.885,
+      "total_B": 28,
+      "total_O": 0.56,
+      "total_X": 0,
+      "total_J": 52.445,
+      "area_gap_m2": 85.49,
+      "time_sec": 0.2687826156616211
     },
     {
       "plan_idx": 3592,
@@ -1378,21 +1364,21 @@
       "total_X": 1,
       "total_J": 34.404,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1017754077911377
+      "time_sec": 0.10574889183044434
     },
     {
-      "plan_idx": 2081,
+      "plan_idx": 16696,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 27.947,
-      "total_B": 20,
-      "total_O": 0.181,
-      "total_X": 0,
-      "total_J": 38.128,
-      "area_gap_m2": 42.9,
-      "time_sec": 0.1210639476776123
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 42.179,
+      "total_B": 16,
+      "total_O": 0.075,
+      "total_X": 3,
+      "total_J": 65.253,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.34081315994262695
     },
     {
       "plan_idx": 5008,
@@ -1406,7 +1392,21 @@
       "total_X": 0,
       "total_J": 37.241,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17513322830200195
+      "time_sec": 0.16855740547180176
+    },
+    {
+      "plan_idx": 2081,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 27.947,
+      "total_B": 20,
+      "total_O": 0.181,
+      "total_X": 0,
+      "total_J": 38.128,
+      "area_gap_m2": 42.9,
+      "time_sec": 0.11458063125610352
     },
     {
       "plan_idx": 5242,
@@ -1414,27 +1414,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 2,
-      "total_L": 36.818,
+      "total_L": 36.658,
       "total_B": 24,
-      "total_O": 0.382,
+      "total_O": 0.342,
       "total_X": 1,
-      "total_J": 54.2,
+      "total_J": 53.999,
       "area_gap_m2": 44.4,
-      "time_sec": 0.21661376953125
-    },
-    {
-      "plan_idx": 13833,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 44.035,
-      "total_B": 22,
-      "total_O": 0.206,
-      "total_X": 2,
-      "total_J": 65.241,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.29929423332214355
+      "time_sec": 0.24190545082092285
     },
     {
       "plan_idx": 12608,
@@ -1448,7 +1434,21 @@
       "total_X": 0,
       "total_J": 52.369,
       "area_gap_m2": 38.95,
-      "time_sec": 0.21724796295166016
+      "time_sec": 0.19490265846252441
+    },
+    {
+      "plan_idx": 13833,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 44.035,
+      "total_B": 22,
+      "total_O": 0.206,
+      "total_X": 2,
+      "total_J": 65.241,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.3211350440979004
     },
     {
       "plan_idx": 15337,
@@ -1462,7 +1462,21 @@
       "total_X": 0,
       "total_J": 43.633,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15468859672546387
+      "time_sec": 0.1634814739227295
+    },
+    {
+      "plan_idx": 12504,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 3,
+      "total_L": 43.765,
+      "total_B": 24,
+      "total_O": 0.284,
+      "total_X": 0,
+      "total_J": 56.05,
+      "area_gap_m2": 70.59,
+      "time_sec": 0.2860107421875
     },
     {
       "plan_idx": 8238,
@@ -1476,7 +1490,21 @@
       "total_X": 0,
       "total_J": 50.923,
       "area_gap_m2": 39.57,
-      "time_sec": 0.16855478286743164
+      "time_sec": 0.20116472244262695
+    },
+    {
+      "plan_idx": 376,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 36.064,
+      "total_B": 22,
+      "total_O": 0.191,
+      "total_X": 0,
+      "total_J": 47.255,
+      "area_gap_m2": 12.57,
+      "time_sec": 0.237715482711792
     },
     {
       "plan_idx": 3753,
@@ -1490,21 +1518,7 @@
       "total_X": 1,
       "total_J": 38.554,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1426703929901123
-    },
-    {
-      "plan_idx": 12504,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 47.125,
-      "total_B": 26,
-      "total_O": 0.22,
-      "total_X": 0,
-      "total_J": 60.346,
-      "area_gap_m2": 63.44,
-      "time_sec": 0.3638906478881836
+      "time_sec": 0.17519474029541016
     },
     {
       "plan_idx": 11146,
@@ -1518,7 +1532,7 @@
       "total_X": 0,
       "total_J": 24.257,
       "area_gap_m2": 0.0,
-      "time_sec": 0.06821918487548828
+      "time_sec": 0.09871149063110352
     },
     {
       "plan_idx": 8743,
@@ -1532,35 +1546,7 @@
       "total_X": 0,
       "total_J": 43.923,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15292882919311523
-    },
-    {
-      "plan_idx": 376,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 31.904,
-      "total_B": 22,
-      "total_O": 0.266,
-      "total_X": 0,
-      "total_J": 43.17,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2654752731323242
-    },
-    {
-      "plan_idx": 3655,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 26.486,
-      "total_B": 18,
-      "total_O": 0.143,
-      "total_X": 0,
-      "total_J": 35.63,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.20659852027893066
+      "time_sec": 0.20250535011291504
     },
     {
       "plan_idx": 9617,
@@ -1574,35 +1560,21 @@
       "total_X": 0,
       "total_J": 34.905,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16087555885314941
+      "time_sec": 0.17835783958435059
     },
     {
-      "plan_idx": 14867,
+      "plan_idx": 3655,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 33.551,
-      "total_B": 22,
-      "total_O": 0.331,
-      "total_X": 0,
-      "total_J": 44.88,
-      "area_gap_m2": 46.91,
-      "time_sec": 0.10892009735107422
-    },
-    {
-      "plan_idx": 5182,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
+      "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 29.556,
-      "total_B": 20,
-      "total_O": 0.164,
+      "total_L": 26.486,
+      "total_B": 18,
+      "total_O": 0.143,
       "total_X": 0,
-      "total_J": 39.72,
+      "total_J": 35.63,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2137160301208496
+      "time_sec": 0.20467495918273926
     },
     {
       "plan_idx": 14246,
@@ -1616,7 +1588,35 @@
       "total_X": 0,
       "total_J": 45.674,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2617678642272949
+      "time_sec": 0.2591569423675537
+    },
+    {
+      "plan_idx": 5182,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 29.556,
+      "total_B": 20,
+      "total_O": 0.164,
+      "total_X": 0,
+      "total_J": 39.72,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.21616554260253906
+    },
+    {
+      "plan_idx": 14867,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 33.551,
+      "total_B": 22,
+      "total_O": 0.331,
+      "total_X": 0,
+      "total_J": 44.88,
+      "area_gap_m2": 46.91,
+      "time_sec": 0.17440104484558105
     },
     {
       "plan_idx": 8630,
@@ -1630,7 +1630,7 @@
       "total_X": 0,
       "total_J": 23.151,
       "area_gap_m2": 0.0,
-      "time_sec": 0.07604861259460449
+      "time_sec": 0.10708284378051758
     },
     {
       "plan_idx": 5854,
@@ -1644,7 +1644,7 @@
       "total_X": 1,
       "total_J": 32.606,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09041023254394531
+      "time_sec": 0.0845649242401123
     },
     {
       "plan_idx": 106,
@@ -1658,7 +1658,7 @@
       "total_X": 0,
       "total_J": 54.326,
       "area_gap_m2": 4.56,
-      "time_sec": 0.313617467880249
+      "time_sec": 0.35241127014160156
     },
     {
       "plan_idx": 16403,
@@ -1672,7 +1672,7 @@
       "total_X": 0,
       "total_J": 54.183,
       "area_gap_m2": 37.08,
-      "time_sec": 0.2620394229888916
+      "time_sec": 0.2943882942199707
     },
     {
       "plan_idx": 9779,
@@ -1686,7 +1686,7 @@
       "total_X": 0,
       "total_J": 44.505,
       "area_gap_m2": 38.64,
-      "time_sec": 0.12090826034545898
+      "time_sec": 0.15276479721069336
     },
     {
       "plan_idx": 3486,
@@ -1700,7 +1700,7 @@
       "total_X": 0,
       "total_J": 39.38,
       "area_gap_m2": 0.0,
-      "time_sec": 0.29201674461364746
+      "time_sec": 0.2940483093261719
     },
     {
       "plan_idx": 16635,
@@ -1714,7 +1714,7 @@
       "total_X": 0,
       "total_J": 82.224,
       "area_gap_m2": 0.53,
-      "time_sec": 0.42531418800354004
+      "time_sec": 0.44169068336486816
     },
     {
       "plan_idx": 12252,
@@ -1728,7 +1728,21 @@
       "total_X": 0,
       "total_J": 33.377,
       "area_gap_m2": 64.11,
-      "time_sec": 0.17541265487670898
+      "time_sec": 0.1896042823791504
+    },
+    {
+      "plan_idx": 5293,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 26.185,
+      "total_B": 18,
+      "total_O": 0.266,
+      "total_X": 0,
+      "total_J": 35.452,
+      "area_gap_m2": 19.85,
+      "time_sec": 0.17111659049987793
     },
     {
       "plan_idx": 6517,
@@ -1742,7 +1756,21 @@
       "total_X": 0,
       "total_J": 47.732,
       "area_gap_m2": 10.86,
-      "time_sec": 0.26134729385375977
+      "time_sec": 0.30991578102111816
+    },
+    {
+      "plan_idx": 18,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 19.643,
+      "total_B": 16,
+      "total_O": 0.151,
+      "total_X": 0,
+      "total_J": 27.794,
+      "area_gap_m2": 2.84,
+      "time_sec": 0.11357355117797852
     },
     {
       "plan_idx": 10621,
@@ -1756,21 +1784,7 @@
       "total_X": 0,
       "total_J": 31.13,
       "area_gap_m2": 89.16,
-      "time_sec": 0.11354231834411621
-    },
-    {
-      "plan_idx": 18,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 29.083,
-      "total_B": 18,
-      "total_O": 0.141,
-      "total_X": 0,
-      "total_J": 38.224,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.18445396423339844
+      "time_sec": 0.11551880836486816
     },
     {
       "plan_idx": 16010,
@@ -1784,21 +1798,21 @@
       "total_X": 0,
       "total_J": 35.393,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20081710815429688
+      "time_sec": 0.24004697799682617
     },
     {
-      "plan_idx": 5293,
+      "plan_idx": 638,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 35.145,
-      "total_B": 18,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 39.63,
+      "total_B": 26,
       "total_O": 0.255,
       "total_X": 0,
-      "total_J": 44.4,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.31429243087768555
+      "total_J": 52.885,
+      "area_gap_m2": 32.5,
+      "time_sec": 0.37590694427490234
     },
     {
       "plan_idx": 11894,
@@ -1812,35 +1826,7 @@
       "total_X": 0,
       "total_J": 60.382,
       "area_gap_m2": 19.25,
-      "time_sec": 0.3131229877471924
-    },
-    {
-      "plan_idx": 10076,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 29.242,
-      "total_B": 18,
-      "total_O": 0.176,
-      "total_X": 1,
-      "total_J": 43.419,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.3306903839111328
-    },
-    {
-      "plan_idx": 638,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 50.99,
-      "total_B": 28,
-      "total_O": 0.286,
-      "total_X": 1,
-      "total_J": 70.276,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.5152742862701416
+      "time_sec": 0.35526275634765625
     },
     {
       "plan_idx": 7846,
@@ -1854,7 +1840,21 @@
       "total_X": 0,
       "total_J": 22.727,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12230873107910156
+      "time_sec": 0.13996601104736328
+    },
+    {
+      "plan_idx": 10076,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 29.242,
+      "total_B": 18,
+      "total_O": 0.176,
+      "total_X": 1,
+      "total_J": 43.419,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.3593482971191406
     },
     {
       "plan_idx": 1898,
@@ -1868,7 +1868,7 @@
       "total_X": 0,
       "total_J": 40.943,
       "area_gap_m2": 13.61,
-      "time_sec": 0.2211475372314453
+      "time_sec": 0.2415904998779297
     },
     {
       "plan_idx": 2580,
@@ -1882,21 +1882,7 @@
       "total_X": 0,
       "total_J": 24.25,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15740394592285156
-    },
-    {
-      "plan_idx": 3665,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 4,
-      "total_L": 6.512,
-      "total_B": 18,
-      "total_O": 0.508,
-      "total_X": 0,
-      "total_J": 16.02,
-      "area_gap_m2": 73.23,
-      "time_sec": 0.6935734748840332
+      "time_sec": 0.19367384910583496
     },
     {
       "plan_idx": 7892,
@@ -1910,7 +1896,21 @@
       "total_X": 0,
       "total_J": 79.883,
       "area_gap_m2": 35.48,
-      "time_sec": 0.27966856956481934
+      "time_sec": 0.29720187187194824
+    },
+    {
+      "plan_idx": 3665,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 4,
+      "total_L": 6.512,
+      "total_B": 18,
+      "total_O": 0.508,
+      "total_X": 0,
+      "total_J": 16.02,
+      "area_gap_m2": 73.23,
+      "time_sec": 0.8200547695159912
     },
     {
       "plan_idx": 2806,
@@ -1924,7 +1924,21 @@
       "total_X": 0,
       "total_J": 47.357,
       "area_gap_m2": 47.97,
-      "time_sec": 0.1748039722442627
+      "time_sec": 0.23131656646728516
+    },
+    {
+      "plan_idx": 2267,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 27.356,
+      "total_B": 20,
+      "total_O": 0.194,
+      "total_X": 0,
+      "total_J": 37.55,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1503450870513916
     },
     {
       "plan_idx": 15924,
@@ -1938,49 +1952,7 @@
       "total_X": 0,
       "total_J": 34.407,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1677994728088379
-    },
-    {
-      "plan_idx": 2267,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 30.876,
-      "total_B": 18,
-      "total_O": 0.208,
-      "total_X": 0,
-      "total_J": 40.084,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.12456893920898438
-    },
-    {
-      "plan_idx": 4207,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 33.566,
-      "total_B": 16,
-      "total_O": 0.225,
-      "total_X": 0,
-      "total_J": 41.791,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.15445613861083984
-    },
-    {
-      "plan_idx": 15574,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 27.634,
-      "total_B": 16,
-      "total_O": 0.152,
-      "total_X": 0,
-      "total_J": 35.785,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.12844014167785645
+      "time_sec": 0.1988661289215088
     },
     {
       "plan_idx": 4120,
@@ -1994,7 +1966,35 @@
       "total_X": 0,
       "total_J": 36.322,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20798659324645996
+      "time_sec": 0.244384765625
+    },
+    {
+      "plan_idx": 15574,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 22.514,
+      "total_B": 16,
+      "total_O": 0.259,
+      "total_X": 0,
+      "total_J": 30.772,
+      "area_gap_m2": 6.7,
+      "time_sec": 0.127488374710083
+    },
+    {
+      "plan_idx": 4207,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 33.566,
+      "total_B": 16,
+      "total_O": 0.225,
+      "total_X": 0,
+      "total_J": 41.791,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1892845630645752
     },
     {
       "plan_idx": 8685,
@@ -2008,7 +2008,7 @@
       "total_X": 0,
       "total_J": 50.903,
       "area_gap_m2": 41.11,
-      "time_sec": 0.12209486961364746
+      "time_sec": 0.1493985652923584
     },
     {
       "plan_idx": 5410,
@@ -2022,7 +2022,7 @@
       "total_X": 0,
       "total_J": 42.822,
       "area_gap_m2": 71.74,
-      "time_sec": 0.2685236930847168
+      "time_sec": 0.31687498092651367
     },
     {
       "plan_idx": 6940,
@@ -2036,35 +2036,21 @@
       "total_X": 0,
       "total_J": 37.843,
       "area_gap_m2": 0.0,
-      "time_sec": 0.22382164001464844
+      "time_sec": 0.20940303802490234
     },
     {
       "plan_idx": 13865,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 33.738,
-      "total_B": 20,
-      "total_O": 0.202,
-      "total_X": 0,
-      "total_J": 43.94,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.24383211135864258
-    },
-    {
-      "plan_idx": 10214,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
       "hub_count": 2,
-      "total_L": 25.696,
-      "total_B": 16,
-      "total_O": 0.164,
+      "total_L": 40.298,
+      "total_B": 24,
+      "total_O": 0.184,
       "total_X": 0,
-      "total_J": 33.86,
-      "area_gap_m2": 11.12,
-      "time_sec": 0.14764189720153809
+      "total_J": 52.482,
+      "area_gap_m2": 0.03,
+      "time_sec": 0.25592851638793945
     },
     {
       "plan_idx": 13074,
@@ -2078,7 +2064,21 @@
       "total_X": 0,
       "total_J": 28.671,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09557008743286133
+      "time_sec": 0.08383893966674805
+    },
+    {
+      "plan_idx": 10214,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 25.696,
+      "total_B": 16,
+      "total_O": 0.164,
+      "total_X": 0,
+      "total_J": 33.86,
+      "area_gap_m2": 11.12,
+      "time_sec": 0.18436288833618164
     },
     {
       "plan_idx": 12236,
@@ -2092,21 +2092,7 @@
       "total_X": 0,
       "total_J": 36.536,
       "area_gap_m2": 45.65,
-      "time_sec": 0.1822514533996582
-    },
-    {
-      "plan_idx": 6591,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 50.427,
-      "total_B": 26,
-      "total_O": 0.324,
-      "total_X": 1,
-      "total_J": 68.752,
-      "area_gap_m2": 56.65,
-      "time_sec": 0.33917975425720215
+      "time_sec": 0.15936279296875
     },
     {
       "plan_idx": 14355,
@@ -2120,21 +2106,21 @@
       "total_X": 0,
       "total_J": 46.659,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20085358619689941
+      "time_sec": 0.16934990882873535
     },
     {
-      "plan_idx": 16959,
+      "plan_idx": 6591,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 37.922,
-      "total_B": 18,
-      "total_O": 0.198,
-      "total_X": 0,
-      "total_J": 47.119,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.22213387489318848
+      "eligible_rooms": 6,
+      "hub_count": 3,
+      "total_L": 42.587,
+      "total_B": 28,
+      "total_O": 0.364,
+      "total_X": 1,
+      "total_J": 61.953,
+      "area_gap_m2": 53.81,
+      "time_sec": 0.4082794189453125
     },
     {
       "plan_idx": 14794,
@@ -2148,7 +2134,21 @@
       "total_X": 0,
       "total_J": 35.883,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17201972007751465
+      "time_sec": 0.23200678825378418
+    },
+    {
+      "plan_idx": 16959,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 36.802,
+      "total_B": 20,
+      "total_O": 0.219,
+      "total_X": 0,
+      "total_J": 47.02,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2620408535003662
     },
     {
       "plan_idx": 3965,
@@ -2162,7 +2162,21 @@
       "total_X": 0,
       "total_J": 36.051,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14077281951904297
+      "time_sec": 0.1892106533050537
+    },
+    {
+      "plan_idx": 8123,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 30.664,
+      "total_B": 22,
+      "total_O": 0.176,
+      "total_X": 0,
+      "total_J": 41.84,
+      "area_gap_m2": 23.32,
+      "time_sec": 0.2164309024810791
     },
     {
       "plan_idx": 11078,
@@ -2176,21 +2190,7 @@
       "total_X": 0,
       "total_J": 43.788,
       "area_gap_m2": 27.95,
-      "time_sec": 0.11170220375061035
-    },
-    {
-      "plan_idx": 2098,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 41.901,
-      "total_B": 26,
-      "total_O": 0.336,
-      "total_X": 0,
-      "total_J": 55.237,
-      "area_gap_m2": 28.71,
-      "time_sec": 0.17670488357543945
+      "time_sec": 0.1147928237915039
     },
     {
       "plan_idx": 7362,
@@ -2204,35 +2204,35 @@
       "total_X": 0,
       "total_J": 39.064,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2292768955230713
+      "time_sec": 0.21330642700195312
     },
     {
-      "plan_idx": 8123,
+      "plan_idx": 2098,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 37.224,
-      "total_B": 20,
-      "total_O": 0.201,
+      "eligible_rooms": 6,
+      "hub_count": 2,
+      "total_L": 41.901,
+      "total_B": 26,
+      "total_O": 0.336,
       "total_X": 0,
-      "total_J": 47.425,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.27611374855041504
+      "total_J": 55.237,
+      "area_gap_m2": 28.71,
+      "time_sec": 0.22245478630065918
     },
     {
       "plan_idx": 689,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 26.117,
+      "hub_count": 2,
+      "total_L": 19.078,
       "total_B": 16,
-      "total_O": 0.256,
+      "total_O": 0.298,
       "total_X": 0,
-      "total_J": 34.373,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.1307840347290039
+      "total_J": 27.375,
+      "area_gap_m2": 2.53,
+      "time_sec": 0.14753341674804688
     },
     {
       "plan_idx": 235,
@@ -2246,35 +2246,7 @@
       "total_X": 0,
       "total_J": 41.332,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10575580596923828
-    },
-    {
-      "plan_idx": 7216,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 39.223,
-      "total_B": 24,
-      "total_O": 0.341,
-      "total_X": 0,
-      "total_J": 51.564,
-      "area_gap_m2": 17.15,
-      "time_sec": 0.20985651016235352
-    },
-    {
-      "plan_idx": 1929,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 35.895,
-      "total_B": 20,
-      "total_O": 0.281,
-      "total_X": 1,
-      "total_J": 51.176,
-      "area_gap_m2": 81.64,
-      "time_sec": 0.15163779258728027
+      "time_sec": 0.1328892707824707
     },
     {
       "plan_idx": 7540,
@@ -2288,7 +2260,35 @@
       "total_X": 0,
       "total_J": 40.082,
       "area_gap_m2": 0.0,
-      "time_sec": 0.27339935302734375
+      "time_sec": 0.2769899368286133
+    },
+    {
+      "plan_idx": 7216,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 6,
+      "hub_count": 2,
+      "total_L": 39.223,
+      "total_B": 24,
+      "total_O": 0.341,
+      "total_X": 0,
+      "total_J": 51.564,
+      "area_gap_m2": 17.15,
+      "time_sec": 0.24405598640441895
+    },
+    {
+      "plan_idx": 1929,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 3,
+      "total_L": 27.576,
+      "total_B": 20,
+      "total_O": 0.347,
+      "total_X": 0,
+      "total_J": 37.923,
+      "area_gap_m2": 60.52,
+      "time_sec": 0.16271543502807617
     },
     {
       "plan_idx": 2208,
@@ -2302,7 +2302,7 @@
       "total_X": 0,
       "total_J": 47.401,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1147921085357666
+      "time_sec": 0.14126300811767578
     },
     {
       "plan_idx": 2326,
@@ -2316,7 +2316,7 @@
       "total_X": 0,
       "total_J": 54.758,
       "area_gap_m2": 60.14,
-      "time_sec": 0.3179507255554199
+      "time_sec": 0.35788822174072266
     },
     {
       "plan_idx": 10827,
@@ -2330,7 +2330,7 @@
       "total_X": 0,
       "total_J": 31.945,
       "area_gap_m2": 69.92,
-      "time_sec": 0.1516587734222412
+      "time_sec": 0.1277170181274414
     },
     {
       "plan_idx": 7501,
@@ -2344,7 +2344,21 @@
       "total_X": 1,
       "total_J": 59.875,
       "area_gap_m2": 42.44,
-      "time_sec": 0.31800007820129395
+      "time_sec": 0.34476232528686523
+    },
+    {
+      "plan_idx": 16847,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 36.108,
+      "total_B": 16,
+      "total_O": 0.196,
+      "total_X": 0,
+      "total_J": 44.304,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1178293228149414
     },
     {
       "plan_idx": 1029,
@@ -2358,21 +2372,7 @@
       "total_X": 0,
       "total_J": 43.016,
       "area_gap_m2": 67.13,
-      "time_sec": 0.31887364387512207
-    },
-    {
-      "plan_idx": 16847,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 28.268,
-      "total_B": 16,
-      "total_O": 0.181,
-      "total_X": 0,
-      "total_J": 36.449,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.08695697784423828
+      "time_sec": 0.3511676788330078
     },
     {
       "plan_idx": 2321,
@@ -2386,7 +2386,7 @@
       "total_X": 0,
       "total_J": 45.656,
       "area_gap_m2": 72.32,
-      "time_sec": 0.2764277458190918
+      "time_sec": 0.2868809700012207
     },
     {
       "plan_idx": 7798,
@@ -2400,7 +2400,7 @@
       "total_X": 1,
       "total_J": 50.298,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1628406047821045
+      "time_sec": 0.15768647193908691
     },
     {
       "plan_idx": 7020,
@@ -2414,21 +2414,7 @@
       "total_X": 0,
       "total_J": 28.756,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09809994697570801
-    },
-    {
-      "plan_idx": 9125,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 35.234,
-      "total_B": 20,
-      "total_O": 0.13,
-      "total_X": 1,
-      "total_J": 50.364,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.20025181770324707
+      "time_sec": 0.10433435440063477
     },
     {
       "plan_idx": 4335,
@@ -2442,21 +2428,35 @@
       "total_X": 0,
       "total_J": 35.958,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1268327236175537
+      "time_sec": 0.1123509407043457
+    },
+    {
+      "plan_idx": 9125,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 35.234,
+      "total_B": 20,
+      "total_O": 0.13,
+      "total_X": 1,
+      "total_J": 50.364,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.18844079971313477
     },
     {
       "plan_idx": 15906,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
+      "hub_count": 2,
       "total_L": 37.02,
       "total_B": 22,
-      "total_O": 0.273,
+      "total_O": 0.241,
       "total_X": 0,
-      "total_J": 48.293,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.20572352409362793
+      "total_J": 48.261,
+      "area_gap_m2": 9.29,
+      "time_sec": 0.1918933391571045
     },
     {
       "plan_idx": 15488,
@@ -2470,21 +2470,35 @@
       "total_X": 0,
       "total_J": 37.336,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12778544425964355
+      "time_sec": 0.12586307525634766
+    },
+    {
+      "plan_idx": 13338,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 20.456,
+      "total_B": 14,
+      "total_O": 0.292,
+      "total_X": 0,
+      "total_J": 27.748,
+      "area_gap_m2": 51.92,
+      "time_sec": 0.10983896255493164
     },
     {
       "plan_idx": 7962,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 34.155,
-      "total_B": 22,
-      "total_O": 0.234,
+      "hub_count": 3,
+      "total_L": 34.315,
+      "total_B": 24,
+      "total_O": 0.227,
       "total_X": 0,
-      "total_J": 45.389,
-      "area_gap_m2": 63.2,
-      "time_sec": 0.18279290199279785
+      "total_J": 46.542,
+      "area_gap_m2": 68.9,
+      "time_sec": 0.18839144706726074
     },
     {
       "plan_idx": 15498,
@@ -2498,21 +2512,7 @@
       "total_X": 0,
       "total_J": 42.133,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2027890682220459
-    },
-    {
-      "plan_idx": 13338,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 33.736,
-      "total_B": 18,
-      "total_O": 0.218,
-      "total_X": 0,
-      "total_J": 42.954,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2093052864074707
+      "time_sec": 0.1843564510345459
     },
     {
       "plan_idx": 14124,
@@ -2521,26 +2521,26 @@
       "eligible_rooms": 4,
       "hub_count": 1,
       "total_L": 35.048,
-      "total_B": 16,
-      "total_O": 0.186,
+      "total_B": 18,
+      "total_O": 0.226,
       "total_X": 0,
-      "total_J": 43.233,
+      "total_J": 44.274,
       "area_gap_m2": 0.0,
-      "time_sec": 0.08515334129333496
+      "time_sec": 0.10847163200378418
     },
     {
-      "plan_idx": 6239,
+      "plan_idx": 3176,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 48.151,
-      "total_B": 22,
-      "total_O": 0.307,
-      "total_X": 1,
-      "total_J": 64.458,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2548048496246338
+      "hub_count": 2,
+      "total_L": 38.556,
+      "total_B": 18,
+      "total_O": 0.184,
+      "total_X": 0,
+      "total_J": 47.74,
+      "area_gap_m2": 17.67,
+      "time_sec": 0.164031982421875
     },
     {
       "plan_idx": 3090,
@@ -2554,7 +2554,21 @@
       "total_X": 0,
       "total_J": 55.02,
       "area_gap_m2": 22.94,
-      "time_sec": 0.1805400848388672
+      "time_sec": 0.2010345458984375
+    },
+    {
+      "plan_idx": 6239,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 48.151,
+      "total_B": 22,
+      "total_O": 0.307,
+      "total_X": 1,
+      "total_J": 64.458,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.24356389045715332
     },
     {
       "plan_idx": 11609,
@@ -2562,41 +2576,13 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 33.057,
-      "total_B": 18,
-      "total_O": 0.267,
-      "total_X": 1,
-      "total_J": 47.324,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.12105727195739746
-    },
-    {
-      "plan_idx": 3176,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 30.556,
-      "total_B": 18,
-      "total_O": 0.179,
+      "total_L": 24.577,
+      "total_B": 16,
+      "total_O": 0.343,
       "total_X": 0,
-      "total_J": 39.735,
+      "total_J": 32.92,
       "area_gap_m2": 0.0,
-      "time_sec": 0.21773743629455566
-    },
-    {
-      "plan_idx": 13879,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 28.006,
-      "total_B": 18,
-      "total_O": 0.275,
-      "total_X": 1,
-      "total_J": 42.281,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.1847517490386963
+      "time_sec": 0.10624122619628906
     },
     {
       "plan_idx": 13470,
@@ -2610,35 +2596,7 @@
       "total_X": 0,
       "total_J": 46.065,
       "area_gap_m2": 4.13,
-      "time_sec": 0.17775225639343262
-    },
-    {
-      "plan_idx": 1775,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 47.741,
-      "total_B": 20,
-      "total_O": 0.219,
-      "total_X": 0,
-      "total_J": 57.96,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.19850397109985352
-    },
-    {
-      "plan_idx": 1986,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 24.374,
-      "total_B": 16,
-      "total_O": 0.224,
-      "total_X": 0,
-      "total_J": 32.597,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.1204385757446289
+      "time_sec": 0.1519031524658203
     },
     {
       "plan_idx": 15303,
@@ -2652,21 +2610,35 @@
       "total_X": 0,
       "total_J": 39.169,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2576277256011963
+      "time_sec": 0.22898459434509277
     },
     {
-      "plan_idx": 3224,
+      "plan_idx": 1775,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 34.461,
+      "total_B": 20,
+      "total_O": 0.216,
+      "total_X": 0,
+      "total_J": 44.677,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.20186138153076172
+    },
+    {
+      "plan_idx": 13879,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 28.621,
+      "total_L": 34.886,
       "total_B": 18,
-      "total_O": 0.185,
-      "total_X": 0,
-      "total_J": 37.806,
+      "total_O": 0.309,
+      "total_X": 1,
+      "total_J": 49.195,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19539356231689453
+      "time_sec": 0.2615382671356201
     },
     {
       "plan_idx": 13193,
@@ -2680,7 +2652,35 @@
       "total_X": 0,
       "total_J": 28.03,
       "area_gap_m2": 0.0,
-      "time_sec": 0.08796834945678711
+      "time_sec": 0.09218311309814453
+    },
+    {
+      "plan_idx": 1986,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 24.374,
+      "total_B": 16,
+      "total_O": 0.224,
+      "total_X": 0,
+      "total_J": 32.597,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.11889052391052246
+    },
+    {
+      "plan_idx": 3224,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 28.621,
+      "total_B": 18,
+      "total_O": 0.185,
+      "total_X": 0,
+      "total_J": 37.806,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2711193561553955
     },
     {
       "plan_idx": 11118,
@@ -2688,27 +2688,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 23.408,
-      "total_B": 20,
-      "total_O": 0.361,
+      "total_L": 24.208,
+      "total_B": 22,
+      "total_O": 0.314,
       "total_X": 0,
-      "total_J": 33.769,
+      "total_J": 35.522,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16756367683410645
-    },
-    {
-      "plan_idx": 6278,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 25.954,
-      "total_B": 20,
-      "total_O": 0.425,
-      "total_X": 0,
-      "total_J": 36.378,
-      "area_gap_m2": 68.97,
-      "time_sec": 0.17658519744873047
+      "time_sec": 0.18348336219787598
     },
     {
       "plan_idx": 3580,
@@ -2716,13 +2702,13 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 36.548,
-      "total_B": 20,
+      "total_L": 26.788,
+      "total_B": 18,
       "total_O": 0.228,
-      "total_X": 2,
-      "total_J": 56.776,
+      "total_X": 1,
+      "total_J": 41.016,
       "area_gap_m2": 0.0,
-      "time_sec": 0.23694801330566406
+      "time_sec": 0.17010235786437988
     },
     {
       "plan_idx": 8147,
@@ -2730,13 +2716,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 28.387,
+      "total_L": 28.227,
       "total_B": 20,
-      "total_O": 0.366,
-      "total_X": 1,
-      "total_J": 43.753,
+      "total_O": 0.356,
+      "total_X": 0,
+      "total_J": 38.583,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2126293182373047
+      "time_sec": 0.22827506065368652
     },
     {
       "plan_idx": 6232,
@@ -2750,7 +2736,7 @@
       "total_X": 0,
       "total_J": 31.46,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13658642768859863
+      "time_sec": 0.14063239097595215
     },
     {
       "plan_idx": 14700,
@@ -2764,7 +2750,21 @@
       "total_X": 0,
       "total_J": 29.795,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1076052188873291
+      "time_sec": 0.10482168197631836
+    },
+    {
+      "plan_idx": 6278,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 25.954,
+      "total_B": 20,
+      "total_O": 0.425,
+      "total_X": 0,
+      "total_J": 36.378,
+      "area_gap_m2": 68.97,
+      "time_sec": 0.22189831733703613
     },
     {
       "plan_idx": 4593,
@@ -2778,7 +2778,7 @@
       "total_X": 0,
       "total_J": 24.614,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11329889297485352
+      "time_sec": 0.130781888961792
     },
     {
       "plan_idx": 9127,
@@ -2792,49 +2792,35 @@
       "total_X": 0,
       "total_J": 30.537,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13962054252624512
+      "time_sec": 0.12809991836547852
+    },
+    {
+      "plan_idx": 6012,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 3,
+      "total_L": 22.336,
+      "total_B": 20,
+      "total_O": 0.372,
+      "total_X": 0,
+      "total_J": 32.708,
+      "area_gap_m2": 64.43,
+      "time_sec": 0.16835713386535645
     },
     {
       "plan_idx": 13824,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 35.232,
-      "total_B": 20,
-      "total_O": 0.235,
-      "total_X": 0,
-      "total_J": 45.467,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.26499438285827637
-    },
-    {
-      "plan_idx": 15159,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
       "hub_count": 2,
-      "total_L": 34.148,
+      "total_L": 27.872,
       "total_B": 22,
-      "total_O": 0.212,
+      "total_O": 0.214,
       "total_X": 0,
-      "total_J": 45.36,
-      "area_gap_m2": 42.55,
-      "time_sec": 0.1907658576965332
-    },
-    {
-      "plan_idx": 8185,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 31.045,
-      "total_B": 14,
-      "total_O": 0.098,
-      "total_X": 0,
-      "total_J": 38.143,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.14038920402526855
+      "total_J": 39.086,
+      "area_gap_m2": 11.11,
+      "time_sec": 0.20988011360168457
     },
     {
       "plan_idx": 2470,
@@ -2848,35 +2834,35 @@
       "total_X": 0,
       "total_J": 28.327,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09312844276428223
+      "time_sec": 0.10872268676757812
     },
     {
-      "plan_idx": 6012,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 35.776,
-      "total_B": 24,
-      "total_O": 0.307,
-      "total_X": 1,
-      "total_J": 53.083,
-      "area_gap_m2": 77.99,
-      "time_sec": 0.33510804176330566
-    },
-    {
-      "plan_idx": 14520,
+      "plan_idx": 8185,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 27.003,
-      "total_B": 16,
-      "total_O": 0.181,
+      "total_L": 31.045,
+      "total_B": 14,
+      "total_O": 0.098,
       "total_X": 0,
-      "total_J": 35.184,
+      "total_J": 38.143,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1540241241455078
+      "time_sec": 0.12772154808044434
+    },
+    {
+      "plan_idx": 15159,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 34.148,
+      "total_B": 22,
+      "total_O": 0.212,
+      "total_X": 0,
+      "total_J": 45.36,
+      "area_gap_m2": 42.55,
+      "time_sec": 0.22033071517944336
     },
     {
       "plan_idx": 483,
@@ -2890,7 +2876,21 @@
       "total_X": 0,
       "total_J": 27.174,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10201025009155273
+      "time_sec": 0.1097860336303711
+    },
+    {
+      "plan_idx": 14520,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 33.563,
+      "total_B": 20,
+      "total_O": 0.18,
+      "total_X": 1,
+      "total_J": 48.743,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2500300407409668
     },
     {
       "plan_idx": 1657,
@@ -2904,7 +2904,7 @@
       "total_X": 0,
       "total_J": 34.165,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16312098503112793
+      "time_sec": 0.1898939609527588
     },
     {
       "plan_idx": 3208,
@@ -2918,7 +2918,7 @@
       "total_X": 2,
       "total_J": 49.129,
       "area_gap_m2": 0.0,
-      "time_sec": 0.24126577377319336
+      "time_sec": 0.2891108989715576
     },
     {
       "plan_idx": 7745,
@@ -2932,7 +2932,7 @@
       "total_X": 0,
       "total_J": 35.293,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15923380851745605
+      "time_sec": 0.15228009223937988
     },
     {
       "plan_idx": 3056,
@@ -2946,7 +2946,7 @@
       "total_X": 0,
       "total_J": 37.418,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19023370742797852
+      "time_sec": 0.21512198448181152
     },
     {
       "plan_idx": 13317,
@@ -2960,21 +2960,7 @@
       "total_X": 0,
       "total_J": 35.802,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1637110710144043
-    },
-    {
-      "plan_idx": 15773,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 28.314,
-      "total_B": 18,
-      "total_O": 0.328,
-      "total_X": 0,
-      "total_J": 37.642,
-      "area_gap_m2": 23.65,
-      "time_sec": 0.15024542808532715
+      "time_sec": 0.14584946632385254
     },
     {
       "plan_idx": 15913,
@@ -2988,7 +2974,35 @@
       "total_X": 1,
       "total_J": 38.086,
       "area_gap_m2": 0.0,
-      "time_sec": 0.18624424934387207
+      "time_sec": 0.17337489128112793
+    },
+    {
+      "plan_idx": 15773,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 28.314,
+      "total_B": 18,
+      "total_O": 0.328,
+      "total_X": 0,
+      "total_J": 37.642,
+      "area_gap_m2": 23.65,
+      "time_sec": 0.1386575698852539
+    },
+    {
+      "plan_idx": 5449,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 41.968,
+      "total_B": 22,
+      "total_O": 0.407,
+      "total_X": 0,
+      "total_J": 53.375,
+      "area_gap_m2": 74.47,
+      "time_sec": 0.36072754859924316
     },
     {
       "plan_idx": 7004,
@@ -3002,49 +3016,7 @@
       "total_X": 1,
       "total_J": 37.234,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15725302696228027
-    },
-    {
-      "plan_idx": 5449,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 44.207,
-      "total_B": 22,
-      "total_O": 0.367,
-      "total_X": 2,
-      "total_J": 65.575,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.48879003524780273
-    },
-    {
-      "plan_idx": 1921,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 7,
-      "hub_count": 3,
-      "total_L": 43.003,
-      "total_B": 26,
-      "total_O": 0.368,
-      "total_X": 0,
-      "total_J": 56.372,
-      "area_gap_m2": 64.63,
-      "time_sec": 0.2344377040863037
-    },
-    {
-      "plan_idx": 13141,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 57.415,
-      "total_B": 28,
-      "total_O": 0.244,
-      "total_X": 0,
-      "total_J": 71.659,
-      "area_gap_m2": 49.31,
-      "time_sec": 0.30934882164001465
+      "time_sec": 0.15877437591552734
     },
     {
       "plan_idx": 12418,
@@ -3058,7 +3030,35 @@
       "total_X": 0,
       "total_J": 33.301,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13654875755310059
+      "time_sec": 0.09161686897277832
+    },
+    {
+      "plan_idx": 1921,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 7,
+      "hub_count": 3,
+      "total_L": 43.003,
+      "total_B": 26,
+      "total_O": 0.368,
+      "total_X": 0,
+      "total_J": 56.372,
+      "area_gap_m2": 64.63,
+      "time_sec": 0.25313401222229004
+    },
+    {
+      "plan_idx": 13141,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 6,
+      "hub_count": 3,
+      "total_L": 51.655,
+      "total_B": 26,
+      "total_O": 0.318,
+      "total_X": 1,
+      "total_J": 69.974,
+      "area_gap_m2": 60.65,
+      "time_sec": 0.322005033493042
     },
     {
       "plan_idx": 12793,
@@ -3072,21 +3072,7 @@
       "total_X": 0,
       "total_J": 24.083,
       "area_gap_m2": 0.0,
-      "time_sec": 0.08202791213989258
-    },
-    {
-      "plan_idx": 5394,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 56.729,
-      "total_B": 26,
-      "total_O": 0.259,
-      "total_X": 0,
-      "total_J": 69.988,
-      "area_gap_m2": 27.32,
-      "time_sec": 0.3106560707092285
+      "time_sec": 0.09831905364990234
     },
     {
       "plan_idx": 70,
@@ -3100,7 +3086,21 @@
       "total_X": 0,
       "total_J": 47.943,
       "area_gap_m2": 55.24,
-      "time_sec": 0.19293808937072754
+      "time_sec": 0.18047189712524414
+    },
+    {
+      "plan_idx": 5394,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 6,
+      "hub_count": 2,
+      "total_L": 56.729,
+      "total_B": 26,
+      "total_O": 0.259,
+      "total_X": 0,
+      "total_J": 69.988,
+      "area_gap_m2": 27.32,
+      "time_sec": 0.35599493980407715
     },
     {
       "plan_idx": 8690,
@@ -3114,7 +3114,7 @@
       "total_X": 0,
       "total_J": 31.314,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12992405891418457
+      "time_sec": 0.13312768936157227
     },
     {
       "plan_idx": 14909,
@@ -3128,21 +3128,21 @@
       "total_X": 0,
       "total_J": 34.83,
       "area_gap_m2": 68.45,
-      "time_sec": 0.1621718406677246
+      "time_sec": 0.1422884464263916
     },
     {
       "plan_idx": 9347,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 3,
-      "total_L": 24.517,
+      "hub_count": 4,
+      "total_L": 13.157,
       "total_B": 20,
-      "total_O": 0.304,
+      "total_O": 0.427,
       "total_X": 0,
-      "total_J": 34.822,
-      "area_gap_m2": 66.65,
-      "time_sec": 0.16025590896606445
+      "total_J": 23.585,
+      "area_gap_m2": 63.91,
+      "time_sec": 0.15174651145935059
     },
     {
       "plan_idx": 13861,
@@ -3156,7 +3156,7 @@
       "total_X": 0,
       "total_J": 46.501,
       "area_gap_m2": 31.18,
-      "time_sec": 0.2013552188873291
+      "time_sec": 0.18382859230041504
     },
     {
       "plan_idx": 15947,
@@ -3170,7 +3170,7 @@
       "total_X": 0,
       "total_J": 40.865,
       "area_gap_m2": 23.82,
-      "time_sec": 0.202833890914917
+      "time_sec": 0.2727816104888916
     },
     {
       "plan_idx": 5072,
@@ -3184,7 +3184,7 @@
       "total_X": 0,
       "total_J": 37.885,
       "area_gap_m2": 0.0,
-      "time_sec": 0.21475672721862793
+      "time_sec": 0.28969860076904297
     },
     {
       "plan_idx": 9722,
@@ -3198,7 +3198,7 @@
       "total_X": 0,
       "total_J": 40.723,
       "area_gap_m2": 20.86,
-      "time_sec": 0.20432257652282715
+      "time_sec": 0.2539055347442627
     },
     {
       "plan_idx": 7133,
@@ -3212,7 +3212,7 @@
       "total_X": 0,
       "total_J": 45.601,
       "area_gap_m2": 4.87,
-      "time_sec": 0.18134093284606934
+      "time_sec": 0.19405364990234375
     },
     {
       "plan_idx": 6222,
@@ -3226,21 +3226,7 @@
       "total_X": 0,
       "total_J": 64.391,
       "area_gap_m2": 65.97,
-      "time_sec": 0.3442525863647461
-    },
-    {
-      "plan_idx": 10276,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 27.225,
-      "total_B": 18,
-      "total_O": 0.324,
-      "total_X": 0,
-      "total_J": 36.548,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.09780097007751465
+      "time_sec": 0.42509984970092773
     },
     {
       "plan_idx": 1997,
@@ -3254,7 +3240,21 @@
       "total_X": 0,
       "total_J": 26.234,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11681270599365234
+      "time_sec": 0.12738752365112305
+    },
+    {
+      "plan_idx": 10276,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 27.225,
+      "total_B": 18,
+      "total_O": 0.324,
+      "total_X": 0,
+      "total_J": 36.548,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.10452604293823242
     },
     {
       "plan_idx": 1916,
@@ -3268,21 +3268,7 @@
       "total_X": 0,
       "total_J": 39.546,
       "area_gap_m2": 75.04,
-      "time_sec": 0.23112797737121582
-    },
-    {
-      "plan_idx": 16477,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 17.343,
-      "total_B": 12,
-      "total_O": 0.14,
-      "total_X": 0,
-      "total_J": 23.483,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.06700801849365234
+      "time_sec": 0.24893546104431152
     },
     {
       "plan_idx": 1873,
@@ -3296,7 +3282,21 @@
       "total_X": 0,
       "total_J": 36.272,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15286779403686523
+      "time_sec": 0.17539095878601074
+    },
+    {
+      "plan_idx": 16477,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 17.343,
+      "total_B": 12,
+      "total_O": 0.14,
+      "total_X": 0,
+      "total_J": 23.483,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.10335516929626465
     },
     {
       "plan_idx": 15623,
@@ -3310,7 +3310,7 @@
       "total_X": 0,
       "total_J": 27.11,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12741732597351074
+      "time_sec": 0.1498887538909912
     },
     {
       "plan_idx": 1643,
@@ -3320,11 +3320,11 @@
       "hub_count": 1,
       "total_L": 28.482,
       "total_B": 18,
-      "total_O": 0.223,
+      "total_O": 0.218,
       "total_X": 0,
-      "total_J": 37.705,
+      "total_J": 37.699,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15340733528137207
+      "time_sec": 0.20243358612060547
     },
     {
       "plan_idx": 16640,
@@ -3338,7 +3338,7 @@
       "total_X": 0,
       "total_J": 35.111,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09851288795471191
+      "time_sec": 0.12289237976074219
     },
     {
       "plan_idx": 1863,
@@ -3352,7 +3352,7 @@
       "total_X": 1,
       "total_J": 51.811,
       "area_gap_m2": 6.9,
-      "time_sec": 0.16785359382629395
+      "time_sec": 0.16843390464782715
     },
     {
       "plan_idx": 6089,
@@ -3366,7 +3366,7 @@
       "total_X": 0,
       "total_J": 24.436,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09784817695617676
+      "time_sec": 0.09489893913269043
     },
     {
       "plan_idx": 2625,
@@ -3380,35 +3380,21 @@
       "total_X": 0,
       "total_J": 44.767,
       "area_gap_m2": 20.7,
-      "time_sec": 0.17838263511657715
+      "time_sec": 0.23325395584106445
     },
     {
       "plan_idx": 5158,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 39.721,
-      "total_B": 26,
-      "total_O": 0.299,
-      "total_X": 1,
-      "total_J": 58.02,
-      "area_gap_m2": 71.38,
-      "time_sec": 0.2812387943267822
-    },
-    {
-      "plan_idx": 2226,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 21.056,
-      "total_B": 12,
-      "total_O": 0.155,
+      "hub_count": 3,
+      "total_L": 36.521,
+      "total_B": 24,
+      "total_O": 0.411,
       "total_X": 0,
-      "total_J": 27.212,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.11345601081848145
+      "total_J": 48.932,
+      "area_gap_m2": 58.58,
+      "time_sec": 0.3198080062866211
     },
     {
       "plan_idx": 2245,
@@ -3422,7 +3408,21 @@
       "total_X": 0,
       "total_J": 23.465,
       "area_gap_m2": 84.55,
-      "time_sec": 0.1609969139099121
+      "time_sec": 0.15929174423217773
+    },
+    {
+      "plan_idx": 2226,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 21.056,
+      "total_B": 12,
+      "total_O": 0.155,
+      "total_X": 0,
+      "total_J": 27.212,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1249094009399414
     },
     {
       "plan_idx": 7707,
@@ -3430,13 +3430,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 2,
-      "total_L": 36.751,
+      "total_L": 32.591,
       "total_B": 22,
       "total_O": 0.142,
-      "total_X": 2,
-      "total_J": 57.894,
+      "total_X": 0,
+      "total_J": 43.734,
       "area_gap_m2": 48.07,
-      "time_sec": 0.18146514892578125
+      "time_sec": 0.13673639297485352
     },
     {
       "plan_idx": 13230,
@@ -3450,7 +3450,7 @@
       "total_X": 0,
       "total_J": 25.884,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14400482177734375
+      "time_sec": 0.16648244857788086
     },
     {
       "plan_idx": 3928,
@@ -3464,7 +3464,7 @@
       "total_X": 0,
       "total_J": 44.713,
       "area_gap_m2": 6.05,
-      "time_sec": 0.18926525115966797
+      "time_sec": 0.204026460647583
     },
     {
       "plan_idx": 8067,
@@ -3478,7 +3478,7 @@
       "total_X": 0,
       "total_J": 42.117,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2110610008239746
+      "time_sec": 0.22272229194641113
     },
     {
       "plan_idx": 1302,
@@ -3492,7 +3492,7 @@
       "total_X": 0,
       "total_J": 50.168,
       "area_gap_m2": 43.72,
-      "time_sec": 0.2536921501159668
+      "time_sec": 0.2557814121246338
     },
     {
       "plan_idx": 13737,
@@ -3506,7 +3506,7 @@
       "total_X": 1,
       "total_J": 33.989,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15967082977294922
+      "time_sec": 0.17273306846618652
     },
     {
       "plan_idx": 2686,
@@ -3520,7 +3520,7 @@
       "total_X": 0,
       "total_J": 46.677,
       "area_gap_m2": 0.0,
-      "time_sec": 0.3158900737762451
+      "time_sec": 0.31444287300109863
     },
     {
       "plan_idx": 6693,
@@ -3528,13 +3528,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 18.165,
+      "total_L": 20.085,
       "total_B": 18,
-      "total_O": 0.26,
-      "total_X": 1,
-      "total_J": 32.425,
+      "total_O": 0.291,
+      "total_X": 0,
+      "total_J": 29.376,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12372040748596191
+      "time_sec": 0.1644749641418457
     },
     {
       "plan_idx": 10366,
@@ -3548,7 +3548,7 @@
       "total_X": 0,
       "total_J": 42.632,
       "area_gap_m2": 72.52,
-      "time_sec": 0.26909518241882324
+      "time_sec": 0.3093700408935547
     },
     {
       "plan_idx": 10295,
@@ -3562,7 +3562,7 @@
       "total_X": 0,
       "total_J": 44.879,
       "area_gap_m2": 26.64,
-      "time_sec": 0.15257549285888672
+      "time_sec": 0.20284342765808105
     },
     {
       "plan_idx": 7821,
@@ -3576,7 +3576,7 @@
       "total_X": 1,
       "total_J": 32.786,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13114142417907715
+      "time_sec": 0.14477992057800293
     },
     {
       "plan_idx": 8703,
@@ -3590,7 +3590,7 @@
       "total_X": 0,
       "total_J": 34.081,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15360736846923828
+      "time_sec": 0.16167664527893066
     },
     {
       "plan_idx": 12969,
@@ -3598,13 +3598,13 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 20.8,
-      "total_B": 18,
-      "total_O": 0.23,
+      "total_L": 27.84,
+      "total_B": 14,
+      "total_O": 0.232,
       "total_X": 0,
-      "total_J": 30.03,
+      "total_J": 35.072,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12276673316955566
+      "time_sec": 0.13607406616210938
     },
     {
       "plan_idx": 4288,
@@ -3618,7 +3618,7 @@
       "total_X": 0,
       "total_J": 40.141,
       "area_gap_m2": 47.61,
-      "time_sec": 0.13529229164123535
+      "time_sec": 0.1349191665649414
     },
     {
       "plan_idx": 9830,
@@ -3632,7 +3632,7 @@
       "total_X": 0,
       "total_J": 33.282,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10829377174377441
+      "time_sec": 0.1329643726348877
     },
     {
       "plan_idx": 8544,
@@ -3646,7 +3646,7 @@
       "total_X": 1,
       "total_J": 82.552,
       "area_gap_m2": 44.46,
-      "time_sec": 0.525902271270752
+      "time_sec": 0.5377004146575928
     },
     {
       "plan_idx": 2377,
@@ -3660,21 +3660,21 @@
       "total_X": 0,
       "total_J": 35.843,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12278413772583008
+      "time_sec": 0.15252113342285156
     },
     {
       "plan_idx": 14982,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 28.704,
-      "total_B": 20,
-      "total_O": 0.222,
-      "total_X": 0,
-      "total_J": 38.926,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.23555421829223633
+      "hub_count": 2,
+      "total_L": 38.623,
+      "total_B": 24,
+      "total_O": 0.213,
+      "total_X": 2,
+      "total_J": 60.837,
+      "area_gap_m2": 8.94,
+      "time_sec": 0.24649810791015625
     },
     {
       "plan_idx": 10360,
@@ -3688,7 +3688,7 @@
       "total_X": 0,
       "total_J": 38.083,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20227503776550293
+      "time_sec": 0.23450613021850586
     },
     {
       "plan_idx": 15017,
@@ -3702,21 +3702,7 @@
       "total_X": 0,
       "total_J": 30.822,
       "area_gap_m2": 26.24,
-      "time_sec": 0.15048456192016602
-    },
-    {
-      "plan_idx": 2400,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 44.799,
-      "total_B": 24,
-      "total_O": 0.331,
-      "total_X": 0,
-      "total_J": 57.131,
-      "area_gap_m2": 43.73,
-      "time_sec": 0.15394020080566406
+      "time_sec": 0.15897846221923828
     },
     {
       "plan_idx": 305,
@@ -3730,7 +3716,21 @@
       "total_X": 1,
       "total_J": 52.738,
       "area_gap_m2": 80.25,
-      "time_sec": 0.314727783203125
+      "time_sec": 0.3218960762023926
+    },
+    {
+      "plan_idx": 2400,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 6,
+      "hub_count": 2,
+      "total_L": 44.799,
+      "total_B": 24,
+      "total_O": 0.331,
+      "total_X": 0,
+      "total_J": 57.131,
+      "area_gap_m2": 43.73,
+      "time_sec": 0.17491436004638672
     },
     {
       "plan_idx": 6984,
@@ -3744,7 +3744,7 @@
       "total_X": 0,
       "total_J": 43.273,
       "area_gap_m2": 41.39,
-      "time_sec": 0.15208148956298828
+      "time_sec": 0.14911580085754395
     },
     {
       "plan_idx": 3276,
@@ -3758,7 +3758,7 @@
       "total_X": 0,
       "total_J": 54.567,
       "area_gap_m2": 14.62,
-      "time_sec": 0.32204437255859375
+      "time_sec": 0.32310032844543457
     },
     {
       "plan_idx": 16576,
@@ -3772,7 +3772,7 @@
       "total_X": 0,
       "total_J": 37.302,
       "area_gap_m2": 62.02,
-      "time_sec": 0.17510652542114258
+      "time_sec": 0.18471693992614746
     },
     {
       "plan_idx": 4340,
@@ -3786,21 +3786,7 @@
       "total_X": 0,
       "total_J": 44.446,
       "area_gap_m2": 40.74,
-      "time_sec": 0.17595839500427246
-    },
-    {
-      "plan_idx": 2254,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 36.423,
-      "total_B": 22,
-      "total_O": 0.244,
-      "total_X": 1,
-      "total_J": 52.667,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2046983242034912
+      "time_sec": 0.16984295845031738
     },
     {
       "plan_idx": 12108,
@@ -3814,7 +3800,21 @@
       "total_X": 0,
       "total_J": 32.577,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14256668090820312
+      "time_sec": 0.13474535942077637
+    },
+    {
+      "plan_idx": 11436,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 34.272,
+      "total_B": 24,
+      "total_O": 0.206,
+      "total_X": 0,
+      "total_J": 46.478,
+      "area_gap_m2": 44.12,
+      "time_sec": 0.3129737377166748
     },
     {
       "plan_idx": 9338,
@@ -3828,21 +3828,21 @@
       "total_X": 0,
       "total_J": 25.878,
       "area_gap_m2": 0.0,
-      "time_sec": 0.05076909065246582
+      "time_sec": 0.08856916427612305
     },
     {
-      "plan_idx": 11436,
+      "plan_idx": 2254,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 37.472,
-      "total_B": 24,
-      "total_O": 0.179,
+      "total_L": 33.543,
+      "total_B": 22,
+      "total_O": 0.253,
       "total_X": 0,
-      "total_J": 49.651,
+      "total_J": 44.796,
       "area_gap_m2": 0.0,
-      "time_sec": 0.33247804641723633
+      "time_sec": 0.29698634147644043
     },
     {
       "plan_idx": 8004,
@@ -3856,7 +3856,7 @@
       "total_X": 1,
       "total_J": 53.0,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2674570083618164
+      "time_sec": 0.32958149909973145
     },
     {
       "plan_idx": 9912,
@@ -3870,7 +3870,21 @@
       "total_X": 0,
       "total_J": 24.734,
       "area_gap_m2": 0.0,
-      "time_sec": 0.06551837921142578
+      "time_sec": 0.06774377822875977
+    },
+    {
+      "plan_idx": 14358,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 23.659,
+      "total_B": 16,
+      "total_O": 0.204,
+      "total_X": 0,
+      "total_J": 31.863,
+      "area_gap_m2": 19.95,
+      "time_sec": 0.11073994636535645
     },
     {
       "plan_idx": 9810,
@@ -3884,21 +3898,21 @@
       "total_X": 0,
       "total_J": 31.637,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10635852813720703
+      "time_sec": 0.11524105072021484
     },
     {
-      "plan_idx": 14358,
+      "plan_idx": 256,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 29.26,
-      "total_B": 18,
-      "total_O": 0.172,
+      "total_L": 25.244,
+      "total_B": 14,
+      "total_O": 0.188,
       "total_X": 0,
-      "total_J": 38.431,
+      "total_J": 32.432,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2168886661529541
+      "time_sec": 0.16125988960266113
     },
     {
       "plan_idx": 5169,
@@ -3912,21 +3926,7 @@
       "total_X": 0,
       "total_J": 49.777,
       "area_gap_m2": 2.77,
-      "time_sec": 0.2268815040588379
-    },
-    {
-      "plan_idx": 256,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 33.724,
-      "total_B": 16,
-      "total_O": 0.157,
-      "total_X": 1,
-      "total_J": 46.881,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.25969457626342773
+      "time_sec": 0.24600815773010254
     },
     {
       "plan_idx": 3394,
@@ -3940,35 +3940,7 @@
       "total_X": 1,
       "total_J": 51.315,
       "area_gap_m2": 30.89,
-      "time_sec": 0.14480900764465332
-    },
-    {
-      "plan_idx": 8666,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 20.863,
-      "total_B": 18,
-      "total_O": 0.331,
-      "total_X": 0,
-      "total_J": 30.195,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.14281153678894043
-    },
-    {
-      "plan_idx": 4400,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 31.244,
-      "total_B": 18,
-      "total_O": 0.132,
-      "total_X": 0,
-      "total_J": 40.376,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2096109390258789
+      "time_sec": 0.17377591133117676
     },
     {
       "plan_idx": 3782,
@@ -3982,7 +3954,35 @@
       "total_X": 0,
       "total_J": 28.654,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12980031967163086
+      "time_sec": 0.13129949569702148
+    },
+    {
+      "plan_idx": 8666,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 20.863,
+      "total_B": 18,
+      "total_O": 0.331,
+      "total_X": 0,
+      "total_J": 30.195,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.14529776573181152
+    },
+    {
+      "plan_idx": 4400,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 31.244,
+      "total_B": 18,
+      "total_O": 0.132,
+      "total_X": 0,
+      "total_J": 40.376,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.24032258987426758
     },
     {
       "plan_idx": 8924,
@@ -3996,7 +3996,7 @@
       "total_X": 0,
       "total_J": 38.632,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10154128074645996
+      "time_sec": 0.10526442527770996
     },
     {
       "plan_idx": 3507,
@@ -4010,35 +4010,21 @@
       "total_X": 0,
       "total_J": 49.826,
       "area_gap_m2": 65.36,
-      "time_sec": 0.24250531196594238
+      "time_sec": 0.2228856086730957
     },
     {
       "plan_idx": 5093,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 6,
-      "hub_count": 4,
-      "total_L": 27.045,
-      "total_B": 24,
-      "total_O": 0.513,
-      "total_X": 0,
-      "total_J": 39.557,
-      "area_gap_m2": 81.77,
-      "time_sec": 0.21950554847717285
-    },
-    {
-      "plan_idx": 9232,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 37.595,
+      "hub_count": 5,
+      "total_L": 13.924,
       "total_B": 20,
-      "total_O": 0.174,
+      "total_O": 0.58,
       "total_X": 0,
-      "total_J": 47.769,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.19633793830871582
+      "total_J": 24.503,
+      "area_gap_m2": 77.42,
+      "time_sec": 0.206648588180542
     },
     {
       "plan_idx": 6901,
@@ -4052,21 +4038,7 @@
       "total_X": 0,
       "total_J": 33.945,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1288001537322998
-    },
-    {
-      "plan_idx": 6671,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 3,
-      "total_L": 37.054,
-      "total_B": 24,
-      "total_O": 0.481,
-      "total_X": 0,
-      "total_J": 49.535,
-      "area_gap_m2": 81.73,
-      "time_sec": 0.17248892784118652
+      "time_sec": 0.14362287521362305
     },
     {
       "plan_idx": 11235,
@@ -4080,7 +4052,35 @@
       "total_X": 0,
       "total_J": 35.65,
       "area_gap_m2": 68.59,
-      "time_sec": 0.1810319423675537
+      "time_sec": 0.17630958557128906
+    },
+    {
+      "plan_idx": 6671,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 6,
+      "hub_count": 4,
+      "total_L": 31.614,
+      "total_B": 26,
+      "total_O": 0.54,
+      "total_X": 0,
+      "total_J": 45.155,
+      "area_gap_m2": 73.81,
+      "time_sec": 0.19855427742004395
+    },
+    {
+      "plan_idx": 9232,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 53.435,
+      "total_B": 22,
+      "total_O": 0.174,
+      "total_X": 1,
+      "total_J": 69.609,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.38820648193359375
     },
     {
       "plan_idx": 16561,
@@ -4094,7 +4094,7 @@
       "total_X": 1,
       "total_J": 35.913,
       "area_gap_m2": 0.0,
-      "time_sec": 0.174849271774292
+      "time_sec": 0.17568206787109375
     },
     {
       "plan_idx": 8650,
@@ -4108,7 +4108,7 @@
       "total_X": 2,
       "total_J": 59.926,
       "area_gap_m2": 44.87,
-      "time_sec": 0.2624685764312744
+      "time_sec": 0.25220823287963867
     },
     {
       "plan_idx": 16008,
@@ -4122,7 +4122,7 @@
       "total_X": 0,
       "total_J": 41.136,
       "area_gap_m2": 28.88,
-      "time_sec": 0.1887378692626953
+      "time_sec": 0.17711710929870605
     },
     {
       "plan_idx": 8228,
@@ -4136,7 +4136,21 @@
       "total_X": 0,
       "total_J": 28.346,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19821500778198242
+      "time_sec": 0.16310620307922363
+    },
+    {
+      "plan_idx": 9066,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 28.618,
+      "total_B": 14,
+      "total_O": 0.178,
+      "total_X": 0,
+      "total_J": 35.795,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.08900976181030273
     },
     {
       "plan_idx": 3024,
@@ -4150,35 +4164,7 @@
       "total_X": 0,
       "total_J": 33.801,
       "area_gap_m2": 0.0,
-      "time_sec": 0.165147066116333
-    },
-    {
-      "plan_idx": 9066,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 33.098,
-      "total_B": 16,
-      "total_O": 0.158,
-      "total_X": 1,
-      "total_J": 46.256,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.12038803100585938
-    },
-    {
-      "plan_idx": 1664,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 36.706,
-      "total_B": 22,
-      "total_O": 0.216,
-      "total_X": 1,
-      "total_J": 52.921,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.3028697967529297
+      "time_sec": 0.1667797565460205
     },
     {
       "plan_idx": 10929,
@@ -4192,7 +4178,21 @@
       "total_X": 0,
       "total_J": 22.519,
       "area_gap_m2": 0.0,
-      "time_sec": 0.08011054992675781
+      "time_sec": 0.07420086860656738
+    },
+    {
+      "plan_idx": 1664,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 36.706,
+      "total_B": 22,
+      "total_O": 0.216,
+      "total_X": 1,
+      "total_J": 52.921,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2699921131134033
     },
     {
       "plan_idx": 1444,
@@ -4206,7 +4206,7 @@
       "total_X": 0,
       "total_J": 59.748,
       "area_gap_m2": 48.11,
-      "time_sec": 0.22097110748291016
+      "time_sec": 0.1953601837158203
     },
     {
       "plan_idx": 8583,
@@ -4220,7 +4220,7 @@
       "total_X": 0,
       "total_J": 24.102,
       "area_gap_m2": 0.0,
-      "time_sec": 0.08843755722045898
+      "time_sec": 0.07807374000549316
     },
     {
       "plan_idx": 116,
@@ -4234,21 +4234,7 @@
       "total_X": 1,
       "total_J": 51.922,
       "area_gap_m2": 0.24,
-      "time_sec": 0.1915607452392578
-    },
-    {
-      "plan_idx": 4286,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 26.526,
-      "total_B": 14,
-      "total_O": 0.277,
-      "total_X": 1,
-      "total_J": 38.803,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.19120121002197266
+      "time_sec": 0.1895771026611328
     },
     {
       "plan_idx": 14478,
@@ -4262,7 +4248,21 @@
       "total_X": 0,
       "total_J": 33.948,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11375689506530762
+      "time_sec": 0.1097414493560791
+    },
+    {
+      "plan_idx": 4286,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 26.526,
+      "total_B": 14,
+      "total_O": 0.277,
+      "total_X": 1,
+      "total_J": 38.803,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.21840572357177734
     },
     {
       "plan_idx": 14014,
@@ -4276,7 +4276,21 @@
       "total_X": 0,
       "total_J": 39.193,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17427301406860352
+      "time_sec": 0.16800570487976074
+    },
+    {
+      "plan_idx": 4884,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 25.382,
+      "total_B": 14,
+      "total_O": 0.187,
+      "total_X": 0,
+      "total_J": 32.57,
+      "area_gap_m2": 8.42,
+      "time_sec": 0.12981009483337402
     },
     {
       "plan_idx": 316,
@@ -4284,13 +4298,13 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 32.319,
-      "total_B": 16,
-      "total_O": 0.199,
-      "total_X": 0,
-      "total_J": 40.518,
+      "total_L": 33.279,
+      "total_B": 18,
+      "total_O": 0.212,
+      "total_X": 2,
+      "total_J": 52.491,
       "area_gap_m2": 0.0,
-      "time_sec": 0.18854093551635742
+      "time_sec": 0.2102980613708496
     },
     {
       "plan_idx": 5294,
@@ -4304,7 +4318,7 @@
       "total_X": 0,
       "total_J": 58.429,
       "area_gap_m2": 0.0,
-      "time_sec": 0.3378019332885742
+      "time_sec": 0.39418959617614746
     },
     {
       "plan_idx": 2465,
@@ -4318,7 +4332,7 @@
       "total_X": 0,
       "total_J": 48.119,
       "area_gap_m2": 1.77,
-      "time_sec": 0.23051738739013672
+      "time_sec": 0.2929544448852539
     },
     {
       "plan_idx": 1180,
@@ -4332,21 +4346,7 @@
       "total_X": 0,
       "total_J": 34.469,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1167609691619873
-    },
-    {
-      "plan_idx": 4884,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 30.822,
-      "total_B": 16,
-      "total_O": 0.187,
-      "total_X": 0,
-      "total_J": 39.009,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.24477243423461914
+      "time_sec": 0.16280865669250488
     },
     {
       "plan_idx": 12098,
@@ -4360,7 +4360,7 @@
       "total_X": 0,
       "total_J": 35.826,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16723346710205078
+      "time_sec": 0.19127440452575684
     },
     {
       "plan_idx": 14083,
@@ -4374,7 +4374,21 @@
       "total_X": 0,
       "total_J": 32.9,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16089296340942383
+      "time_sec": 0.15262866020202637
+    },
+    {
+      "plan_idx": 1370,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 22.187,
+      "total_B": 16,
+      "total_O": 0.196,
+      "total_X": 0,
+      "total_J": 30.384,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1369781494140625
     },
     {
       "plan_idx": 4176,
@@ -4388,21 +4402,7 @@
       "total_X": 0,
       "total_J": 27.802,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17787742614746094
-    },
-    {
-      "plan_idx": 1370,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 32.107,
-      "total_B": 18,
-      "total_O": 0.134,
-      "total_X": 0,
-      "total_J": 41.241,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.16340923309326172
+      "time_sec": 0.21897625923156738
     },
     {
       "plan_idx": 4852,
@@ -4416,7 +4416,7 @@
       "total_X": 0,
       "total_J": 55.418,
       "area_gap_m2": 27.13,
-      "time_sec": 0.3327312469482422
+      "time_sec": 0.3631865978240967
     },
     {
       "plan_idx": 1307,
@@ -4430,7 +4430,7 @@
       "total_X": 0,
       "total_J": 37.103,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11577200889587402
+      "time_sec": 0.10375165939331055
     },
     {
       "plan_idx": 10101,
@@ -4444,21 +4444,7 @@
       "total_X": 0,
       "total_J": 46.744,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2062985897064209
-    },
-    {
-      "plan_idx": 11724,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 26.872,
-      "total_B": 18,
-      "total_O": 0.156,
-      "total_X": 0,
-      "total_J": 36.028,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.15252208709716797
+      "time_sec": 0.23722004890441895
     },
     {
       "plan_idx": 11948,
@@ -4472,7 +4458,21 @@
       "total_X": 0,
       "total_J": 47.223,
       "area_gap_m2": 0.0,
-      "time_sec": 0.23616647720336914
+      "time_sec": 0.20127606391906738
+    },
+    {
+      "plan_idx": 11724,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 26.872,
+      "total_B": 18,
+      "total_O": 0.156,
+      "total_X": 0,
+      "total_J": 36.028,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1581108570098877
     },
     {
       "plan_idx": 8176,
@@ -4486,7 +4486,7 @@
       "total_X": 0,
       "total_J": 34.257,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14891672134399414
+      "time_sec": 0.14165425300598145
     },
     {
       "plan_idx": 6883,
@@ -4500,35 +4500,35 @@
       "total_X": 0,
       "total_J": 52.473,
       "area_gap_m2": 9.89,
-      "time_sec": 0.1984724998474121
+      "time_sec": 0.18467497825622559
     },
     {
       "plan_idx": 3368,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 31.961,
+      "hub_count": 2,
+      "total_L": 29.401,
       "total_B": 16,
-      "total_O": 0.147,
+      "total_O": 0.182,
       "total_X": 0,
-      "total_J": 40.108,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.17746996879577637
+      "total_J": 37.584,
+      "area_gap_m2": 7.92,
+      "time_sec": 0.14915013313293457
     },
     {
-      "plan_idx": 5064,
+      "plan_idx": 11589,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 28.998,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 28.916,
       "total_B": 20,
-      "total_O": 0.115,
+      "total_O": 0.278,
       "total_X": 0,
-      "total_J": 39.113,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.14522814750671387
+      "total_J": 39.194,
+      "area_gap_m2": 4.95,
+      "time_sec": 0.1609187126159668
     },
     {
       "plan_idx": 7757,
@@ -4542,35 +4542,35 @@
       "total_X": 0,
       "total_J": 35.231,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14822101593017578
-    },
-    {
-      "plan_idx": 11589,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 34.996,
-      "total_B": 22,
-      "total_O": 0.251,
-      "total_X": 0,
-      "total_J": 46.247,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.31414008140563965
+      "time_sec": 0.147674560546875
     },
     {
       "plan_idx": 13316,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 37.722,
+      "hub_count": 3,
+      "total_L": 26.363,
       "total_B": 20,
-      "total_O": 0.25,
+      "total_O": 0.34,
       "total_X": 0,
-      "total_J": 47.972,
-      "area_gap_m2": 76.18,
-      "time_sec": 0.2900834083557129
+      "total_J": 36.703,
+      "area_gap_m2": 60.95,
+      "time_sec": 0.20468974113464355
+    },
+    {
+      "plan_idx": 5064,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 28.998,
+      "total_B": 20,
+      "total_O": 0.115,
+      "total_X": 0,
+      "total_J": 39.113,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.18467998504638672
     },
     {
       "plan_idx": 5324,
@@ -4584,7 +4584,7 @@
       "total_X": 0,
       "total_J": 53.328,
       "area_gap_m2": 14.77,
-      "time_sec": 0.2425220012664795
+      "time_sec": 0.2507646083831787
     },
     {
       "plan_idx": 812,
@@ -4598,21 +4598,7 @@
       "total_X": 0,
       "total_J": 35.893,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12885808944702148
-    },
-    {
-      "plan_idx": 13510,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 35.688,
-      "total_B": 24,
-      "total_O": 0.293,
-      "total_X": 0,
-      "total_J": 47.981,
-      "area_gap_m2": 1.41,
-      "time_sec": 0.20337605476379395
+      "time_sec": 0.15978598594665527
     },
     {
       "plan_idx": 5801,
@@ -4626,7 +4612,21 @@
       "total_X": 1,
       "total_J": 54.072,
       "area_gap_m2": 6.2,
-      "time_sec": 0.2183842658996582
+      "time_sec": 0.2344207763671875
+    },
+    {
+      "plan_idx": 13510,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 35.688,
+      "total_B": 24,
+      "total_O": 0.293,
+      "total_X": 0,
+      "total_J": 47.981,
+      "area_gap_m2": 1.41,
+      "time_sec": 0.24941372871398926
     },
     {
       "plan_idx": 5877,
@@ -4640,7 +4640,7 @@
       "total_X": 0,
       "total_J": 33.406,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1047518253326416
+      "time_sec": 0.13090133666992188
     },
     {
       "plan_idx": 10885,
@@ -4654,7 +4654,7 @@
       "total_X": 0,
       "total_J": 39.757,
       "area_gap_m2": 22.78,
-      "time_sec": 0.11450052261352539
+      "time_sec": 0.13134002685546875
     },
     {
       "plan_idx": 8742,
@@ -4668,7 +4668,7 @@
       "total_X": 0,
       "total_J": 28.111,
       "area_gap_m2": 189.69,
-      "time_sec": 0.1825265884399414
+      "time_sec": 0.16536331176757812
     },
     {
       "plan_idx": 13491,
@@ -4682,21 +4682,21 @@
       "total_X": 0,
       "total_J": 45.91,
       "area_gap_m2": 8.73,
-      "time_sec": 0.25373196601867676
+      "time_sec": 0.27489376068115234
     },
     {
       "plan_idx": 8131,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 30.736,
-      "total_B": 22,
-      "total_O": 0.266,
+      "hub_count": 2,
+      "total_L": 39.376,
+      "total_B": 24,
+      "total_O": 0.315,
       "total_X": 0,
-      "total_J": 42.002,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.25576281547546387
+      "total_J": 51.691,
+      "area_gap_m2": 3.7,
+      "time_sec": 0.2578761577606201
     },
     {
       "plan_idx": 5216,
@@ -4710,7 +4710,7 @@
       "total_X": 0,
       "total_J": 52.126,
       "area_gap_m2": 33.72,
-      "time_sec": 0.2839818000793457
+      "time_sec": 0.30570363998413086
     },
     {
       "plan_idx": 3542,
@@ -4724,63 +4724,35 @@
       "total_X": 0,
       "total_J": 30.387,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16173315048217773
+      "time_sec": 0.17734766006469727
     },
     {
       "plan_idx": 12535,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 28.515,
-      "total_B": 18,
-      "total_O": 0.226,
+      "hub_count": 2,
+      "total_L": 24.675,
+      "total_B": 16,
+      "total_O": 0.26,
       "total_X": 0,
-      "total_J": 37.741,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.18872427940368652
-    },
-    {
-      "plan_idx": 6539,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 17.516,
-      "total_B": 12,
-      "total_O": 0.181,
-      "total_X": 0,
-      "total_J": 23.697,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.08562040328979492
-    },
-    {
-      "plan_idx": 1268,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 26.336,
-      "total_B": 18,
-      "total_O": 0.148,
-      "total_X": 0,
-      "total_J": 35.484,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2843186855316162
+      "total_J": 32.935,
+      "area_gap_m2": 38.98,
+      "time_sec": 0.17838573455810547
     },
     {
       "plan_idx": 15423,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 3,
-      "total_L": 23.404,
+      "hub_count": 4,
+      "total_L": 11.723,
       "total_B": 20,
-      "total_O": 0.502,
+      "total_O": 0.536,
       "total_X": 0,
-      "total_J": 33.906,
-      "area_gap_m2": 78.63,
-      "time_sec": 0.18613910675048828
+      "total_J": 22.259,
+      "area_gap_m2": 57.17,
+      "time_sec": 0.14986658096313477
     },
     {
       "plan_idx": 7288,
@@ -4794,7 +4766,35 @@
       "total_X": 0,
       "total_J": 38.106,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19356775283813477
+      "time_sec": 0.1584012508392334
+    },
+    {
+      "plan_idx": 6539,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 17.516,
+      "total_B": 12,
+      "total_O": 0.181,
+      "total_X": 0,
+      "total_J": 23.697,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.09053349494934082
+    },
+    {
+      "plan_idx": 1268,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 26.336,
+      "total_B": 18,
+      "total_O": 0.148,
+      "total_X": 0,
+      "total_J": 35.484,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2814509868621826
     },
     {
       "plan_idx": 11457,
@@ -4808,7 +4808,7 @@
       "total_X": 1,
       "total_J": 51.641,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1348741054534912
+      "time_sec": 0.12053179740905762
     },
     {
       "plan_idx": 7457,
@@ -4822,35 +4822,7 @@
       "total_X": 0,
       "total_J": 33.132,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11848282814025879
-    },
-    {
-      "plan_idx": 15083,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 36.045,
-      "total_B": 22,
-      "total_O": 0.244,
-      "total_X": 0,
-      "total_J": 47.289,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2417135238647461
-    },
-    {
-      "plan_idx": 7304,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 19.084,
-      "total_B": 12,
-      "total_O": 0.137,
-      "total_X": 0,
-      "total_J": 25.222,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.11038875579833984
+      "time_sec": 0.11099839210510254
     },
     {
       "plan_idx": 775,
@@ -4864,7 +4836,35 @@
       "total_X": 0,
       "total_J": 22.954,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10321879386901855
+      "time_sec": 0.0817711353302002
+    },
+    {
+      "plan_idx": 15083,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 36.045,
+      "total_B": 22,
+      "total_O": 0.244,
+      "total_X": 0,
+      "total_J": 47.289,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.22932910919189453
+    },
+    {
+      "plan_idx": 7304,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 19.084,
+      "total_B": 12,
+      "total_O": 0.137,
+      "total_X": 0,
+      "total_J": 25.222,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.10578060150146484
     },
     {
       "plan_idx": 6328,
@@ -4878,7 +4878,7 @@
       "total_X": 0,
       "total_J": 37.024,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11347055435180664
+      "time_sec": 0.11535286903381348
     },
     {
       "plan_idx": 13056,
@@ -4892,21 +4892,7 @@
       "total_X": 0,
       "total_J": 33.17,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13792181015014648
-    },
-    {
-      "plan_idx": 10000,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 41.027,
-      "total_B": 24,
-      "total_O": 0.241,
-      "total_X": 1,
-      "total_J": 58.268,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.4086141586303711
+      "time_sec": 0.13612055778503418
     },
     {
       "plan_idx": 10756,
@@ -4920,49 +4906,35 @@
       "total_X": 0,
       "total_J": 41.36,
       "area_gap_m2": 44.84,
-      "time_sec": 0.1585085391998291
+      "time_sec": 0.1381371021270752
+    },
+    {
+      "plan_idx": 10000,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 39.747,
+      "total_B": 26,
+      "total_O": 0.226,
+      "total_X": 1,
+      "total_J": 57.973,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.4439249038696289
     },
     {
       "plan_idx": 9129,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 35.949,
+      "hub_count": 3,
+      "total_L": 24.109,
       "total_B": 18,
-      "total_O": 0.322,
+      "total_O": 0.394,
       "total_X": 0,
-      "total_J": 45.272,
-      "area_gap_m2": 55.39,
-      "time_sec": 0.15999269485473633
-    },
-    {
-      "plan_idx": 2274,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 26.017,
-      "total_B": 18,
-      "total_O": 0.239,
-      "total_X": 1,
-      "total_J": 40.256,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.21997880935668945
-    },
-    {
-      "plan_idx": 11506,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 27.92,
-      "total_B": 18,
-      "total_O": 0.155,
-      "total_X": 0,
-      "total_J": 37.076,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.22253131866455078
+      "total_J": 33.503,
+      "area_gap_m2": 58.3,
+      "time_sec": 0.1427774429321289
     },
     {
       "plan_idx": 9146,
@@ -4976,7 +4948,21 @@
       "total_X": 0,
       "total_J": 46.735,
       "area_gap_m2": 0.0,
-      "time_sec": 0.23609185218811035
+      "time_sec": 0.19920802116394043
+    },
+    {
+      "plan_idx": 2274,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 26.017,
+      "total_B": 18,
+      "total_O": 0.239,
+      "total_X": 1,
+      "total_J": 40.256,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.22641563415527344
     },
     {
       "plan_idx": 16692,
@@ -4990,21 +4976,21 @@
       "total_X": 0,
       "total_J": 42.073,
       "area_gap_m2": 0.0,
-      "time_sec": 0.24170756340026855
+      "time_sec": 0.1836256980895996
     },
     {
-      "plan_idx": 904,
+      "plan_idx": 11506,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 23.537,
-      "total_B": 16,
-      "total_O": 0.217,
+      "total_L": 27.92,
+      "total_B": 18,
+      "total_O": 0.155,
       "total_X": 0,
-      "total_J": 31.754,
+      "total_J": 37.076,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16219234466552734
+      "time_sec": 0.21116232872009277
     },
     {
       "plan_idx": 3779,
@@ -5018,7 +5004,21 @@
       "total_X": 0,
       "total_J": 27.991,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12879085540771484
+      "time_sec": 0.11483454704284668
+    },
+    {
+      "plan_idx": 904,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 23.537,
+      "total_B": 16,
+      "total_O": 0.217,
+      "total_X": 0,
+      "total_J": 31.754,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1593923568725586
     },
     {
       "plan_idx": 10851,
@@ -5026,55 +5026,27 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 41.142,
-      "total_B": 22,
+      "total_L": 29.782,
+      "total_B": 18,
       "total_O": 0.115,
-      "total_X": 1,
-      "total_J": 57.257,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.35007190704345703
-    },
-    {
-      "plan_idx": 5851,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 28.401,
-      "total_B": 16,
-      "total_O": 0.22,
       "total_X": 0,
-      "total_J": 36.621,
+      "total_J": 38.897,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15778708457946777
+      "time_sec": 0.2586343288421631
     },
     {
       "plan_idx": 13096,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 7,
-      "hub_count": 3,
-      "total_L": 49.146,
-      "total_B": 32,
-      "total_O": 0.4,
-      "total_X": 3,
-      "total_J": 80.545,
-      "area_gap_m2": 76.42,
-      "time_sec": 0.4513125419616699
-    },
-    {
-      "plan_idx": 8559,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 36.486,
-      "total_B": 22,
-      "total_O": 0.21,
-      "total_X": 0,
-      "total_J": 47.696,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2585759162902832
+      "hub_count": 4,
+      "total_L": 37.786,
+      "total_B": 30,
+      "total_O": 0.477,
+      "total_X": 1,
+      "total_J": 58.262,
+      "area_gap_m2": 61.7,
+      "time_sec": 0.37007904052734375
     },
     {
       "plan_idx": 8698,
@@ -5088,7 +5060,35 @@
       "total_X": 0,
       "total_J": 24.139,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12190866470336914
+      "time_sec": 0.09874963760375977
+    },
+    {
+      "plan_idx": 5851,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 28.401,
+      "total_B": 16,
+      "total_O": 0.22,
+      "total_X": 0,
+      "total_J": 36.621,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.15674090385437012
+    },
+    {
+      "plan_idx": 8559,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 36.486,
+      "total_B": 22,
+      "total_O": 0.21,
+      "total_X": 1,
+      "total_J": 52.696,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.26082825660705566
     },
     {
       "plan_idx": 1253,
@@ -5102,7 +5102,7 @@
       "total_X": 0,
       "total_J": 33.294,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11376333236694336
+      "time_sec": 0.12906742095947266
     },
     {
       "plan_idx": 11327,
@@ -5116,7 +5116,7 @@
       "total_X": 0,
       "total_J": 22.88,
       "area_gap_m2": 0.0,
-      "time_sec": 0.0727548599243164
+      "time_sec": 0.06946039199829102
     },
     {
       "plan_idx": 10278,
@@ -5130,21 +5130,7 @@
       "total_X": 0,
       "total_J": 28.773,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11176133155822754
-    },
-    {
-      "plan_idx": 3552,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 8,
-      "hub_count": 4,
-      "total_L": 38.313,
-      "total_B": 28,
-      "total_O": 0.481,
-      "total_X": 0,
-      "total_J": 52.794,
-      "area_gap_m2": 80.3,
-      "time_sec": 0.2375187873840332
+      "time_sec": 0.15953588485717773
     },
     {
       "plan_idx": 14239,
@@ -5158,7 +5144,21 @@
       "total_X": 0,
       "total_J": 36.46,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2360525131225586
+      "time_sec": 0.2616143226623535
+    },
+    {
+      "plan_idx": 3552,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 8,
+      "hub_count": 5,
+      "total_L": 31.113,
+      "total_B": 28,
+      "total_O": 0.437,
+      "total_X": 0,
+      "total_J": 45.549,
+      "area_gap_m2": 65.48,
+      "time_sec": 0.3006165027618408
     },
     {
       "plan_idx": 14299,
@@ -5172,7 +5172,7 @@
       "total_X": 0,
       "total_J": 37.076,
       "area_gap_m2": 29.71,
-      "time_sec": 0.16663479804992676
+      "time_sec": 0.1726219654083252
     },
     {
       "plan_idx": 16758,
@@ -5186,21 +5186,7 @@
       "total_X": 0,
       "total_J": 26.467,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13209271430969238
-    },
-    {
-      "plan_idx": 3789,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 39.33,
-      "total_B": 20,
-      "total_O": 0.194,
-      "total_X": 1,
-      "total_J": 54.524,
-      "area_gap_m2": 3.32,
-      "time_sec": 0.18146014213562012
+      "time_sec": 0.1314256191253662
     },
     {
       "plan_idx": 6228,
@@ -5214,7 +5200,21 @@
       "total_X": 0,
       "total_J": 31.752,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11839962005615234
+      "time_sec": 0.09826350212097168
+    },
+    {
+      "plan_idx": 3789,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 39.33,
+      "total_B": 20,
+      "total_O": 0.194,
+      "total_X": 1,
+      "total_J": 54.524,
+      "area_gap_m2": 3.32,
+      "time_sec": 0.19533252716064453
     },
     {
       "plan_idx": 12622,
@@ -5225,24 +5225,10 @@
       "total_L": 40.053,
       "total_B": 26,
       "total_O": 0.376,
-      "total_X": 1,
-      "total_J": 58.43,
-      "area_gap_m2": 12.16,
-      "time_sec": 0.22272825241088867
-    },
-    {
-      "plan_idx": 8346,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 3,
-      "total_L": 26.627,
-      "total_B": 22,
-      "total_O": 0.328,
       "total_X": 0,
-      "total_J": 37.955,
-      "area_gap_m2": 24.09,
-      "time_sec": 0.20320773124694824
+      "total_J": 53.43,
+      "area_gap_m2": 12.16,
+      "time_sec": 0.2265613079071045
     },
     {
       "plan_idx": 14288,
@@ -5256,7 +5242,35 @@
       "total_X": 0,
       "total_J": 35.307,
       "area_gap_m2": 0.0,
-      "time_sec": 0.13798952102661133
+      "time_sec": 0.10805130004882812
+    },
+    {
+      "plan_idx": 8346,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 3,
+      "total_L": 26.627,
+      "total_B": 22,
+      "total_O": 0.328,
+      "total_X": 0,
+      "total_J": 37.955,
+      "area_gap_m2": 24.09,
+      "time_sec": 0.19095587730407715
+    },
+    {
+      "plan_idx": 1454,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 6,
+      "hub_count": 3,
+      "total_L": 38.144,
+      "total_B": 20,
+      "total_O": 0.32,
+      "total_X": 0,
+      "total_J": 48.464,
+      "area_gap_m2": 60.01,
+      "time_sec": 0.1801464557647705
     },
     {
       "plan_idx": 55,
@@ -5270,7 +5284,7 @@
       "total_X": 0,
       "total_J": 37.741,
       "area_gap_m2": 23.26,
-      "time_sec": 0.11972308158874512
+      "time_sec": 0.12111234664916992
     },
     {
       "plan_idx": 6456,
@@ -5278,41 +5292,27 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 36.539,
+      "total_L": 30.779,
       "total_B": 18,
-      "total_O": 0.269,
+      "total_O": 0.258,
       "total_X": 0,
-      "total_J": 45.808,
+      "total_J": 40.037,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1717820167541504
+      "time_sec": 0.1794452667236328
     },
     {
       "plan_idx": 11934,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 31.69,
-      "total_B": 20,
-      "total_O": 0.201,
-      "total_X": 0,
-      "total_J": 41.891,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.1548471450805664
-    },
-    {
-      "plan_idx": 1454,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
       "hub_count": 2,
-      "total_L": 53.664,
+      "total_L": 28.65,
       "total_B": 22,
-      "total_O": 0.24,
-      "total_X": 2,
-      "total_J": 74.904,
-      "area_gap_m2": 59.42,
-      "time_sec": 0.3466649055480957
+      "total_O": 0.245,
+      "total_X": 0,
+      "total_J": 39.895,
+      "area_gap_m2": 8.76,
+      "time_sec": 0.18344593048095703
     },
     {
       "plan_idx": 14132,
@@ -5320,13 +5320,27 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 28.295,
-      "total_B": 18,
-      "total_O": 0.231,
+      "total_L": 35.015,
+      "total_B": 22,
+      "total_O": 0.208,
       "total_X": 0,
-      "total_J": 37.526,
+      "total_J": 46.223,
       "area_gap_m2": 0.0,
-      "time_sec": 0.169144868850708
+      "time_sec": 0.222459077835083
+    },
+    {
+      "plan_idx": 2292,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 34.072,
+      "total_B": 22,
+      "total_O": 0.271,
+      "total_X": 0,
+      "total_J": 45.343,
+      "area_gap_m2": 18.08,
+      "time_sec": 0.25197649002075195
     },
     {
       "plan_idx": 10819,
@@ -5340,7 +5354,7 @@
       "total_X": 0,
       "total_J": 32.466,
       "area_gap_m2": 12.51,
-      "time_sec": 0.13179230690002441
+      "time_sec": 0.1618187427520752
     },
     {
       "plan_idx": 10286,
@@ -5354,21 +5368,7 @@
       "total_X": 0,
       "total_J": 32.981,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16231584548950195
-    },
-    {
-      "plan_idx": 4083,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 30.568,
-      "total_B": 24,
-      "total_O": 0.256,
-      "total_X": 1,
-      "total_J": 47.824,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.20244765281677246
+      "time_sec": 0.2043612003326416
     },
     {
       "plan_idx": 9840,
@@ -5382,21 +5382,21 @@
       "total_X": 0,
       "total_J": 24.266,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12193059921264648
+      "time_sec": 0.10553812980651855
     },
     {
-      "plan_idx": 2292,
+      "plan_idx": 4083,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 34.392,
+      "total_L": 35.688,
       "total_B": 22,
-      "total_O": 0.302,
+      "total_O": 0.28,
       "total_X": 0,
-      "total_J": 45.694,
+      "total_J": 46.968,
       "area_gap_m2": 0.0,
-      "time_sec": 0.31456685066223145
+      "time_sec": 0.1905345916748047
     },
     {
       "plan_idx": 16617,
@@ -5410,21 +5410,21 @@
       "total_X": 0,
       "total_J": 36.042,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19762945175170898
+      "time_sec": 0.16326069831848145
     },
     {
       "plan_idx": 10134,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 37.539,
-      "total_B": 22,
-      "total_O": 0.26,
+      "hub_count": 2,
+      "total_L": 34.339,
+      "total_B": 20,
+      "total_O": 0.235,
       "total_X": 0,
-      "total_J": 48.799,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.24885320663452148
+      "total_J": 44.574,
+      "area_gap_m2": 48.19,
+      "time_sec": 0.12272787094116211
     },
     {
       "plan_idx": 13382,
@@ -5438,7 +5438,7 @@
       "total_X": 0,
       "total_J": 50.666,
       "area_gap_m2": 63.29,
-      "time_sec": 0.25159454345703125
+      "time_sec": 0.17449569702148438
     },
     {
       "plan_idx": 10688,
@@ -5452,7 +5452,7 @@
       "total_X": 0,
       "total_J": 39.949,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2940359115600586
+      "time_sec": 0.18931007385253906
     },
     {
       "plan_idx": 9688,
@@ -5466,7 +5466,7 @@
       "total_X": 0,
       "total_J": 44.249,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1513218879699707
+      "time_sec": 0.13581609725952148
     },
     {
       "plan_idx": 13185,
@@ -5480,7 +5480,7 @@
       "total_X": 0,
       "total_J": 41.413,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2923121452331543
+      "time_sec": 0.22228550910949707
     },
     {
       "plan_idx": 4170,
@@ -5494,21 +5494,7 @@
       "total_X": 0,
       "total_J": 47.266,
       "area_gap_m2": 44.67,
-      "time_sec": 0.224442720413208
-    },
-    {
-      "plan_idx": 5702,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 17.453,
-      "total_B": 12,
-      "total_O": 0.197,
-      "total_X": 0,
-      "total_J": 23.65,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.08028960227966309
+      "time_sec": 0.21732735633850098
     },
     {
       "plan_idx": 13777,
@@ -5522,7 +5508,7 @@
       "total_X": 0,
       "total_J": 40.383,
       "area_gap_m2": 29.36,
-      "time_sec": 0.19744110107421875
+      "time_sec": 0.1792912483215332
     },
     {
       "plan_idx": 6286,
@@ -5536,7 +5522,21 @@
       "total_X": 0,
       "total_J": 45.125,
       "area_gap_m2": 62.27,
-      "time_sec": 0.29932379722595215
+      "time_sec": 0.2520573139190674
+    },
+    {
+      "plan_idx": 5702,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 17.453,
+      "total_B": 12,
+      "total_O": 0.197,
+      "total_X": 0,
+      "total_J": 23.65,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.10410714149475098
     },
     {
       "plan_idx": 12423,
@@ -5550,7 +5550,7 @@
       "total_X": 0,
       "total_J": 35.635,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2161407470703125
+      "time_sec": 0.24648499488830566
     },
     {
       "plan_idx": 9861,
@@ -5564,7 +5564,7 @@
       "total_X": 0,
       "total_J": 34.02,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17731118202209473
+      "time_sec": 0.21953892707824707
     },
     {
       "plan_idx": 13306,
@@ -5578,7 +5578,7 @@
       "total_X": 0,
       "total_J": 44.748,
       "area_gap_m2": 55.21,
-      "time_sec": 0.1869823932647705
+      "time_sec": 0.22081470489501953
     },
     {
       "plan_idx": 6887,
@@ -5592,7 +5592,7 @@
       "total_X": 0,
       "total_J": 22.89,
       "area_gap_m2": 0.0,
-      "time_sec": 0.07653689384460449
+      "time_sec": 0.06734418869018555
     },
     {
       "plan_idx": 13,
@@ -5606,7 +5606,7 @@
       "total_X": 0,
       "total_J": 46.69,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2513108253479004
+      "time_sec": 0.28992509841918945
     },
     {
       "plan_idx": 9401,
@@ -5620,7 +5620,7 @@
       "total_X": 0,
       "total_J": 9.306,
       "area_gap_m2": 205.81,
-      "time_sec": 0.16229844093322754
+      "time_sec": 0.19502854347229004
     },
     {
       "plan_idx": 9957,
@@ -5634,21 +5634,7 @@
       "total_X": 1,
       "total_J": 67.306,
       "area_gap_m2": 7.31,
-      "time_sec": 0.28809046745300293
-    },
-    {
-      "plan_idx": 15236,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 18.412,
-      "total_B": 12,
-      "total_O": 0.107,
-      "total_X": 0,
-      "total_J": 24.519,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.12731385231018066
+      "time_sec": 0.321852445602417
     },
     {
       "plan_idx": 10559,
@@ -5662,7 +5648,21 @@
       "total_X": 0,
       "total_J": 35.336,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1518557071685791
+      "time_sec": 0.16064786911010742
+    },
+    {
+      "plan_idx": 15236,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 18.412,
+      "total_B": 12,
+      "total_O": 0.107,
+      "total_X": 0,
+      "total_J": 24.519,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.1290743350982666
     },
     {
       "plan_idx": 14086,
@@ -5676,7 +5676,7 @@
       "total_X": 0,
       "total_J": 43.639,
       "area_gap_m2": 64.43,
-      "time_sec": 0.24463844299316406
+      "time_sec": 0.2593374252319336
     },
     {
       "plan_idx": 7002,
@@ -5690,7 +5690,7 @@
       "total_X": 0,
       "total_J": 27.022,
       "area_gap_m2": 0.0,
-      "time_sec": 0.07673525810241699
+      "time_sec": 0.0685417652130127
     },
     {
       "plan_idx": 14476,
@@ -5704,7 +5704,7 @@
       "total_X": 1,
       "total_J": 43.468,
       "area_gap_m2": 0.0,
-      "time_sec": 0.235825777053833
+      "time_sec": 0.20347332954406738
     },
     {
       "plan_idx": 16750,
@@ -5718,7 +5718,7 @@
       "total_X": 0,
       "total_J": 39.316,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1496140956878662
+      "time_sec": 0.1512775421142578
     },
     {
       "plan_idx": 5560,
@@ -5732,7 +5732,7 @@
       "total_X": 0,
       "total_J": 36.282,
       "area_gap_m2": 0.0,
-      "time_sec": 0.14014458656311035
+      "time_sec": 0.14075684547424316
     },
     {
       "plan_idx": 14488,
@@ -5746,21 +5746,7 @@
       "total_X": 0,
       "total_J": 63.488,
       "area_gap_m2": 65.34,
-      "time_sec": 0.32489800453186035
-    },
-    {
-      "plan_idx": 2778,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 33.203,
-      "total_B": 18,
-      "total_O": 0.302,
-      "total_X": 0,
-      "total_J": 42.505,
-      "area_gap_m2": 41.97,
-      "time_sec": 0.1562662124633789
+      "time_sec": 0.29457807540893555
     },
     {
       "plan_idx": 15505,
@@ -5774,7 +5760,21 @@
       "total_X": 0,
       "total_J": 50.267,
       "area_gap_m2": 0.0,
-      "time_sec": 0.307875394821167
+      "time_sec": 0.2625133991241455
+    },
+    {
+      "plan_idx": 2778,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 33.203,
+      "total_B": 18,
+      "total_O": 0.302,
+      "total_X": 0,
+      "total_J": 42.505,
+      "area_gap_m2": 41.97,
+      "time_sec": 0.15577077865600586
     },
     {
       "plan_idx": 16890,
@@ -5788,7 +5788,7 @@
       "total_X": 0,
       "total_J": 38.21,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16152143478393555
+      "time_sec": 0.15531611442565918
     },
     {
       "plan_idx": 3060,
@@ -5798,25 +5798,11 @@
       "hub_count": 1,
       "total_L": 26.748,
       "total_B": 18,
-      "total_O": 0.25,
+      "total_O": 0.211,
       "total_X": 0,
-      "total_J": 35.998,
+      "total_J": 35.959,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1051630973815918
-    },
-    {
-      "plan_idx": 9299,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 6,
-      "hub_count": 2,
-      "total_L": 41.378,
-      "total_B": 24,
-      "total_O": 0.245,
-      "total_X": 0,
-      "total_J": 53.623,
-      "area_gap_m2": 9.66,
-      "time_sec": 0.2534220218658447
+      "time_sec": 0.10229992866516113
     },
     {
       "plan_idx": 10983,
@@ -5830,21 +5816,21 @@
       "total_X": 0,
       "total_J": 54.837,
       "area_gap_m2": 27.11,
-      "time_sec": 0.22562479972839355
+      "time_sec": 0.19039440155029297
     },
     {
-      "plan_idx": 10171,
+      "plan_idx": 9299,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 26.145,
-      "total_B": 20,
-      "total_O": 0.274,
+      "eligible_rooms": 6,
+      "hub_count": 2,
+      "total_L": 41.378,
+      "total_B": 24,
+      "total_O": 0.245,
       "total_X": 0,
-      "total_J": 36.42,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.12346744537353516
+      "total_J": 53.623,
+      "area_gap_m2": 9.66,
+      "time_sec": 0.27908897399902344
     },
     {
       "plan_idx": 7696,
@@ -5858,7 +5844,21 @@
       "total_X": 0,
       "total_J": 30.287,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15234065055847168
+      "time_sec": 0.13626790046691895
+    },
+    {
+      "plan_idx": 10171,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 24.225,
+      "total_B": 20,
+      "total_O": 0.236,
+      "total_X": 0,
+      "total_J": 34.462,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.11881017684936523
     },
     {
       "plan_idx": 7361,
@@ -5872,7 +5872,7 @@
       "total_X": 0,
       "total_J": 26.211,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1000814437866211
+      "time_sec": 0.08971619606018066
     },
     {
       "plan_idx": 800,
@@ -5886,21 +5886,7 @@
       "total_X": 0,
       "total_J": 40.156,
       "area_gap_m2": 0.0,
-      "time_sec": 0.18613600730895996
-    },
-    {
-      "plan_idx": 1514,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 25.182,
-      "total_B": 16,
-      "total_O": 0.274,
-      "total_X": 0,
-      "total_J": 33.456,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.17948269844055176
+      "time_sec": 0.1508493423461914
     },
     {
       "plan_idx": 6525,
@@ -5914,7 +5900,21 @@
       "total_X": 0,
       "total_J": 42.848,
       "area_gap_m2": 0.0,
-      "time_sec": 0.23964571952819824
+      "time_sec": 0.20239520072937012
+    },
+    {
+      "plan_idx": 1514,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 25.182,
+      "total_B": 16,
+      "total_O": 0.274,
+      "total_X": 0,
+      "total_J": 33.456,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.18537402153015137
     },
     {
       "plan_idx": 4828,
@@ -5928,7 +5928,7 @@
       "total_X": 0,
       "total_J": 47.167,
       "area_gap_m2": 12.1,
-      "time_sec": 0.2956247329711914
+      "time_sec": 0.2852466106414795
     },
     {
       "plan_idx": 8023,
@@ -5942,7 +5942,7 @@
       "total_X": 0,
       "total_J": 30.386,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10698437690734863
+      "time_sec": 0.14493989944458008
     },
     {
       "plan_idx": 2386,
@@ -5956,7 +5956,7 @@
       "total_X": 0,
       "total_J": 37.064,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11861920356750488
+      "time_sec": 0.13191509246826172
     },
     {
       "plan_idx": 15569,
@@ -5970,7 +5970,7 @@
       "total_X": 0,
       "total_J": 40.061,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19063210487365723
+      "time_sec": 0.23098373413085938
     },
     {
       "plan_idx": 6371,
@@ -5984,7 +5984,7 @@
       "total_X": 0,
       "total_J": 22.509,
       "area_gap_m2": 0.0,
-      "time_sec": 0.07901525497436523
+      "time_sec": 0.07394099235534668
     },
     {
       "plan_idx": 14923,
@@ -5998,7 +5998,7 @@
       "total_X": 0,
       "total_J": 39.955,
       "area_gap_m2": 18.76,
-      "time_sec": 0.16969513893127441
+      "time_sec": 0.17752289772033691
     },
     {
       "plan_idx": 16199,
@@ -6012,21 +6012,7 @@
       "total_X": 0,
       "total_J": 37.153,
       "area_gap_m2": 0.0,
-      "time_sec": 0.16024994850158691
-    },
-    {
-      "plan_idx": 13095,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 30.196,
-      "total_B": 14,
-      "total_O": 0.191,
-      "total_X": 0,
-      "total_J": 37.386,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.16541647911071777
+      "time_sec": 0.15076255798339844
     },
     {
       "plan_idx": 13580,
@@ -6040,7 +6026,21 @@
       "total_X": 0,
       "total_J": 55.354,
       "area_gap_m2": 56.94,
-      "time_sec": 0.3321564197540283
+      "time_sec": 0.3032417297363281
+    },
+    {
+      "plan_idx": 13095,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 26.676,
+      "total_B": 14,
+      "total_O": 0.299,
+      "total_X": 0,
+      "total_J": 33.975,
+      "area_gap_m2": 57.72,
+      "time_sec": 0.14528703689575195
     },
     {
       "plan_idx": 181,
@@ -6054,21 +6054,21 @@
       "total_X": 0,
       "total_J": 18.196,
       "area_gap_m2": 0.0,
-      "time_sec": 0.06006622314453125
+      "time_sec": 0.06656551361083984
     },
     {
-      "plan_idx": 7994,
+      "plan_idx": 12582,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
+      "eligible_rooms": 7,
       "hub_count": 3,
-      "total_L": 31.02,
-      "total_B": 20,
-      "total_O": 0.428,
+      "total_L": 49.194,
+      "total_B": 32,
+      "total_O": 0.302,
       "total_X": 0,
-      "total_J": 41.448,
-      "area_gap_m2": 64.21,
-      "time_sec": 0.17741727828979492
+      "total_J": 65.496,
+      "area_gap_m2": 43.98,
+      "time_sec": 0.30145907402038574
     },
     {
       "plan_idx": 3492,
@@ -6082,7 +6082,21 @@
       "total_X": 0,
       "total_J": 23.73,
       "area_gap_m2": 0.0,
-      "time_sec": 0.07173943519592285
+      "time_sec": 0.0674445629119873
+    },
+    {
+      "plan_idx": 7994,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 4,
+      "total_L": 12.62,
+      "total_B": 20,
+      "total_O": 0.521,
+      "total_X": 0,
+      "total_J": 23.141,
+      "area_gap_m2": 29.52,
+      "time_sec": 0.16952252388000488
     },
     {
       "plan_idx": 4835,
@@ -6096,7 +6110,7 @@
       "total_X": 0,
       "total_J": 45.511,
       "area_gap_m2": 54.09,
-      "time_sec": 0.15880322456359863
+      "time_sec": 0.16800189018249512
     },
     {
       "plan_idx": 5763,
@@ -6106,25 +6120,11 @@
       "hub_count": 1,
       "total_L": 17.167,
       "total_B": 16,
-      "total_O": 0.251,
-      "total_X": 1,
-      "total_J": 30.419,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.08171701431274414
-    },
-    {
-      "plan_idx": 12582,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 7,
-      "hub_count": 2,
-      "total_L": 53.194,
-      "total_B": 32,
-      "total_O": 0.291,
+      "total_O": 0.221,
       "total_X": 0,
-      "total_J": 69.485,
-      "area_gap_m2": 70.64,
-      "time_sec": 0.4731450080871582
+      "total_J": 25.388,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.07481932640075684
     },
     {
       "plan_idx": 7170,
@@ -6138,35 +6138,7 @@
       "total_X": 0,
       "total_J": 43.469,
       "area_gap_m2": 5.94,
-      "time_sec": 0.17056536674499512
-    },
-    {
-      "plan_idx": 13931,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 36.159,
-      "total_B": 20,
-      "total_O": 0.233,
-      "total_X": 1,
-      "total_J": 51.392,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.23540878295898438
-    },
-    {
-      "plan_idx": 15222,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 2,
-      "total_L": 26.498,
-      "total_B": 16,
-      "total_O": 0.188,
-      "total_X": 0,
-      "total_J": 34.687,
-      "area_gap_m2": 22.14,
-      "time_sec": 0.13131475448608398
+      "time_sec": 0.15756750106811523
     },
     {
       "plan_idx": 16972,
@@ -6180,7 +6152,35 @@
       "total_X": 0,
       "total_J": 27.411,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17059969902038574
+      "time_sec": 0.1496412754058838
+    },
+    {
+      "plan_idx": 13931,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 36.159,
+      "total_B": 20,
+      "total_O": 0.233,
+      "total_X": 1,
+      "total_J": 51.392,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.24589323997497559
+    },
+    {
+      "plan_idx": 15222,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 2,
+      "total_L": 26.498,
+      "total_B": 16,
+      "total_O": 0.188,
+      "total_X": 0,
+      "total_J": 34.687,
+      "area_gap_m2": 22.14,
+      "time_sec": 0.1298210620880127
     },
     {
       "plan_idx": 8165,
@@ -6194,7 +6194,7 @@
       "total_X": 0,
       "total_J": 28.868,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10732555389404297
+      "time_sec": 0.09003686904907227
     },
     {
       "plan_idx": 3976,
@@ -6208,35 +6208,7 @@
       "total_X": 0,
       "total_J": 7.111,
       "area_gap_m2": 93.72,
-      "time_sec": 0.12260770797729492
-    },
-    {
-      "plan_idx": 1645,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 32.118,
-      "total_B": 26,
-      "total_O": 0.253,
-      "total_X": 0,
-      "total_J": 45.371,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2806081771850586
-    },
-    {
-      "plan_idx": 14957,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 34.756,
-      "total_B": 22,
-      "total_O": 0.149,
-      "total_X": 1,
-      "total_J": 50.905,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.24483299255371094
+      "time_sec": 0.11978840827941895
     },
     {
       "plan_idx": 4369,
@@ -6250,7 +6222,21 @@
       "total_X": 0,
       "total_J": 43.57,
       "area_gap_m2": 10.9,
-      "time_sec": 0.19262361526489258
+      "time_sec": 0.1893298625946045
+    },
+    {
+      "plan_idx": 14957,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 34.756,
+      "total_B": 22,
+      "total_O": 0.149,
+      "total_X": 1,
+      "total_J": 50.905,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.25438809394836426
     },
     {
       "plan_idx": 15225,
@@ -6264,7 +6250,21 @@
       "total_X": 0,
       "total_J": 38.057,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17432093620300293
+      "time_sec": 0.1746082305908203
+    },
+    {
+      "plan_idx": 1645,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 1,
+      "total_L": 40.438,
+      "total_B": 26,
+      "total_O": 0.272,
+      "total_X": 3,
+      "total_J": 68.709,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.40500402450561523
     },
     {
       "plan_idx": 14502,
@@ -6278,21 +6278,21 @@
       "total_X": 0,
       "total_J": 23.036,
       "area_gap_m2": 0.0,
-      "time_sec": 0.09781360626220703
+      "time_sec": 0.10671520233154297
     },
     {
-      "plan_idx": 10397,
+      "plan_idx": 16540,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 6,
+      "eligible_rooms": 5,
       "hub_count": 3,
-      "total_L": 39.243,
-      "total_B": 26,
-      "total_O": 0.41,
+      "total_L": 31.693,
+      "total_B": 20,
+      "total_O": 0.288,
       "total_X": 0,
-      "total_J": 52.653,
-      "area_gap_m2": 69.33,
-      "time_sec": 0.24468684196472168
+      "total_J": 41.981,
+      "area_gap_m2": 57.31,
+      "time_sec": 0.17023563385009766
     },
     {
       "plan_idx": 14611,
@@ -6306,35 +6306,21 @@
       "total_X": 0,
       "total_J": 22.87,
       "area_gap_m2": 62.8,
-      "time_sec": 0.12332749366760254
+      "time_sec": 0.10889744758605957
     },
     {
-      "plan_idx": 16540,
+      "plan_idx": 10397,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 40.493,
-      "total_B": 20,
-      "total_O": 0.215,
-      "total_X": 0,
-      "total_J": 50.708,
-      "area_gap_m2": 64.59,
-      "time_sec": 0.2181389331817627
-    },
-    {
-      "plan_idx": 13983,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 36.7,
+      "eligible_rooms": 6,
+      "hub_count": 3,
+      "total_L": 39.243,
       "total_B": 26,
-      "total_O": 0.204,
+      "total_O": 0.41,
       "total_X": 0,
-      "total_J": 49.905,
-      "area_gap_m2": 70.71,
-      "time_sec": 0.26967573165893555
+      "total_J": 52.653,
+      "area_gap_m2": 69.33,
+      "time_sec": 0.26732873916625977
     },
     {
       "plan_idx": 14747,
@@ -6348,7 +6334,7 @@
       "total_X": 0,
       "total_J": 28.165,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11455774307250977
+      "time_sec": 0.15552306175231934
     },
     {
       "plan_idx": 15554,
@@ -6362,7 +6348,21 @@
       "total_X": 0,
       "total_J": 31.075,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1401069164276123
+      "time_sec": 0.20576882362365723
+    },
+    {
+      "plan_idx": 13983,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 36.7,
+      "total_B": 26,
+      "total_O": 0.204,
+      "total_X": 0,
+      "total_J": 49.905,
+      "area_gap_m2": 70.71,
+      "time_sec": 0.35137343406677246
     },
     {
       "plan_idx": 5215,
@@ -6376,7 +6376,7 @@
       "total_X": 1,
       "total_J": 56.412,
       "area_gap_m2": 8.4,
-      "time_sec": 0.24771714210510254
+      "time_sec": 0.29314374923706055
     },
     {
       "plan_idx": 9086,
@@ -6390,7 +6390,7 @@
       "total_X": 0,
       "total_J": 40.571,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1569058895111084
+      "time_sec": 0.16991043090820312
     },
     {
       "plan_idx": 8101,
@@ -6404,7 +6404,7 @@
       "total_X": 1,
       "total_J": 49.096,
       "area_gap_m2": 0.71,
-      "time_sec": 0.23828864097595215
+      "time_sec": 0.2180030345916748
     },
     {
       "plan_idx": 15879,
@@ -6412,27 +6412,13 @@
       "skipped": false,
       "eligible_rooms": 4,
       "hub_count": 1,
-      "total_L": 33.849,
-      "total_B": 14,
+      "total_L": 36.409,
+      "total_B": 18,
       "total_O": 0.141,
       "total_X": 0,
-      "total_J": 40.99,
+      "total_J": 45.55,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15393590927124023
-    },
-    {
-      "plan_idx": 8493,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 33.204,
-      "total_B": 22,
-      "total_O": 0.319,
-      "total_X": 0,
-      "total_J": 44.523,
-      "area_gap_m2": 68.46,
-      "time_sec": 0.3031301498413086
+      "time_sec": 0.17388510704040527
     },
     {
       "plan_idx": 7839,
@@ -6446,7 +6432,7 @@
       "total_X": 0,
       "total_J": 31.205,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12367081642150879
+      "time_sec": 0.1278378963470459
     },
     {
       "plan_idx": 8998,
@@ -6460,7 +6446,21 @@
       "total_X": 0,
       "total_J": 30.693,
       "area_gap_m2": 25.68,
-      "time_sec": 0.09245920181274414
+      "time_sec": 0.09875679016113281
+    },
+    {
+      "plan_idx": 8493,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 33.204,
+      "total_B": 22,
+      "total_O": 0.319,
+      "total_X": 0,
+      "total_J": 44.523,
+      "area_gap_m2": 68.46,
+      "time_sec": 0.34481215476989746
     },
     {
       "plan_idx": 14413,
@@ -6474,7 +6474,7 @@
       "total_X": 0,
       "total_J": 35.132,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11844182014465332
+      "time_sec": 0.13148903846740723
     },
     {
       "plan_idx": 2538,
@@ -6488,21 +6488,7 @@
       "total_X": 0,
       "total_J": 27.589,
       "area_gap_m2": 0.0,
-      "time_sec": 0.1264326572418213
-    },
-    {
-      "plan_idx": 8903,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 28.112,
-      "total_B": 18,
-      "total_O": 0.159,
-      "total_X": 0,
-      "total_J": 37.271,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.10975241661071777
+      "time_sec": 0.13530850410461426
     },
     {
       "plan_idx": 7683,
@@ -6516,7 +6502,21 @@
       "total_X": 0,
       "total_J": 42.834,
       "area_gap_m2": 55.9,
-      "time_sec": 0.1697852611541748
+      "time_sec": 0.17582130432128906
+    },
+    {
+      "plan_idx": 8903,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 33.712,
+      "total_B": 14,
+      "total_O": 0.222,
+      "total_X": 0,
+      "total_J": 40.934,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.13573312759399414
     },
     {
       "plan_idx": 9362,
@@ -6530,35 +6530,21 @@
       "total_X": 0,
       "total_J": 51.975,
       "area_gap_m2": 73.28,
-      "time_sec": 0.23939776420593262
+      "time_sec": 0.22382855415344238
     },
     {
       "plan_idx": 11005,
       "valid": true,
       "skipped": false,
       "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 31.486,
-      "total_B": 20,
-      "total_O": 0.322,
-      "total_X": 0,
-      "total_J": 41.808,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.2569544315338135
-    },
-    {
-      "plan_idx": 10476,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
       "hub_count": 2,
-      "total_L": 34.542,
+      "total_L": 29.406,
       "total_B": 20,
-      "total_O": 0.273,
+      "total_O": 0.335,
       "total_X": 0,
-      "total_J": 44.815,
-      "area_gap_m2": 6.2,
-      "time_sec": 0.1973876953125
+      "total_J": 39.742,
+      "area_gap_m2": 22.32,
+      "time_sec": 0.1582329273223877
     },
     {
       "plan_idx": 2640,
@@ -6572,7 +6558,21 @@
       "total_X": 0,
       "total_J": 42.511,
       "area_gap_m2": 0.0,
-      "time_sec": 0.20219898223876953
+      "time_sec": 0.18124055862426758
+    },
+    {
+      "plan_idx": 10476,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 34.542,
+      "total_B": 20,
+      "total_O": 0.273,
+      "total_X": 0,
+      "total_J": 44.815,
+      "area_gap_m2": 6.2,
+      "time_sec": 0.20625948905944824
     },
     {
       "plan_idx": 4534,
@@ -6586,7 +6586,7 @@
       "total_X": 0,
       "total_J": 32.676,
       "area_gap_m2": 0.0,
-      "time_sec": 0.24108481407165527
+      "time_sec": 0.2089686393737793
     },
     {
       "plan_idx": 4942,
@@ -6600,7 +6600,7 @@
       "total_X": 0,
       "total_J": 39.8,
       "area_gap_m2": 0.0,
-      "time_sec": 0.22992968559265137
+      "time_sec": 0.1852719783782959
     },
     {
       "plan_idx": 7577,
@@ -6614,7 +6614,7 @@
       "total_X": 0,
       "total_J": 43.404,
       "area_gap_m2": 17.75,
-      "time_sec": 0.21641874313354492
+      "time_sec": 0.18281912803649902
     },
     {
       "plan_idx": 12551,
@@ -6622,13 +6622,13 @@
       "skipped": false,
       "eligible_rooms": 5,
       "hub_count": 1,
-      "total_L": 32.394,
+      "total_L": 30.955,
       "total_B": 18,
       "total_O": 0.289,
       "total_X": 0,
-      "total_J": 41.683,
+      "total_J": 40.244,
       "area_gap_m2": 0.0,
-      "time_sec": 0.2034142017364502
+      "time_sec": 0.18381619453430176
     },
     {
       "plan_idx": 5007,
@@ -6642,21 +6642,7 @@
       "total_X": 0,
       "total_J": 28.548,
       "area_gap_m2": 12.16,
-      "time_sec": 0.1380758285522461
-    },
-    {
-      "plan_idx": 13594,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 18.297,
-      "total_B": 14,
-      "total_O": 0.151,
-      "total_X": 1,
-      "total_J": 30.448,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.08025407791137695
+      "time_sec": 0.1430807113647461
     },
     {
       "plan_idx": 7010,
@@ -6670,7 +6656,21 @@
       "total_X": 0,
       "total_J": 42.128,
       "area_gap_m2": 21.76,
-      "time_sec": 0.19032621383666992
+      "time_sec": 0.182281494140625
+    },
+    {
+      "plan_idx": 13594,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 18.297,
+      "total_B": 14,
+      "total_O": 0.151,
+      "total_X": 1,
+      "total_J": 30.448,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.07919168472290039
     },
     {
       "plan_idx": 2104,
@@ -6680,11 +6680,11 @@
       "hub_count": 2,
       "total_L": 32.002,
       "total_B": 20,
-      "total_O": 0.193,
+      "total_O": 0.185,
       "total_X": 0,
-      "total_J": 42.195,
+      "total_J": 42.186,
       "area_gap_m2": 16.23,
-      "time_sec": 0.18789982795715332
+      "time_sec": 0.17139172554016113
     },
     {
       "plan_idx": 13356,
@@ -6698,21 +6698,7 @@
       "total_X": 0,
       "total_J": 36.416,
       "area_gap_m2": 0.0,
-      "time_sec": 0.17924284934997559
-    },
-    {
-      "plan_idx": 13624,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 17.755,
-      "total_B": 14,
-      "total_O": 0.188,
-      "total_X": 0,
-      "total_J": 24.942,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.08547186851501465
+      "time_sec": 0.19591307640075684
     },
     {
       "plan_idx": 15267,
@@ -6726,7 +6712,21 @@
       "total_X": 0,
       "total_J": 9.854,
       "area_gap_m2": 123.7,
-      "time_sec": 0.15484094619750977
+      "time_sec": 0.14072465896606445
+    },
+    {
+      "plan_idx": 13624,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 17.755,
+      "total_B": 14,
+      "total_O": 0.188,
+      "total_X": 0,
+      "total_J": 24.942,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.09256124496459961
     },
     {
       "plan_idx": 10842,
@@ -6740,7 +6740,7 @@
       "total_X": 0,
       "total_J": 32.843,
       "area_gap_m2": 0.0,
-      "time_sec": 0.21293902397155762
+      "time_sec": 0.19637775421142578
     },
     {
       "plan_idx": 12762,
@@ -6750,25 +6750,11 @@
       "hub_count": 1,
       "total_L": 20.677,
       "total_B": 20,
-      "total_O": 0.231,
-      "total_X": 0,
-      "total_J": 30.907,
+      "total_O": 0.237,
+      "total_X": 1,
+      "total_J": 35.914,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10141515731811523
-    },
-    {
-      "plan_idx": 640,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 3,
-      "hub_count": 1,
-      "total_L": 14.774,
-      "total_B": 12,
-      "total_O": 0.116,
-      "total_X": 0,
-      "total_J": 20.89,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.06652235984802246
+      "time_sec": 0.12354087829589844
     },
     {
       "plan_idx": 6777,
@@ -6782,21 +6768,21 @@
       "total_X": 0,
       "total_J": 34.679,
       "area_gap_m2": 0.0,
-      "time_sec": 0.22280287742614746
+      "time_sec": 0.220625638961792
     },
     {
-      "plan_idx": 2040,
+      "plan_idx": 640,
       "valid": true,
       "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 38.836,
-      "total_B": 22,
-      "total_O": 0.279,
+      "eligible_rooms": 3,
+      "hub_count": 1,
+      "total_L": 14.774,
+      "total_B": 12,
+      "total_O": 0.116,
       "total_X": 0,
-      "total_J": 50.115,
-      "area_gap_m2": 45.45,
-      "time_sec": 0.2781825065612793
+      "total_J": 20.89,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.0679476261138916
     },
     {
       "plan_idx": 13767,
@@ -6810,7 +6796,21 @@
       "total_X": 0,
       "total_J": 40.459,
       "area_gap_m2": 0.0,
-      "time_sec": 0.19183921813964844
+      "time_sec": 0.28452515602111816
+    },
+    {
+      "plan_idx": 2040,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 38.836,
+      "total_B": 22,
+      "total_O": 0.279,
+      "total_X": 0,
+      "total_J": 50.115,
+      "area_gap_m2": 45.45,
+      "time_sec": 0.33154845237731934
     },
     {
       "plan_idx": 12464,
@@ -6824,7 +6824,7 @@
       "total_X": 0,
       "total_J": 35.842,
       "area_gap_m2": 0.0,
-      "time_sec": 0.12471985816955566
+      "time_sec": 0.17651128768920898
     },
     {
       "plan_idx": 11526,
@@ -6838,21 +6838,7 @@
       "total_X": 0,
       "total_J": 36.007,
       "area_gap_m2": 0.0,
-      "time_sec": 0.15106582641601562
-    },
-    {
-      "plan_idx": 193,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 36.28,
-      "total_B": 20,
-      "total_O": 0.274,
-      "total_X": 0,
-      "total_J": 46.555,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.18211603164672852
+      "time_sec": 0.14828991889953613
     },
     {
       "plan_idx": 15629,
@@ -6866,7 +6852,35 @@
       "total_X": 0,
       "total_J": 33.241,
       "area_gap_m2": 0.0,
-      "time_sec": 0.18314003944396973
+      "time_sec": 0.2246866226196289
+    },
+    {
+      "plan_idx": 193,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 36.28,
+      "total_B": 20,
+      "total_O": 0.274,
+      "total_X": 0,
+      "total_J": 46.555,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.2094743251800537
+    },
+    {
+      "plan_idx": 9784,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 4,
+      "hub_count": 1,
+      "total_L": 33.269,
+      "total_B": 18,
+      "total_O": 0.234,
+      "total_X": 0,
+      "total_J": 42.503,
+      "area_gap_m2": 0.0,
+      "time_sec": 0.17141008377075195
     },
     {
       "plan_idx": 12779,
@@ -6880,21 +6894,7 @@
       "total_X": 0,
       "total_J": 28.993,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11614012718200684
-    },
-    {
-      "plan_idx": 9784,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 4,
-      "hub_count": 1,
-      "total_L": 29.909,
-      "total_B": 18,
-      "total_O": 0.185,
-      "total_X": 0,
-      "total_J": 39.094,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.1673719882965088
+      "time_sec": 0.14772653579711914
     },
     {
       "plan_idx": 7190,
@@ -6908,35 +6908,7 @@
       "total_X": 0,
       "total_J": 26.467,
       "area_gap_m2": 0.0,
-      "time_sec": 0.07029247283935547
-    },
-    {
-      "plan_idx": 7226,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 2,
-      "total_L": 37.515,
-      "total_B": 22,
-      "total_O": 0.24,
-      "total_X": 0,
-      "total_J": 48.755,
-      "area_gap_m2": 51.48,
-      "time_sec": 0.23389554023742676
-    },
-    {
-      "plan_idx": 13730,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 7,
-      "hub_count": 5,
-      "total_L": 18.18,
-      "total_B": 28,
-      "total_O": 0.636,
-      "total_X": 0,
-      "total_J": 32.816,
-      "area_gap_m2": 80.1,
-      "time_sec": 0.2776365280151367
+      "time_sec": 0.07340025901794434
     },
     {
       "plan_idx": 15998,
@@ -6950,7 +6922,35 @@
       "total_X": 0,
       "total_J": 34.824,
       "area_gap_m2": 0.0,
-      "time_sec": 0.181046724319458
+      "time_sec": 0.1869370937347412
+    },
+    {
+      "plan_idx": 7226,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 37.515,
+      "total_B": 22,
+      "total_O": 0.24,
+      "total_X": 0,
+      "total_J": 48.755,
+      "area_gap_m2": 51.48,
+      "time_sec": 0.2684750556945801
+    },
+    {
+      "plan_idx": 13730,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 7,
+      "hub_count": 5,
+      "total_L": 18.18,
+      "total_B": 28,
+      "total_O": 0.636,
+      "total_X": 0,
+      "total_J": 32.816,
+      "area_gap_m2": 80.1,
+      "time_sec": 0.3332092761993408
     },
     {
       "plan_idx": 14281,
@@ -6964,7 +6964,21 @@
       "total_X": 0,
       "total_J": 32.332,
       "area_gap_m2": 0.0,
-      "time_sec": 0.10926961898803711
+      "time_sec": 0.12470889091491699
+    },
+    {
+      "plan_idx": 12742,
+      "valid": true,
+      "skipped": false,
+      "eligible_rooms": 5,
+      "hub_count": 2,
+      "total_L": 28.096,
+      "total_B": 20,
+      "total_O": 0.28,
+      "total_X": 0,
+      "total_J": 38.376,
+      "area_gap_m2": 79.98,
+      "time_sec": 0.14565730094909668
     },
     {
       "plan_idx": 8943,
@@ -6978,7 +6992,7 @@
       "total_X": 0,
       "total_J": 45.786,
       "area_gap_m2": 8.9,
-      "time_sec": 0.2556900978088379
+      "time_sec": 0.2793610095977783
     },
     {
       "plan_idx": 11014,
@@ -6992,7 +7006,7 @@
       "total_X": 0,
       "total_J": 28.652,
       "area_gap_m2": 0.0,
-      "time_sec": 0.11094164848327637
+      "time_sec": 0.156571626663208
     },
     {
       "plan_idx": 951,
@@ -7006,21 +7020,7 @@
       "total_X": 0,
       "total_J": 49.388,
       "area_gap_m2": 30.21,
-      "time_sec": 0.21247649192810059
-    },
-    {
-      "plan_idx": 12742,
-      "valid": true,
-      "skipped": false,
-      "eligible_rooms": 5,
-      "hub_count": 1,
-      "total_L": 32.576,
-      "total_B": 20,
-      "total_O": 0.281,
-      "total_X": 0,
-      "total_J": 42.857,
-      "area_gap_m2": 0.0,
-      "time_sec": 0.24651336669921875
+      "time_sec": 0.262709379196167
     }
   ]
 }

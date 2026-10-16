@@ -25,9 +25,7 @@ def get_room_area_m2(G, r):
     """Returns room area strictly in square metres (m²)."""
     return float(G.nodes[r].get("area_m2", G.nodes[r].get("area", 0.0)))
 
-
-MAX_HUB_AREA = 108.0  # 100 m² base capacity + 8 m² minor overflow absorption tolerance
-
+MAX_HUB_AREA = 100.0  # Strict hard limit
 
 def generate_partitions(G, k, scale, max_iterations=2500, state=None):
     """
@@ -49,7 +47,7 @@ def generate_partitions(G, k, scale, max_iterations=2500, state=None):
     # Capacity pruning
     room_areas = [get_room_area_m2(G, u) for u in nodes]
     total_area = sum(room_areas)
-    effective_cap = max(MAX_HUB_AREA, max(room_areas))
+    effective_cap = max(MAX_HUB_AREA, max(room_areas))  # Keep this — it allows a single room >100 m² to form a solo hub
     if total_area > k * effective_cap + 1e-6 or n > k * 5:
         return
 

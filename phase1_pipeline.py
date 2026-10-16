@@ -192,7 +192,7 @@ def load_and_process_plan(json_path, output_image_path=None, show_plot=True, ver
     # Ensures typical 2-3 BHK units under 100-110 m² are efficiently served by 1 Hub
     total_area = sum(float(r["area"]) for r in eligible_rooms.values())
     total_nodes = len(eligible_rooms)
-    min_hubs_area = math.ceil(max(0.0, total_area - 8.0) / 100.0) if total_area > 0 else 0
+    min_hubs_area = math.ceil(total_area / 100.0) if total_area > 0 else 0
     min_hubs_nodes = math.ceil(total_nodes / 5.0) if total_nodes > 0 else 0
     min_hubs = max(1 if total_nodes > 0 else 0, max(min_hubs_area, min_hubs_nodes))
 

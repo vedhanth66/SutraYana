@@ -1,0 +1,135 @@
+================================================================================
+SUTRAYANA: FULL-PIPELINE PARALLEL BATCH EVALUATION (PHASE 1 -> 4)
+Target Plans   : 100
+Parallel Workers: 4
+Grid Resolution : 8cm
+Results Log File: results\batch_eval_20261016_094014_100plans_res8cm.log
+Results JSON File: results\batch_eval_20261016_094014_100plans_res8cm.json
+================================================================================
+Loading dataset from: ResPlan/ResPlan/ResPlan.pkl ...
+Successfully loaded dataset with 17000 total plans.
+
+Starting parallel execution across 4 worker processes...
+
+[01/100] Plan #03648: PASSED | Hubs: 1 | J=40.12 (L=26.9m, B=16, O=0.2m, X=1) | Time: 89ms
+[02/100] Plan #08024: PASSED | Hubs: 1 | J=38.28 (L=29.2m, B=18, O=0.1m, X=0) | Time: 174ms
+[03/100] Plan #00819: PASSED | Hubs: 2 | J=59.36 (L=48.0m, B=22, O=0.4m, X=0) | Time: 185ms
+[04/100] Plan #07314: PASSED | Hubs: 1 | J=35.67 (L=26.5m, B=18, O=0.2m, X=0) | Time: 182ms
+[05/100] Plan #04572: PASSED | Hubs: 2 | J=29.03 (L=20.8m, B=16, O=0.2m, X=0) | Time: 162ms
+[06/100] Plan #03358: PASSED | Hubs: 2 | J=44.95 (L=33.7m, B=22, O=0.3m, X=0) | Time: 169ms
+[07/100] Plan #09012: PASSED | Hubs: 2 | J=63.06 (L=49.8m, B=26, O=0.3m, X=0) | Time: 426ms
+[08/100] Plan #13825: PASSED | Hubs: 1 | J=35.17 (L=26.9m, B=16, O=0.3m, X=0) | Time: 150ms
+[09/100] Plan #00976: PASSED | Hubs: 1 | J=32.55 (L=24.3m, B=16, O=0.2m, X=0) | Time: 131ms
+[10/100] Plan #02848: PASSED | Hubs: 2 | J=51.31 (L=39.1m, B=24, O=0.2m, X=0) | Time: 322ms
+[11/100] Plan #07164: PASSED | Hubs: 2 | J=26.89 (L=20.7m, B=12, O=0.2m, X=0) | Time: 90ms
+[12/100] Plan #03070: PASSED | Hubs: 1 | J=33.88 (L=18.7m, B=20, O=0.2m, X=1) | Time: 184ms
+[13/100] Plan #07623: PASSED | Hubs: 2 | J=39.54 (L=29.3m, B=20, O=0.2m, X=0) | Time: 145ms
+[14/100] Plan #00869: PASSED | Hubs: 1 | J=31.37 (L=23.2m, B=16, O=0.2m, X=0) | Time: 135ms
+[15/100] Plan #16559: PASSED | Hubs: 2 | J=42.19 (L=32.0m, B=20, O=0.2m, X=0) | Time: 251ms
+[16/100] Plan #01041: PASSED | Hubs: 3 | J=71.12 (L=52.6m, B=36, O=0.5m, X=0) | Time: 598ms
+[17/100] Plan #06515: PASSED | Hubs: 2 | J=64.49 (L=48.2m, B=22, O=0.3m, X=1) | Time: 241ms
+[18/100] Plan #09115: PASSED | Hubs: 1 | J=33.44 (L=21.3m, B=14, O=0.1m, X=1) | Time: 117ms
+[19/100] Plan #13746: PASSED | Hubs: 1 | J=53.94 (L=43.7m, B=20, O=0.2m, X=0) | Time: 347ms
+[20/100] Plan #14719: PASSED | Hubs: 2 | J=42.49 (L=31.3m, B=22, O=0.2m, X=0) | Time: 221ms
+[21/100] Plan #07223: PASSED | Hubs: 1 | J=56.45 (L=39.1m, B=24, O=0.4m, X=1) | Time: 335ms
+[22/100] Plan #00212: PASSED | Hubs: 2 | J=46.79 (L=35.6m, B=22, O=0.1m, X=0) | Time: 190ms
+[23/100] Plan #05231: PASSED | Hubs: 1 | J=37.22 (L=24.0m, B=16, O=0.2m, X=1) | Time: 144ms
+[24/100] Plan #11149: PASSED | Hubs: 1 | J=32.54 (L=26.3m, B=12, O=0.3m, X=0) | Time: 132ms
+[25/100] Plan #05094: PASSED | Hubs: 2 | J=43.44 (L=33.1m, B=20, O=0.3m, X=0) | Time: 142ms
+[26/100] Plan #09105: PASSED | Hubs: 1 | J=43.51 (L=33.3m, B=20, O=0.2m, X=0) | Time: 175ms
+[27/100] Plan #13848: PASSED | Hubs: 1 | J=52.82 (L=36.5m, B=22, O=0.3m, X=1) | Time: 311ms
+[28/100] Plan #11029: PASSED | Hubs: 1 | J=34.87 (L=26.7m, B=16, O=0.2m, X=0) | Time: 137ms
+[29/100] Plan #07055: PASSED | Hubs: 1 | J=45.50 (L=34.2m, B=22, O=0.3m, X=0) | Time: 220ms
+[30/100] Plan #03039: PASSED | Hubs: 1 | J=36.55 (L=28.4m, B=16, O=0.2m, X=0) | Time: 129ms
+[31/100] Plan #12449: PASSED | Hubs: 3 | J=7.09 (L=0.7m, B=12, O=0.4m, X=0) | Time: 79ms
+[32/100] Plan #03349: PASSED | Hubs: 6 | J=25.22 (L=10.6m, B=28, O=0.7m, X=0) | Time: 274ms
+[33/100] Plan #03169: PASSED | Hubs: 1 | J=33.81 (L=25.6m, B=16, O=0.2m, X=0) | Time: 231ms
+[34/100] Plan #11763: PASSED | Hubs: 1 | J=43.24 (L=33.1m, B=20, O=0.2m, X=0) | Time: 265ms
+[35/100] Plan #11270: PASSED | Hubs: 2 | J=45.28 (L=34.0m, B=22, O=0.3m, X=0) | Time: 221ms
+[36/100] Plan #01423: PASSED | Hubs: 2 | J=44.96 (L=35.7m, B=18, O=0.2m, X=0) | Time: 174ms
+[37/100] Plan #08667: PASSED | Hubs: 2 | J=47.77 (L=36.4m, B=22, O=0.3m, X=0) | Time: 326ms
+[38/100] Plan #04090: PASSED | Hubs: 1 | J=38.41 (L=29.2m, B=18, O=0.2m, X=0) | Time: 207ms
+[39/100] Plan #15054: PASSED | Hubs: 3 | J=45.87 (L=30.5m, B=20, O=0.4m, X=1) | Time: 253ms
+[40/100] Plan #12403: PASSED | Hubs: 1 | J=37.39 (L=29.2m, B=16, O=0.2m, X=0) | Time: 202ms
+[41/100] Plan #09606: PASSED | Hubs: 2 | J=43.82 (L=33.6m, B=20, O=0.3m, X=0) | Time: 173ms
+[42/100] Plan #11850: PASSED | Hubs: 2 | J=41.13 (L=30.9m, B=20, O=0.2m, X=0) | Time: 218ms
+[43/100] Plan #06300: PASSED | Hubs: 2 | J=40.54 (L=31.3m, B=18, O=0.3m, X=0) | Time: 222ms
+[44/100] Plan #02582: PASSED | Hubs: 2 | J=52.50 (L=40.2m, B=24, O=0.3m, X=0) | Time: 379ms
+[45/100] Plan #01501: PASSED | Hubs: 1 | J=31.64 (L=23.4m, B=16, O=0.3m, X=0) | Time: 99ms
+[46/100] Plan #02279: PASSED | Hubs: 2 | J=48.44 (L=36.3m, B=24, O=0.2m, X=0) | Time: 221ms
+[47/100] Plan #02614: PASSED | Hubs: 2 | J=40.39 (L=30.1m, B=20, O=0.3m, X=0) | Time: 110ms
+[48/100] Plan #09482: PASSED | Hubs: 1 | J=43.44 (L=32.2m, B=22, O=0.3m, X=0) | Time: 206ms
+[49/100] Plan #07467: PASSED | Hubs: 2 | J=47.64 (L=35.3m, B=24, O=0.3m, X=0) | Time: 238ms
+[50/100] Plan #03309: PASSED | Hubs: 1 | J=33.87 (L=25.6m, B=16, O=0.3m, X=0) | Time: 143ms
+[51/100] Plan #07628: PASSED | Hubs: 2 | J=50.92 (L=38.7m, B=24, O=0.2m, X=0) | Time: 285ms
+[52/100] Plan #14857: PASSED | Hubs: 4 | J=9.50 (L=1.0m, B=16, O=0.5m, X=0) | Time: 88ms
+[53/100] Plan #09108: PASSED | Hubs: 1 | J=31.03 (L=22.8m, B=16, O=0.2m, X=0) | Time: 148ms
+[54/100] Plan #12455: PASSED | Hubs: 1 | J=42.44 (L=32.1m, B=20, O=0.4m, X=0) | Time: 238ms
+[55/100] Plan #05329: PASSED | Hubs: 1 | J=23.99 (L=17.9m, B=12, O=0.1m, X=0) | Time: 169ms
+[56/100] Plan #12130: PASSED | Hubs: 2 | J=41.36 (L=31.2m, B=20, O=0.2m, X=0) | Time: 195ms
+[57/100] Plan #11954: PASSED | Hubs: 2 | J=46.43 (L=34.1m, B=24, O=0.4m, X=0) | Time: 259ms
+[58/100] Plan #11641: PASSED | Hubs: 1 | J=40.36 (L=31.2m, B=18, O=0.2m, X=0) | Time: 220ms
+[59/100] Plan #06865: PASSED | Hubs: 1 | J=33.94 (L=25.7m, B=16, O=0.2m, X=0) | Time: 220ms
+[60/100] Plan #08748: PASSED | Hubs: 2 | J=45.29 (L=33.0m, B=24, O=0.3m, X=0) | Time: 188ms
+[61/100] Plan #02339: PASSED | Hubs: 3 | J=31.27 (L=21.0m, B=20, O=0.3m, X=0) | Time: 194ms
+[62/100] Plan #05607: PASSED | Hubs: 1 | J=37.61 (L=29.3m, B=16, O=0.3m, X=0) | Time: 138ms
+[63/100] Plan #15147: PASSED | Hubs: 2 | J=50.39 (L=29.2m, B=22, O=0.2m, X=2) | Time: 178ms
+[64/100] Plan #05354: PASSED | Hubs: 1 | J=43.90 (L=33.7m, B=20, O=0.2m, X=0) | Time: 308ms
+[65/100] Plan #08021: PASSED | Hubs: 3 | J=53.39 (L=39.0m, B=28, O=0.4m, X=0) | Time: 365ms
+[66/100] Plan #08845: PASSED | Hubs: 1 | J=39.41 (L=29.2m, B=20, O=0.2m, X=0) | Time: 173ms
+[67/100] Plan #12433: PASSED | Hubs: 2 | J=62.86 (L=48.6m, B=28, O=0.2m, X=0) | Time: 361ms
+[68/100] Plan #07196: PASSED | Hubs: 1 | J=26.53 (L=19.4m, B=14, O=0.1m, X=0) | Time: 131ms
+[69/100] Plan #01832: PASSED | Hubs: 3 | J=18.67 (L=10.4m, B=16, O=0.3m, X=0) | Time: 88ms
+[70/100] Plan #07505: PASSED | Hubs: 1 | J=35.42 (L=27.3m, B=16, O=0.1m, X=0) | Time: 116ms
+[71/100] Plan #10626: PASSED | Hubs: 1 | J=53.95 (L=37.7m, B=22, O=0.2m, X=1) | Time: 226ms
+[72/100] Plan #13145: PASSED | Hubs: 1 | J=33.94 (L=25.8m, B=16, O=0.2m, X=0) | Time: 100ms
+[73/100] Plan #01051: PASSED | Hubs: 1 | J=43.69 (L=29.6m, B=18, O=0.1m, X=1) | Time: 289ms
+[74/100] Plan #08773: PASSED | Hubs: 1 | J=42.48 (L=32.2m, B=20, O=0.3m, X=0) | Time: 210ms
+[75/100] Plan #02168: PASSED | Hubs: 1 | J=41.51 (L=31.1m, B=20, O=0.4m, X=0) | Time: 174ms
+[76/100] Plan #10336: PASSED | Hubs: 4 | J=57.50 (L=41.1m, B=32, O=0.4m, X=0) | Time: 393ms
+[77/100] Plan #06913: PASSED | Hubs: 2 | J=49.11 (L=36.8m, B=24, O=0.3m, X=0) | Time: 180ms
+[78/100] Plan #06967: PASSED | Hubs: 2 | J=42.09 (L=32.0m, B=20, O=0.1m, X=0) | Time: 199ms
+[79/100] Plan #10311: PASSED | Hubs: 3 | J=31.07 (L=22.7m, B=16, O=0.4m, X=0) | Time: 230ms
+[80/100] Plan #16358: PASSED | Hubs: 1 | J=45.30 (L=34.1m, B=22, O=0.2m, X=0) | Time: 247ms
+[81/100] Plan #12964: PASSED | Hubs: 1 | J=46.71 (L=36.5m, B=20, O=0.2m, X=0) | Time: 265ms
+[82/100] Plan #04681: PASSED | Hubs: 2 | J=47.35 (L=37.1m, B=20, O=0.2m, X=0) | Time: 161ms
+[83/100] Plan #15035: PASSED | Hubs: 1 | J=37.12 (L=28.0m, B=18, O=0.2m, X=0) | Time: 242ms
+[84/100] Plan #08081: PASSED | Hubs: 1 | J=31.37 (L=24.2m, B=14, O=0.2m, X=0) | Time: 123ms
+[85/100] Plan #04575: PASSED | Hubs: 1 | J=28.84 (L=20.7m, B=16, O=0.2m, X=0) | Time: 143ms
+[86/100] Plan #08609: PASSED | Hubs: 2 | J=42.42 (L=32.2m, B=20, O=0.2m, X=0) | Time: 138ms
+[87/100] Plan #08679: PASSED | Hubs: 1 | J=60.90 (L=39.7m, B=22, O=0.2m, X=2) | Time: 352ms
+[88/100] Plan #11861: PASSED | Hubs: 1 | J=29.38 (L=21.2m, B=16, O=0.2m, X=0) | Time: 110ms
+[89/100] Plan #14038: PASSED | Hubs: 4 | J=9.29 (L=0.9m, B=16, O=0.4m, X=0) | Time: 197ms
+[90/100] Plan #13087: PASSED | Hubs: 1 | J=34.90 (L=25.7m, B=18, O=0.2m, X=0) | Time: 194ms
+[91/100] Plan #07186: PASSED | Hubs: 1 | J=30.66 (L=20.4m, B=20, O=0.3m, X=0) | Time: 128ms
+[92/100] Plan #04532: PASSED | Hubs: 1 | J=19.34 (L=14.2m, B=10, O=0.1m, X=0) | Time: 129ms
+[93/100] Plan #01543: PASSED | Hubs: 2 | J=32.56 (L=24.4m, B=16, O=0.1m, X=0) | Time: 105ms
+[94/100] Plan #02978: PASSED | Hubs: 1 | J=43.35 (L=32.1m, B=22, O=0.2m, X=0) | Time: 213ms
+[95/100] Plan #03592: PASSED | Hubs: 1 | J=34.40 (L=20.3m, B=18, O=0.1m, X=1) | Time: 104ms
+[96/100] Plan #16171: PASSED | Hubs: 4 | J=52.45 (L=37.9m, B=28, O=0.6m, X=0) | Time: 319ms
+[97/100] Plan #16696: PASSED | Hubs: 1 | J=65.25 (L=42.2m, B=16, O=0.1m, X=3) | Time: 346ms
+[98/100] Plan #05008: PASSED | Hubs: 1 | J=37.24 (L=27.0m, B=20, O=0.2m, X=0) | Time: 203ms
+[99/100] Plan #05242: PASSED | Hubs: 2 | J=54.20 (L=36.8m, B=24, O=0.4m, X=1) | Time: 275ms
+[100/100] Plan #13833: PASSED | Hubs: 1 | J=65.24 (L=44.0m, B=22, O=0.2m, X=2) | Time: 334ms
+
+================================================================================
+BATCH EVALUATION SUMMARY (Phase 1 -> Phase 2 -> Phase 3 -> Phase 4)
+================================================================================
+Total Plans Evaluated : 100
+Passed All Validations: 100 / 100 (100.0%)
+Total Wall-Clock Time : 7.01 seconds
+System Throughput     : 14.27 plans/second
+Average Plan Runtime  : 208.7 ms/plan
+--------------------------------------------------------------------------------
+Average Metrics Across Valid Plans:
+  - Hub Count (H)    : 1.65
+  - Cable Length (L) : 29.90 m
+  - Total Bends (B)  : 19.6
+  - Total Overlap (O): 0.25 m
+  - Crossings (X)    : 0.21
+  - Objective Cost J : 40.99
+================================================================================
+COMPLETE LOG SAVED TO   : results\batch_eval_20261016_094014_100plans_res8cm.log
+STRUCTURED JSON SAVED TO: results\batch_eval_20261016_094014_100plans_res8cm.json
+================================================================================
+
