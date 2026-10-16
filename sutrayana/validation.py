@@ -55,7 +55,7 @@ def _validate(plan, output):
             fail("hub", f"{hid}: invalid hub coordinates")
             continue
         home = h.get("room_id")
-        if home not in assigned or not plan.rooms[home].polygon.contains(hp) or hp.distance(plan.rooms[home].polygon.boundary) < .5-.001 or not plan.free.covers(hp):
+        if home not in assigned or not plan.rooms[home].polygon.contains(hp) or (not plan.barriers.is_empty and hp.distance(plan.barriers) < .5-.001) or not plan.free.covers(hp):
             fail("hub", f"{hid}: hub must be in an assigned room with 0.5 m clearance")
         targets = dict(all_nodes, **{hid: (hp.x,hp.y)})
         legs = h.get("route_segments", [])
