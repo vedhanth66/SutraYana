@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+ResPlan/
+results/
+.tmp_ppt/
+.tmp_ppt.zip
+audit_tmp_out.json
+audit_result_*.json
+*.tmp

@@ -52,28 +52,9 @@ def process_single_plan_task(args):
         if not eligible_rooms:
             return {"plan_idx": plan_idx, "skipped": True, "reason": "No eligible rooms"}
 
-        # Run complete Phase 1 - 4 pipeline in-memory with automatic 4cm fallback
-        try:
-            output_data, total_J, hubs_routed = run_phase4(
-                formatted,
-                show_plot=False,
-                save_img=None,
-                resolution=resolution,
-                verbose=False
-            )
-        except Exception as e_run:
-            # Gracefully retry at high-precision 4cm resolution if 8cm encountered doorway bottlenecks
-            if resolution > 0.04:
-                formatted_retry = extract_rooms_and_doors(plan_raw, plan_id=f"plan_{plan_idx:05d}")
-                output_data, total_J, hubs_routed = run_phase4(
-                    formatted_retry,
-                    show_plot=False,
-                    save_img=None,
-                    resolution=0.04,
-                    verbose=False
-                )
-            else:
-                raise e_run
+        output_data, total_J, hubs_routed = run_phase4(formatted, show_plot=False, verbose=False)
+        if not output_data.get("validation", {}).get("valid"):
+            raise ValueError("Submission has not passed the independent output checks")
         dt = time.time() - t0
         rep = output_data["reported_metrics"]
 
@@ -149,7 +130,7 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
         else:
             print(f"Target Plans   : {num_plans}")
         print(f"Parallel Workers: {workers}")
-        print(f"Grid Resolution : {resolution*100:.0f}cm")
+        print("Routing         : geometry-checked coordinate graph (resolution option is deprecated)")
         print(f"Results Log File: {log_path}")
         print(f"Results JSON File: {json_path}")
         print("=" * 80)
@@ -167,7 +148,9 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
         print(f"Successfully loaded dataset with {total_available} total plans.")
 
         if plan_indices:
-            sampled_indices = [int(p) for p in plan_indices if int(p) < total_available]
+            if any(int(p) < 0 or int(p) >= total_available for p in plan_indices):
+                raise ValueError("Plan indices must be within the dataset range")
+            sampled_indices = list(dict.fromkeys(int(p) for p in plan_indices))
             num_plans = len(sampled_indices)
         else:
             random.seed(seed)
@@ -298,6 +281,7 @@ if __name__ == "__main__":
     parser.add_argument("--resolution", type=float, default=0.08, help="Grid resolution in metres (e.g. 0.05, 0.08, 0.10)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for sampling")
     parser.add_argument("--results-dir", type=str, default="results", help="Directory where log and json results will be saved")
+    parser.add_argument("--log-name", type=str, default=None, help="Custom log filename")
     parser.add_argument("--plans", nargs="+", type=int, default=None, help="Specific plan indices to evaluate (e.g. 1 5 16 80 192)")
     args = parser.parse_args()
 
