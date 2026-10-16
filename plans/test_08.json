@@ -1,0 +1,105 @@
+{
+  "id": "Fixed node clearance issue",
+  "description": "Expected failure at 0.5 m: node N1 is only 0.2 m from a physical wall. The warning explains why the node cannot be moved.",
+  "synthetic": true,
+  "units": "m",
+  "node_provenance": "fixed synthetic test nodes; not organiser inputs",
+  "inner": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          6.0,
+          0.0
+        ],
+        [
+          6.0,
+          6.0
+        ],
+        [
+          0.0,
+          6.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          6.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "area": 36.0,
+  "wall": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          0.2,
+          0.0
+        ],
+        [
+          0.2,
+          6.0
+        ],
+        [
+          0.0,
+          6.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.2,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "window": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "doors": [],
+  "rooms": [
+    {
+      "id": "R01",
+      "type": "living",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.0,
+              0.0
+            ],
+            [
+              6.0,
+              6.0
+            ],
+            [
+              0.2,
+              6.0
+            ],
+            [
+              0.2,
+              0.0
+            ],
+            [
+              6.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N1",
+        "x": 0.4,
+        "y": 3
+      }
+    }
+  ]
+}

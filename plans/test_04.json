@@ -1,0 +1,141 @@
+{
+  "id": "Solid partition",
+  "description": "Wall-only adjacency must never connect two zones.",
+  "synthetic": true,
+  "units": "m",
+  "node_provenance": "fixed synthetic test nodes; not organiser inputs",
+  "inner": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          12.0,
+          0.0
+        ],
+        [
+          12.0,
+          6.0
+        ],
+        [
+          0.0,
+          6.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          12.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "area": 72.0,
+  "wall": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          6.1,
+          0.0
+        ],
+        [
+          6.1,
+          6.0
+        ],
+        [
+          5.9,
+          6.0
+        ],
+        [
+          5.9,
+          0.0
+        ],
+        [
+          6.1,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "window": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "doors": [],
+  "rooms": [
+    {
+      "id": "R01",
+      "type": "living",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.9,
+              0.0
+            ],
+            [
+              5.9,
+              6.0
+            ],
+            [
+              0.0,
+              6.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              5.9,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N1",
+        "x": 2,
+        "y": 3
+      }
+    },
+    {
+      "id": "R02",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12.0,
+              0.0
+            ],
+            [
+              12.0,
+              6.0
+            ],
+            [
+              6.1,
+              6.0
+            ],
+            [
+              6.1,
+              0.0
+            ],
+            [
+              12.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N2",
+        "x": 10,
+        "y": 3
+      }
+    }
+  ]
+}

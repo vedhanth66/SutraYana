@@ -1,0 +1,262 @@
+{
+  "id": "Six-room capacity",
+  "description": "Six connected rooms, six fixed nodes. Capacity requires at least two hubs even when one ring could reach every room.",
+  "synthetic": true,
+  "units": "m",
+  "node_provenance": "fixed synthetic test nodes; not organiser inputs",
+  "inner": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          18.0,
+          0.0
+        ],
+        [
+          18.0,
+          4.0
+        ],
+        [
+          0.0,
+          4.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          18.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "area": 72.0,
+  "wall": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "window": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "doors": [],
+  "rooms": [
+    {
+      "id": "R01",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3.0,
+              0.0
+            ],
+            [
+              3.0,
+              4.0
+            ],
+            [
+              0.0,
+              4.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              3.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N1",
+        "x": 1.5,
+        "y": 2
+      }
+    },
+    {
+      "id": "R02",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.0,
+              0.0
+            ],
+            [
+              6.0,
+              4.0
+            ],
+            [
+              3.0,
+              4.0
+            ],
+            [
+              3.0,
+              0.0
+            ],
+            [
+              6.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N2",
+        "x": 4.5,
+        "y": 2
+      }
+    },
+    {
+      "id": "R03",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              9.0,
+              0.0
+            ],
+            [
+              9.0,
+              4.0
+            ],
+            [
+              6.0,
+              4.0
+            ],
+            [
+              6.0,
+              0.0
+            ],
+            [
+              9.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N3",
+        "x": 7.5,
+        "y": 2
+      }
+    },
+    {
+      "id": "R04",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12.0,
+              0.0
+            ],
+            [
+              12.0,
+              4.0
+            ],
+            [
+              9.0,
+              4.0
+            ],
+            [
+              9.0,
+              0.0
+            ],
+            [
+              12.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N4",
+        "x": 10.5,
+        "y": 2
+      }
+    },
+    {
+      "id": "R05",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              4.0
+            ],
+            [
+              12.0,
+              4.0
+            ],
+            [
+              12.0,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N5",
+        "x": 13.5,
+        "y": 2
+      }
+    },
+    {
+      "id": "R06",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              18.0,
+              0.0
+            ],
+            [
+              18.0,
+              4.0
+            ],
+            [
+              15.0,
+              4.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              18.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N6",
+        "x": 16.5,
+        "y": 2
+      }
+    }
+  ]
+}

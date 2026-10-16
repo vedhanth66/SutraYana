@@ -1,0 +1,118 @@
+{
+  "id": "Open-edge node",
+  "description": "A fixed node is 0.1 m from an open room boundary. It is legal because there is no wall there.",
+  "synthetic": true,
+  "units": "m",
+  "node_provenance": "fixed synthetic test nodes; not organiser inputs",
+  "inner": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          12.0,
+          0.0
+        ],
+        [
+          12.0,
+          6.0
+        ],
+        [
+          0.0,
+          6.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          12.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "area": 72.0,
+  "wall": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "window": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "doors": [],
+  "rooms": [
+    {
+      "id": "R01",
+      "type": "living",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.0,
+              0.0
+            ],
+            [
+              6.0,
+              6.0
+            ],
+            [
+              0.0,
+              6.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              6.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N1",
+        "x": 5.9,
+        "y": 3
+      }
+    },
+    {
+      "id": "R02",
+      "type": "kitchen",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12.0,
+              0.0
+            ],
+            [
+              12.0,
+              6.0
+            ],
+            [
+              6.0,
+              6.0
+            ],
+            [
+              6.0,
+              0.0
+            ],
+            [
+              12.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N2",
+        "x": 9,
+        "y": 3
+      }
+    }
+  ]
+}

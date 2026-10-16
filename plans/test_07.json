@@ -1,0 +1,118 @@
+{
+  "id": "Offset coordinates",
+  "description": "Translated input at (20, 40). Output must retain that origin while routing in metres.",
+  "synthetic": true,
+  "units": "m",
+  "node_provenance": "fixed synthetic test nodes; not organiser inputs",
+  "inner": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          32.0,
+          40.0
+        ],
+        [
+          32.0,
+          46.0
+        ],
+        [
+          20.0,
+          46.0
+        ],
+        [
+          20.0,
+          40.0
+        ],
+        [
+          32.0,
+          40.0
+        ]
+      ]
+    ]
+  },
+  "area": 72.0,
+  "wall": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "window": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "doors": [],
+  "rooms": [
+    {
+      "id": "R01",
+      "type": "living",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              26.0,
+              40.0
+            ],
+            [
+              26.0,
+              46.0
+            ],
+            [
+              20.0,
+              46.0
+            ],
+            [
+              20.0,
+              40.0
+            ],
+            [
+              26.0,
+              40.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N1",
+        "x": 23,
+        "y": 43
+      }
+    },
+    {
+      "id": "R02",
+      "type": "kitchen",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              32.0,
+              40.0
+            ],
+            [
+              32.0,
+              46.0
+            ],
+            [
+              26.0,
+              46.0
+            ],
+            [
+              26.0,
+              40.0
+            ],
+            [
+              32.0,
+              40.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N2",
+        "x": 29,
+        "y": 43
+      }
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "id": "Narrow door fallback",
+  "description": "A 0.8 m door links the zone graph but cannot pass a wire with 0.5 m clearance on both sides. Tests extra-hub fallback.",
+  "synthetic": true,
+  "units": "m",
+  "node_provenance": "fixed synthetic test nodes; not organiser inputs",
+  "inner": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          12.0,
+          0.0
+        ],
+        [
+          12.0,
+          6.0
+        ],
+        [
+          0.0,
+          6.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          12.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "area": 72.0,
+  "wall": {
+    "type": "MultiPolygon",
+    "coordinates": [
+      [
+        [
+          [
+            5.9,
+            0.0
+          ],
+          [
+            5.9,
+            2.6
+          ],
+          [
+            6.1,
+            2.6
+          ],
+          [
+            6.1,
+            0.0
+          ],
+          [
+            5.9,
+            0.0
+          ]
+        ]
+      ],
+      [
+        [
+          [
+            5.9,
+            3.4
+          ],
+          [
+            5.9,
+            6.0
+          ],
+          [
+            6.1,
+            6.0
+          ],
+          [
+            6.1,
+            3.4
+          ],
+          [
+            5.9,
+            3.4
+          ]
+        ]
+      ]
+    ]
+  },
+  "window": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "doors": [
+    {
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.1,
+              2.6
+            ],
+            [
+              6.1,
+              3.4
+            ],
+            [
+              5.9,
+              3.4
+            ],
+            [
+              5.9,
+              2.6
+            ],
+            [
+              6.1,
+              2.6
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "rooms": [
+    {
+      "id": "R01",
+      "type": "living",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5.9,
+              0.0
+            ],
+            [
+              5.9,
+              6.0
+            ],
+            [
+              0.0,
+              6.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              5.9,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N1",
+        "x": 2,
+        "y": 3
+      }
+    },
+    {
+      "id": "R02",
+      "type": "bedroom",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12.0,
+              0.0
+            ],
+            [
+              12.0,
+              6.0
+            ],
+            [
+              6.1,
+              6.0
+            ],
+            [
+              6.1,
+              0.0
+            ],
+            [
+              12.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N2",
+        "x": 10,
+        "y": 3
+      }
+    }
+  ]
+}

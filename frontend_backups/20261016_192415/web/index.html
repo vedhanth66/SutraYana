@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SutraYana Planner</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <h1>SutraYana</h1>
+        <div class="toolbar">
+          <button id="refreshBtn">Refresh plans</button>
+          <button id="solveBtn" class="primary">Solve selected</button>
+        </div>
+        <div id="planList" class="plan-list"></div>
+      </aside>
+
+      <main class="content">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">Plan explorer</p>
+            <h2 id="planTitle">Select a plan</h2>
+          </div>
+        </header>
+
+        <section class="meta-grid">
+          <div class="card stat">
+            <label>Rooms</label>
+            <strong id="roomCount">0</strong>
+          </div>
+          <div class="card stat">
+            <label>Source</label>
+            <strong id="sourceLabel">—</strong>
+          </div>
+          <div class="card stat">
+            <label>Provenance</label>
+            <strong id="provenanceLabel">—</strong>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Plan summary</h3>
+          <pre id="summaryPanel">Choose a plan to inspect its data.</pre>
+        </section>
+
+        <section class="card">
+          <h3>Current warnings</h3>
+          <ul id="warningList" class="warning-list"></ul>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

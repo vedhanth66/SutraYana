@@ -1,0 +1,82 @@
+{
+  "id": "Oversized room issue",
+  "description": "Expected failure: one 110 m\u00b2 room exceeds the 100 m\u00b2 per-hub capacity and cannot be split.",
+  "synthetic": true,
+  "units": "m",
+  "node_provenance": "fixed synthetic test nodes; not organiser inputs",
+  "inner": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          11.0,
+          0.0
+        ],
+        [
+          11.0,
+          10.0
+        ],
+        [
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          11.0,
+          0.0
+        ]
+      ]
+    ]
+  },
+  "area": 110.0,
+  "wall": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "window": {
+    "type": "GeometryCollection",
+    "geometries": []
+  },
+  "doors": [],
+  "rooms": [
+    {
+      "id": "R01",
+      "type": "living",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              11.0,
+              0.0
+            ],
+            [
+              11.0,
+              10.0
+            ],
+            [
+              0.0,
+              10.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              11.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "node": {
+        "id": "N1",
+        "x": 5,
+        "y": 5
+      }
+    }
+  ]
+}
