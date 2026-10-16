@@ -47,10 +47,28 @@ class Router:
         self.safe_free = safe_free
         shapely.prepare(safe_free)
         good = shapely.covers(safe_free, lines)
+        # The checker treats a 1 mm neighbourhood as a terminal visit. Exact
+        # vertex absorption alone misses parallel passes and near-endpoint turns.
+        edge_lo = np.minimum(self.xy[u], self.xy[v])
+        edge_hi = np.maximum(self.xy[u], self.xy[v])
+        horizontal_edges = self.xy[u, 1] == self.xy[v, 1]
+        for room in plan.eligible.values():
+            p = np.asarray(room.node)
+            delta = np.maximum(np.maximum(edge_lo-p, p-edge_hi), 0)
+            near = np.sum(delta*delta, axis=1) < .001**2
+            aligned = np.where(horizontal_edges, np.abs(self.xy[u, 1]-p[1]), np.abs(self.xy[u, 0]-p[0])) < 1e-10
+            good &= ~near | aligned
         u, v = u[good], v[good]
         delta = self.xy[v]-self.xy[u]
         direction = np.where(delta[:, 0] > 0, 0, 1)
         lengths = np.abs(delta).sum(axis=1)
+        self._positive_edges = len(u)
+        self._edge_grids = []
+        for d in (0, 1):
+            grid = np.full(nx_*ny_, -1, dtype=np.int32)
+            selected = np.flatnonzero(direction == d)
+            grid[u[selected]] = selected
+            self._edge_grids.append(grid.reshape(ny_, nx_))
         self.u = np.concatenate([u,v])
         self.v = np.concatenate([v,u])
         self.direction = np.concatenate([direction, direction+2])
@@ -61,6 +79,33 @@ class Router:
         self.costs = np.concatenate([self.weights + 0.5*(self.direction != d) for d in range(4)])
         self.fixed = {self.vertex(r.node) for r in plan.eligible.values()}
         self.cache = {}
+        self._terminal_vertices = {self.vertex(p) for p in terminals}
+        self._paths = {}
+        self._order = np.lexsort((self.targets, self.sources))
+        counts = np.bincount(self.sources, minlength=self.size)
+        counts[-1] = 4
+        self._indptr = np.concatenate(([0], np.cumsum(counts))).astype(np.int32)
+        self._indices = np.concatenate((self.targets[self._order], np.zeros(4, dtype=int))).astype(np.int32)
+        self._base_data = self.costs[self._order]
+        self._edge_sources = self.sources[self._order] // 4
+        self._xy_u, self._xy_v = self.xy[self.u], self.xy[self.v]
+        self._edge_min = np.minimum(self._xy_u, self._xy_v)
+        self._edge_max = np.maximum(self._xy_u, self._xy_v)
+
+    def _graph(self, source, blocked, extra=None, start_cost=None):
+        # Reuse the sorted CSR structure; only edge weights and the four
+        # super-source destinations change between shortest-path searches.
+        data = self._base_data.copy()
+        if extra is not None:
+            data += extra[self._order % len(self.u)]
+        if blocked:
+            mask = np.zeros(len(self.xy), dtype=bool)
+            mask[list(blocked)] = True
+            data[mask[self._edge_sources]] = np.inf
+        indices = self._indices.copy()
+        indices[-4:] = source*4 + np.arange(4)
+        data = np.concatenate((data, np.zeros(4) if start_cost is None else start_cost))
+        return csr_matrix((data, indices, self._indptr), shape=(self.size, self.size))
 
     def vertex(self, p):
         x, y = np.searchsorted(self.xs, p[0]), np.searchsorted(self.ys, p[1])
@@ -71,12 +116,8 @@ class Router:
         if source in self.cache:
             return self.cache[source]
         # Other fixed nodes are absorbing destinations, never intermediate waypoints.
-        allowed = ~np.isin(self.sources//4, list(self.fixed-{source}))
         start = self.size-1
-        rows = np.concatenate([self.sources[allowed], np.repeat(start, 4)])
-        cols = np.concatenate([self.targets[allowed], source*4+np.arange(4)])
-        weights = np.concatenate([self.costs[allowed], np.zeros(4)])
-        graph = csr_matrix((weights, (rows, cols)), shape=(self.size,self.size))
+        graph = self._graph(source, self.fixed-{source})
         dist, predecessor = dijkstra(graph, directed=True, indices=start, return_predecessors=True)
         self.cache[source] = (dist, predecessor)
         return dist, predecessor
@@ -88,24 +129,38 @@ class Router:
             direct = LineString([a,b])
             if self.safe_free.covers(direct) and not any(r.node not in (a,b) and direct.distance(Point(r.node)) < .001 for r in self.plan.eligible.values()):
                 return [a,b]
-        dist, pred = self.from_source(a)
-        target = self.vertex(b)*4
-        end = target + int(np.argmin(dist[target:target+4]))
-        if not np.isfinite(dist[end]):
+        source, target_vertex = self.vertex(a), self.vertex(b)
+        if source not in self._paths or target_vertex not in self._paths[source]:
+            dist, pred = self.from_source(a)
+            paths = {}
+            # Keep compact terminal paths, not a full distance/predecessor tree
+            # for every hub candidate. On large plans those trees used hundreds
+            # of megabytes per worker and were repeatedly paged through memory.
+            targets = (self._terminal_vertices if source in self.fixed else self.fixed) | {target_vertex}
+            for destination in targets:
+                target = destination*4
+                end = target + int(np.argmin(dist[target:target+4]))
+                if not np.isfinite(dist[end]):
+                    paths[destination] = None
+                    continue
+                ids = []
+                while end != self.size-1:
+                    ids.append(end//4)
+                    end = int(pred[end])
+                    if end < 0:
+                        raise ValueError("Incomplete path in routing graph")
+                paths[destination] = compact([tuple(self.xy[i]) for i in reversed(ids)])
+            self._paths.setdefault(source, {}).update(paths)
+            self.cache.pop(source, None)
+        result = self._paths[source].get(target_vertex)
+        if result is None:
             raise ValueError(f"No obstacle-free rectilinear route from {a} to {b}.")
-        ids = []
-        while end != self.size-1:
-            ids.append(end//4)
-            end = int(pred[end])
-            if end < 0:
-                raise ValueError("Incomplete path in routing graph")
-        return compact([tuple(self.xy[i]) for i in reversed(ids)])
+        return result
 
     def alternative(self, a, b, occupied, terminals, hub, incoming=None, outgoing=None):
         """Turn-aware reroute with overlap/crossing costs; final acceptance uses exact J."""
         source, target_vertex = self.vertex(a), self.vertex(b)
-        xy_u, xy_v = self.xy[self.u], self.xy[self.v]
-        horizontal = self.direction % 2 == 0
+        xy_u, xy_v = self._xy_u, self._xy_v
         extra = np.zeros(len(self.u))
         for c,d in occupied:
             if c == d:
@@ -113,25 +168,39 @@ class Router:
             hor = abs(c[1]-d[1]) < 1e-8
             axis, fixed = (0,1) if hor else (1,0)
             lo,hi = min(c[axis],d[axis]),max(c[axis],d[axis])
-            same = (horizontal == hor) & (np.abs(xy_u[:,fixed]-c[fixed]) < .001)
-            shared = np.maximum(0,np.minimum(np.maximum(xy_u[:,axis],xy_v[:,axis]),hi)-np.maximum(np.minimum(xy_u[:,axis],xy_v[:,axis]),lo))
-            extra += same*shared
-            crosses = (horizontal != hor) & (xy_v[:,axis]>=lo-.0001) & (xy_v[:,axis]<=hi+.0001) & (np.minimum(xy_u[:,fixed],xy_v[:,fixed])<=c[fixed]) & (np.maximum(xy_u[:,fixed],xy_v[:,fixed])>=c[fixed])
+            # Only inspect grid edges near this segment, not every edge in the
+            # floor plan for each occupied cable segment.
+            along = self.xs if hor else self.ys
+            across = self.ys if hor else self.xs
+            def edges(grid, i0, i1, j0, j1):
+                block = grid[j0:j1, i0:i1] if hor else grid[i0:i1, j0:j1]
+                ids = block.ravel()
+                ids = ids[ids >= 0]
+                return np.concatenate((ids, ids+self._positive_edges))
+            i0 = max(0, int(np.searchsorted(along, lo, side="right"))-1)
+            i1 = int(np.searchsorted(along, hi, side="left"))+1
+            j0, j1 = np.searchsorted(across, [c[fixed]-.001, c[fixed]+.001])
+            same = edges(self._edge_grids[0 if hor else 1], i0, i1, j0, j1)
+            same = same[np.abs(xy_u[same,fixed]-c[fixed]) < .001]
+            extra[same] += np.maximum(0, np.minimum(self._edge_max[same,axis],hi)-np.maximum(self._edge_min[same,axis],lo))
+            i0 = int(np.searchsorted(along, lo-.0001, side="left"))
+            i1 = int(np.searchsorted(along, hi+.0001, side="right"))
+            j0 = max(0, int(np.searchsorted(across, c[fixed], side="left"))-1)
+            j1 = int(np.searchsorted(across, c[fixed], side="right"))+1
+            selected = edges(self._edge_grids[1 if hor else 0], i0, i1, j0, j1)
+            selected = selected[(self._edge_min[selected,fixed]<=c[fixed]) & (self._edge_max[selected,fixed]>=c[fixed])]
             # Count at arrival, not again when leaving the same intersection.
-            crosses &= np.abs(xy_u[:,fixed]-c[fixed]) > 1e-8
+            selected = selected[np.abs(xy_u[selected,fixed]-c[fixed]) > 1e-8]
             for p in terminals:
-                crosses &= ~((np.abs(xy_v[:,axis]-p[axis]) < .001) & (abs(c[fixed]-p[fixed]) < .001))
-            extra += 5*crosses
+                if abs(c[fixed]-p[fixed]) < .001:
+                    selected = selected[np.abs(xy_v[selected,axis]-p[axis]) >= .001]
+            extra[selected] += 5
         blocked = self.fixed-{source}
         if a != hub and b != hub:
             blocked = blocked | {self.vertex(hub)}
-        allowed = ~np.isin(self.sources//4,list(blocked))
         start = self.size-1
         start_cost = np.zeros(4) if incoming is None else .5*(np.arange(4)!=incoming)
-        weights = self.costs + np.tile(extra,4)
-        graph = csr_matrix((np.concatenate([weights[allowed],start_cost]),
-                            (np.concatenate([self.sources[allowed],np.repeat(start,4)]),
-                             np.concatenate([self.targets[allowed],source*4+np.arange(4)]))),shape=(self.size,self.size))
+        graph = self._graph(source, blocked, extra, start_cost)
         dist,pred = dijkstra(graph,directed=True,indices=start,return_predecessors=True)
         target = target_vertex*4
         end_cost = dist[target:target+4] + (0 if outgoing is None else .5*(np.arange(4)!=outgoing))

@@ -203,7 +203,8 @@ class Plan:
                 g = affinity.translate(g, -self.origin[0], ymax)
             else:
                 g = affinity.translate(g, -self.origin[0], -self.origin[1])
-            return affinity.scale(g, 1 / self.scale, 1 / self.scale, origin=(0, 0))
+            g = affinity.scale(g, 1 / self.scale, 1 / self.scale, origin=(0, 0))
+            return g if g.is_valid else make_valid(g)
 
         self.convert = convert
         self.inner = convert(inner)
@@ -213,9 +214,9 @@ class Plan:
         self.window = convert(geometry(raw.get("window", raw.get("windows"))))
         self.barriers = unary_union([self.wall, self.window])
         self.free = self.inner.difference(self.barriers)
-        wf = self.free.difference(self.barriers.buffer(wire_clearance, quad_segs=32)) if (not self.barriers.is_empty and wire_clearance > 0) else self.free
-        self._wire_free = wf
-        self.wire_free = wf
+        # The competition constrains cable containment, not a 0.5 m cable
+        # clearance. Build the optional display clearance geometry only on use.
+        self._wire_free = None
         self.rooms = {}
         node_ids = set()
         top_nodes = {str(n["room_id"]): n for n in raw.get("nodes", [])}
@@ -306,11 +307,20 @@ class Plan:
                     if min(ca, cb) >= self.open_min and max(x1 - x0, y1 - y0) >= self.open_min:
                         graph.add_edge(a, b, type="opening")
                         break
+        # A door polygon can touch both sides of a sealed wall. Its contacts
+        # alone do not prove that the two fixed terminals can reach each other.
+        components = parts(self.free)
+        membership = {rid: {i for i, g in enumerate(components) if g.covers(Point(r.node))}
+                      for rid, r in self.eligible.items()}
+        graph.remove_edges_from([(a, b) for a, b in graph.edges
+                                 if not membership[a].intersection(membership[b])])
         return graph
 
     def hub_candidates(self, rid, wide=False):
         r = self.rooms[rid]
-        safe = r.polygon.intersection(self.free).difference(self.barriers.buffer(max(.5, self.wire_clearance) + .00001, quad_segs=32))
+        if not hasattr(self, "_hub_barrier"):
+            self._hub_barrier = self.barriers.buffer(max(.5, self.wire_clearance) + .00001, quad_segs=32)
+        safe = r.polygon.intersection(self.free).difference(self._hub_barrier)
         if safe.is_empty:
             return []
         n = Point(r.node)

@@ -12,6 +12,7 @@ def main():
              "phase2_partition.py","phase3_sequencing.py","phase4_routing.py","sample_plan.json","output_plan.json","floor_plan_phase4.png"]]
     for directory,pattern in [("sutrayana","*.py"),("tests","*.py"),("tools","*.py"),("audit_tools","*.py"),("examples","*")]:
         files.extend(p for p in (ROOT/directory).glob(pattern) if p.is_file())
+    files.extend((ROOT/"tests/fixtures").glob("*.json"))
     files.extend(ROOT/"results"/name for name in ["review.html","final_120.json","independent_audit.json","verification.json"])
     missing = [str(p) for p in files if not p.exists()]
     if missing:

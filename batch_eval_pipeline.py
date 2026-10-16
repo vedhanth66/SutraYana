@@ -6,6 +6,10 @@ import pickle
 import argparse
 import json
 import tempfile
+import hashlib
+import platform
+from pathlib import Path
+from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Set matplotlib cache directory before importing matplotlib
@@ -13,6 +17,7 @@ os.environ.setdefault('MPLCONFIGDIR', tempfile.gettempdir())
 
 from export_resplan_to_json import extract_rooms_and_doors
 from phase4_routing import run_phase4
+from sutrayana.exporter import BenchmarkIneligible
 
 
 class TeeLogger:
@@ -42,7 +47,7 @@ def process_single_plan_task(args):
     on a single ResPlan plan dictionary in-memory.
     """
     plan_raw, plan_idx, resolution = args
-    t0 = time.time()
+    t0 = time.perf_counter()
     try:
         formatted = extract_rooms_and_doors(plan_raw, plan_id=f"plan_{plan_idx:05d}")
         eligible_rooms = [
@@ -55,7 +60,7 @@ def process_single_plan_task(args):
         output_data, total_J, hubs_routed = run_phase4(formatted, show_plot=False, verbose=False)
         if not output_data.get("validation", {}).get("valid"):
             raise ValueError("Submission has not passed the independent output checks")
-        dt = time.time() - t0
+        dt = time.perf_counter() - t0
         rep = output_data["reported_metrics"]
 
         # Calculate assigned area gap
@@ -80,8 +85,12 @@ def process_single_plan_task(args):
             "area_gap_m2": round(area_gap, 2),
             "time_sec": dt
         }
+    except BenchmarkIneligible as e:
+        return {"plan_idx": plan_idx, "valid": False, "skipped": True,
+                "status": "benchmark_ineligible", "reason": str(e),
+                "reason_code": e.reason, "time_sec": time.perf_counter()-t0}
     except Exception as e:
-        dt = time.time() - t0
+        dt = time.perf_counter() - t0
         return {
             "plan_idx": plan_idx,
             "valid": False,
@@ -206,6 +215,10 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
 
         total_wall_time = time.time() - start_wall
         successful = [r for r in results if r.get("valid")]
+        excluded = [r for r in results if r.get("skipped")]
+        failures = [r for r in results if not r.get("valid") and not r.get("skipped")]
+        eligible_count = len(results)-len(excluded)
+        eligible_pass_rate = 100*len(successful)/eligible_count if eligible_count else None
         pass_rate = (len(successful) / len(results)) * 100 if results else 0.0
         throughput = len(results) / total_wall_time if total_wall_time > 0 else 0.0
 
@@ -222,6 +235,8 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
         print("=" * 80)
         print(f"Total Plans Evaluated : {len(results)}")
         print(f"Passed All Validations: {len(successful)} / {len(results)} ({pass_rate:.1f}%)")
+        print(f"Benchmark-ineligible : {len(excluded)} (not counted as passes)")
+        print(f"Solver failures      : {len(failures)} / {eligible_count} eligible inputs")
         print(f"Total Wall-Clock Time : {total_wall_time:.2f} seconds")
         print(f"System Throughput     : {throughput:.2f} plans/second")
         if successful:
@@ -247,12 +262,22 @@ def run_batch_evaluation(pkl_path=None, num_plans=50, workers=4, resolution=0.08
                 "workers": workers,
                 "resolution_m": resolution,
                 "seed": seed,
-                "pkl_file": pkl_file
+                "pkl_file": pkl_file,
+                "routing": "coordinate_graph", "resolution_applied": False,
+                "python_version": platform.python_version(),
+                "source_sha256": {str(p.relative_to(Path(__file__).parent)): hashlib.sha256(p.read_bytes()).hexdigest()
+                                  for p in sorted((Path(__file__).parent/"sutrayana").glob("*.py"))},
+                "node_provenance": "generated demo nodes; not organiser benchmark nodes"
             },
             "summary": {
                 "total_evaluated": len(results),
                 "passed": len(successful),
                 "pass_rate_pct": round(pass_rate, 2),
+                "benchmark_ineligible": len(excluded),
+                "exclusion_reasons": dict(Counter(r.get("reason_code", "no_eligible_rooms") for r in excluded)),
+                "eligible_inputs": eligible_count,
+                "solver_failures": len(failures),
+                "eligible_pass_rate_pct": round(eligible_pass_rate, 2) if eligible_pass_rate is not None else None,
                 "wall_time_sec": round(total_wall_time, 2),
                 "throughput_plans_per_sec": round(throughput, 2),
                 "avg_runtime_ms": round(avg_cpu_time, 2) if successful else None,
@@ -278,7 +303,7 @@ if __name__ == "__main__":
     parser.add_argument("--pkl", type=str, default=None, help="Path to ResPlan.pkl")
     parser.add_argument("--count", type=int, default=25, help="Number of plans to evaluate")
     parser.add_argument("--workers", type=int, default=min(os.cpu_count() or 4, 8), help="Number of parallel worker processes")
-    parser.add_argument("--resolution", type=float, default=0.08, help="Grid resolution in metres (e.g. 0.05, 0.08, 0.10)")
+    parser.add_argument("--resolution", type=float, default=0.08, help="Deprecated compatibility option; coordinate-graph routing does not use it")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for sampling")
     parser.add_argument("--results-dir", type=str, default="results", help="Directory where log and json results will be saved")
     parser.add_argument("--log-name", type=str, default=None, help="Custom log filename")

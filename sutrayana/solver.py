@@ -16,9 +16,10 @@ def minimum_partitions(plan):
     ids = sorted(plan.eligible)
     n = len(ids)
     zones = {}
+    legal_hub = {r: bool(plan.hub_candidates(r)) for r in ids}
     for size in range(1, min(5, n)+1):
         for zone in combinations(ids, size):
-            if sum(plan.rooms[r].area for r in zone) <= 100+1e-8 and nx.is_connected(plan.graph.subgraph(zone)) and any(plan.hub_candidates(r) for r in zone):
+            if sum(plan.rooms[r].area for r in zone) <= 100+1e-8 and nx.is_connected(plan.graph.subgraph(zone)) and any(legal_hub[r] for r in zone):
                 zones[sum(1 << ids.index(r) for r in zone)] = zone
     by_first = {i: [mask for mask in zones if mask & (1 << i)] for i in range(n)}
     @lru_cache(None)
@@ -42,13 +43,13 @@ def minimum_partitions(plan):
     return int(optimum(full)), list(enumerate_best(full))
 
 
-def solve_plan(source, *, open_min=0.5):
+def solve_plan(source, *, open_min=0.5, wide=False):
     t0 = time.perf_counter()
     plan = source if isinstance(source, Plan) else Plan(source, open_min=open_min)
     open_min = plan.open_min
     minimum, partitions = minimum_partitions(plan)
     nodes = [r.node for r in plan.eligible.values()]
-    candidates = {rid: plan.hub_candidates(rid) for rid in plan.eligible}
+    candidates = {rid: plan.hub_candidates(rid, wide=wide) for rid in plan.eligible}
     router = Router(plan, candidates) if minimum else None
     path_cache = {}
     def path(a, b):
@@ -171,14 +172,63 @@ def solve_plan(source, *, open_min=0.5):
     elapsed_s = round(time.perf_counter() - t0, 3)
     for h in best:
         h["assigned_area_m2"] = round(sum(plan.rooms[r].area for r in h["assigned_rooms"]), 2)
+    cost_before_hub_refinement = score(best,nodes)["total_cost_J"]
+    hub_safe = {rid: r.polygon.intersection(plan.free).difference(plan._hub_barrier)
+                for rid,r in plan.eligible.items()}
+    # A hub need not be an extra detour beside a node. Join the last and first
+    # nodes directly, then insert the hub on a legal interior point of that
+    # connector. Accept only a strict improvement of the fully validated ring.
+    for hi, h in enumerate(best):
+        if len(h["assigned_nodes"]) < 2:
+            continue
+        first, last = h["route_segments"][0], h["route_segments"][-1]
+        try:
+            connector = path(tuple(last["polyline"][0]), tuple(first["polyline"][-1]))
+        except ValueError:
+            continue
+        incumbent = score(best, nodes)["total_cost_J"]
+        accepted = False
+        for si, (a, b) in enumerate(zip(connector, connector[1:])):
+            line = LineString([a,b])
+            if line.length < .004:
+                continue
+            for rid in h["assigned_rooms"]:
+                intersection = line.intersection(hub_safe[rid])
+                for piece in getattr(intersection, "geoms", [intersection]):
+                    if piece.geom_type != "LineString" or piece.length < .004:
+                        continue
+                    hp = tuple(piece.interpolate(.5, normalized=True).coords[0])
+                    if any(math.dist(hp,n) < .002 for n in nodes):
+                        continue
+                    trial_hub = copy.deepcopy(h)
+                    trial_hub["room_id"] = rid
+                    trial_hub["location"] = {"x":hp[0], "y":hp[1]}
+                    prefix, suffix = connector[:si+1]+[hp], [hp]+connector[si+1:]
+                    for leg, pts in [(trial_hub["route_segments"][0],suffix), (trial_hub["route_segments"][-1],prefix)]:
+                        leg["polyline"], leg["length_m"] = pts, length(pts)
+                    trial_hub["ring_length_m"] = sum(l["length_m"] for l in trial_hub["route_segments"])
+                    trial_hubs = best[:hi]+[trial_hub]+best[hi+1:]
+                    metrics = score(trial_hubs,nodes)
+                    if metrics["total_cost_J"] >= incumbent-1e-8:
+                        continue
+                    trial = {"plan_id":plan.id,"units":"m","hubs":trial_hubs,"reported_metrics":metrics}
+                    if validate(plan,trial)["valid"]:
+                        best, accepted = trial_hubs, True
+                        break
+                if accepted:
+                    break
+            if accepted:
+                break
     output = {"plan_id": plan.id, "units":"m", "hubs":best, "reported_metrics":score(best,nodes),
               "solver": {"minimum_hubs":minimum, "hub_count_proven":True,
                          "minimum_hub_partitions":len(partitions), "routable_partitions":feasible_partitions,
                          "area_gap_m2":best_rank[1], "cost_optimality":"heuristic finite hub/route candidates",
                          "cost_before_rerouting":initial_cost,
-                         "open_passage_min_m":open_min, "zone_transit":"assigned eligible rooms only",
+                         "cost_before_hub_refinement":cost_before_hub_refinement,
+                         "expanded_hub_search":wide,
+                         "open_passage_min_m":open_min, "zone_transit":"inner free space; assignment connectivity uses eligible rooms",
                          "coordinate_transform":{"origin_drawing_units":list(plan.origin), "units_per_metre":plan.scale, "source_y_down":plan.y_down},
-                         "elapsed_s": elapsed_s}}
+                         "elapsed_s": elapsed_s}} 
     report = validate(plan,output)
     if not report["valid"]:
         raise ValueError("Output failed validation: " + "; ".join(e["message"] for e in report["errors"][:8]))
