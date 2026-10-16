@@ -9,7 +9,8 @@ Python 3.10 or later:
 ```powershell
 python -m pip install -r requirements.txt
 python solve.py examples/resplan_0.json results/solution.json --image results/overlay.png --html results/review.html
-python solve.py examples/resplan_0.json results/solution.json --validate-only
+python solve.py examples/resplan_0.json results/solution.json --rl
+python train_rl.py --episodes 150
 python -m unittest discover -s tests -v
 ```
 
@@ -60,6 +61,7 @@ The supplied problem deck specifies the output format, but does not supply the o
 6. Reroute individual legs with occupancy costs. Accept a change only when the recomputed global J improves and all hard-rule checks still pass. Reversals count as one bend, overlaps count `(k−1) × length`, and crossing checks include different rings and T-touches, excluding node/hub points and ordinary bends.
 7. Remove unnecessary hub detours when a hub can lie legally on the closing connector. Accept only a lower global J that passes validation. Expanded hub search is optional in Ring Studio; its deadline wrapper retains the base result unless the expanded result ranks better.
 8. Validate coverage, capacity, zone connectivity, fixed terminals, hub clearance, sequence, leg endpoints, closure, axis alignment, free space, unintended node visits, lengths and reported global metrics before writing.
+9. **Reinforcement Learning (RL) Adaptive Routing:** A Dueling Deep Q-Network (`DuelingDQN`) trained on floor plan routing tasks. The agent observes a local 3-channel occupancy patch (walkable free space, occupied lines, fixed terminals) and relative goal coordinates, and takes cardinal actions masked by exact free-space geometry. The reward directly encodes the competition objective J = L + 5X + O + 0.5B with penalties for length, turns, crossings, overlaps, and barrier collisions. When enabled via `--rl`, the learned policy proposes intelligent obstacle-avoiding and crossing-minimizing alternatives that are verified by the geometry validator and integrated into the global optimization loop.
 
 **What is proven:** minimum hub count for the constructed connectivity graph and configured zone interpretation. All minimum-hub partitions are considered. **What is heuristic:** continuous hub placement, physical cable paths, and global minimum J. Routing failure produces an error, never a fabricated route or an unverified success.
 
@@ -92,14 +94,16 @@ The supplied `audit_tools/` remains available as an external check. Its original
 
 ## Project layout
 
-- `solve.py`: submission and validation CLI.
+- `solve.py`: submission and validation CLI (with `--rl` adaptive routing).
+- `train_rl.py`: CLI training tool for the RL adaptive routing agent.
+- `sutrayana/rl/`: MDP environment (`env.py`), Dueling-DQN neural architecture (`model.py`), Double-DQN learning agent (`agent.py`), and inference engine (`inference.py`).
 - `sutrayana/model.py`: normalization and strict connectivity.
 - `sutrayana/solver.py`: complete hub partition search, sequence and route candidate selection.
 - `sutrayana/routing.py`: geometry-checked turn-aware paths and rerouting.
 - `sutrayana/metrics.py`: one global scorer.
 - `sutrayana/validation.py`: output checks separate from construction.
 - `sutrayana/visualize.py`: image and standalone review page.
-- `tests/test_solver.py`: geometric, capacity, sequence and metric regressions.
+- `tests/test_solver.py` & `tests/test_rl.py`: geometric, capacity, sequence, metric, and RL regressions.
 - `phase1_pipeline.py` through `phase4_routing.py`: compatibility entry points using the corrected implementation. Historical unsafe routing internals have been removed.
 
 This is a research prototype for the challenge, not a building-services design. A working implementation and evidence improve a submission; neither guarantees a competition result.

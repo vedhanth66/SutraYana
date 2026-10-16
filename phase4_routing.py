@@ -16,11 +16,11 @@ def calculate_ring_metrics(polyline_pts, tol_mm=0.001):
     return {"L":m["total_length_m"],"B":m["total_bends"],"X":m["total_crossings"],"O":m["total_overlap_m"],"J":m["total_cost_J"]}
 
 
-def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, resolution=0.08, output_json_path=None, verbose=True, wire_clearance=0.0):
+def run_phase4(json_path="sample_plan.json", show_plot=False, save_img=None, resolution=0.08, output_json_path=None, verbose=True, wire_clearance=0.0, use_rl=False):
     plan = Plan(json_path, wire_clearance=wire_clearance) if not isinstance(json_path, Plan) else json_path
     if isinstance(json_path, Plan) and wire_clearance:
         plan.set_wire_clearance(wire_clearance)
-    out = solve_plan(plan, wire_clearance=wire_clearance)
+    out = solve_plan(plan, wire_clearance=wire_clearance, use_rl=use_rl)
     if output_json_path:
         target = Path(output_json_path)
         target.parent.mkdir(parents=True, exist_ok=True)

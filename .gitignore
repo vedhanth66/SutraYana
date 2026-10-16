@@ -9,3 +9,5 @@ results/
 audit_tmp_out.json
 audit_result_*.json
 *.tmp
+scratch/
+temp_local_backup/

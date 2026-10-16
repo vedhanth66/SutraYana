@@ -61,6 +61,16 @@ class WebAppCompatibilityTests(unittest.TestCase):
         glbs = list((root / "results").glob("twin_*.glb"))
         self.assertGreaterEqual(len(glbs), 10, "Expected pre-cached GLB models for instant loading")
 
+    def test_solve_bounded_rl_mode(self):
+        import json
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[1]
+        sample = json.loads((root / "sample_plan.json").read_text(encoding="utf-8"))
+        res_rl = solve_bounded(sample, wire_clearance=0.0, use_rl=True, timeout=60)
+        self.assertTrue(res_rl["ok"])
+        self.assertTrue(res_rl["output"]["solver"]["rl_adaptive_routing"])
+
+
 
 if __name__ == "__main__":
     unittest.main()
