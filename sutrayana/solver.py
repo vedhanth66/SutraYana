@@ -43,9 +43,14 @@ def minimum_partitions(plan):
     return int(optimum(full)), list(enumerate_best(full))
 
 
-def solve_plan(source, *, open_min=0.5, wide=False):
+def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None):
     t0 = time.perf_counter()
-    plan = source if isinstance(source, Plan) else Plan(source, open_min=open_min)
+    if isinstance(source, Plan):
+        plan = source
+        if wire_clearance is not None and plan.wire_clearance != wire_clearance:
+            plan.set_wire_clearance(wire_clearance)
+    else:
+        plan = Plan(source, open_min=open_min, wire_clearance=wire_clearance if wire_clearance is not None else 0.0)
     open_min = plan.open_min
     minimum, partitions = minimum_partitions(plan)
     nodes = [r.node for r in plan.eligible.values()]
@@ -173,7 +178,8 @@ def solve_plan(source, *, open_min=0.5, wide=False):
     for h in best:
         h["assigned_area_m2"] = round(sum(plan.rooms[r].area for r in h["assigned_rooms"]), 2)
     cost_before_hub_refinement = score(best,nodes)["total_cost_J"]
-    hub_safe = {rid: r.polygon.intersection(plan.free).difference(plan._hub_barrier)
+    safe_space = plan.wire_free if plan.wire_clearance > 0 and not plan.barriers.is_empty else plan.free
+    hub_safe = {rid: r.polygon.intersection(safe_space).difference(plan._hub_barrier)
                 for rid,r in plan.eligible.items()}
     # A hub need not be an extra detour beside a node. Join the last and first
     # nodes directly, then insert the hub on a legal interior point of that
@@ -226,6 +232,7 @@ def solve_plan(source, *, open_min=0.5, wide=False):
                          "cost_before_rerouting":initial_cost,
                          "cost_before_hub_refinement":cost_before_hub_refinement,
                          "expanded_hub_search":wide,
+                         "wire_clearance_m": plan.wire_clearance,
                          "open_passage_min_m":open_min, "zone_transit":"inner free space; assignment connectivity uses eligible rooms",
                          "coordinate_transform":{"origin_drawing_units":list(plan.origin), "units_per_metre":plan.scale, "source_y_down":plan.y_down},
                          "elapsed_s": elapsed_s}} 

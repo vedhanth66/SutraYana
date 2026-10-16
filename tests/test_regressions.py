@@ -128,6 +128,32 @@ class RegressionTests(unittest.TestCase):
         self.assertTrue(validate(Plan(fixture()),out)["valid"])
         self.assertLessEqual(out["reported_metrics"]["total_cost_J"],base["reported_metrics"]["total_cost_J"]+1e-9)
 
+    def test_clearance_profile_narrow_door_fallback(self):
+        from shapely.geometry import LineString
+        test3_path = Path(__file__).resolve().parents[1] / "plans/test_03.json"
+        # Profile 0: Slide rules allows 1 hub through narrow 0.8m door
+        out0 = solve_plan(test3_path, wire_clearance=0.0)
+        self.assertEqual(len(out0["hubs"]), 1)
+        # Profile 0.5: Requires 2 hubs because 0.8m door cannot pass 0.5m clearance
+        out5 = solve_plan(test3_path, wire_clearance=0.5)
+        self.assertEqual(len(out5["hubs"]), 2)
+        p5 = Plan(test3_path, wire_clearance=0.5)
+        lines = [LineString(l["polyline"]) for h in out5["hubs"] for l in h["route_segments"]]
+        self.assertGreaterEqual(min(l.distance(p5.barriers) for l in lines), 0.5 - 0.001)
+
+    def test_clearance_profile_wide_doorway_and_sample_plan(self):
+        from shapely.geometry import LineString
+        root = Path(__file__).resolve().parents[1]
+        for path, expected_max_hubs in [("plans/test_02.json", 1), ("sample_plan.json", 4)]:
+            plan_file = root / path
+            out = solve_plan(plan_file, wire_clearance=0.5)
+            p = Plan(plan_file, wire_clearance=0.5)
+            self.assertTrue(validate(p, out)["valid"])
+            lines = [LineString(l["polyline"]) for h in out["hubs"] for l in h["route_segments"]]
+            min_dist = min(l.distance(p.barriers) for l in lines)
+            self.assertGreaterEqual(min_dist, 0.5 - 0.001)
+            self.assertLessEqual(len(out["hubs"]), expected_max_hubs)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -133,10 +133,11 @@ def plan_from_solution(raw, name="plan"):
 
 
 class Plan:
-    def __init__(self, source, open_min=0.5, wire_clearance=0.5, translate_origin=False):
+    def __init__(self, source, open_min=0.5, wire_clearance=0.0, translate_origin=False):
         raw = json.loads(Path(source).read_text(encoding="utf-8-sig")) if isinstance(source, (str, Path)) else source
         if not isinstance(raw, dict):
             raise ValueError("A plan must be a JSON object.")
+        self.raw = raw
         for key in ("plan", "data", "floor_plan", "input"):
             if key in raw and isinstance(raw[key], dict) and ("rooms" in raw[key] or "hubs" in raw[key]):
                 raw = raw[key]
@@ -309,18 +310,33 @@ class Plan:
                         break
         # A door polygon can touch both sides of a sealed wall. Its contacts
         # alone do not prove that the two fixed terminals can reach each other.
-        components = parts(self.free)
+        active_space = self.wire_free if self.wire_clearance > 0 and not self.barriers.is_empty else self.free
+        components = parts(active_space)
         membership = {rid: {i for i, g in enumerate(components) if g.covers(Point(r.node))}
                       for rid, r in self.eligible.items()}
         graph.remove_edges_from([(a, b) for a, b in graph.edges
                                  if not membership[a].intersection(membership[b])])
         return graph
 
+    def set_wire_clearance(self, clearance):
+        if not math.isfinite(clearance) or clearance < 0:
+            raise ValueError("Clearance must be finite and nonnegative.")
+        if getattr(self, "wire_clearance", None) != clearance:
+            self.wire_clearance = clearance
+            self._wire_free = None
+            if hasattr(self, "_hub_barrier"):
+                delattr(self, "_hub_barrier")
+            self.graph = self._connectivity()
+
     def hub_candidates(self, rid, wide=False):
         r = self.rooms[rid]
         if not hasattr(self, "_hub_barrier"):
-            self._hub_barrier = self.barriers.buffer(max(.5, self.wire_clearance) + .00001, quad_segs=32)
-        safe = r.polygon.intersection(self.free).difference(self._hub_barrier)
+            barrier_width = max(.5, self.wire_clearance) + .00001
+            self._hub_barrier = self.barriers.buffer(barrier_width, join_style=2) if not self.barriers.is_empty else Polygon()
+        safe_space = self.wire_free if self.wire_clearance > 0 and not self.barriers.is_empty else self.free
+        safe = r.polygon.intersection(safe_space).difference(self._hub_barrier)
+        if safe.is_empty:
+            safe = r.polygon.intersection(self.free).difference(self._hub_barrier)
         if safe.is_empty:
             return []
         n = Point(r.node)
@@ -352,14 +368,15 @@ class Plan:
         return unique[:16 if wide else 4]
 
     def _compute_wire_free(self):
-        clearance = getattr(self, "wire_clearance", 0.5)
+        clearance = getattr(self, "wire_clearance", 0.0)
         barriers = getattr(self, "barriers", None)
         free = getattr(self, "free", None)
         if free is None:
             return Polygon()
         if barriers is None or barriers.is_empty or clearance <= 0:
             return free
-        return free.difference(barriers.buffer(clearance, quad_segs=32))
+        barrier_buf = barriers.buffer(clearance, join_style=2)
+        return free.difference(barrier_buf)
 
     def __getattr__(self, name):
         if name == "wire_free":

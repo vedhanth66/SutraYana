@@ -17,12 +17,13 @@ def main():
     parser.add_argument("--html",help="Save an interactive, standalone review page")
     parser.add_argument("--validate-only",action="store_true")
     parser.add_argument("--open-min",type=float,default=.5,help="Minimum open-passage width in metres (assumption: 0.5)")
+    parser.add_argument("--wire-clearance",type=float,default=0.0,help="Wall-to-wire clearance in metres (default: 0.0 for slide rules, 0.5 for 0.5m clearance)")
     args = parser.parse_args()
     started = time.perf_counter()
     try:
         if args.open_min <= 0:
             raise ValueError("--open-min must be positive")
-        plan = Plan(args.input,open_min=args.open_min)
+        plan = Plan(args.input,open_min=args.open_min,wire_clearance=args.wire_clearance)
         if args.validate_only:
             output = json.loads(Path(args.output).read_text(encoding="utf-8"))
             report = validate(plan,output)
@@ -32,7 +33,7 @@ def main():
                 output["validation"] = report
                 render(plan,output,image_path=args.image,html_path=args.html)
             return 0 if report["valid"] else 1
-        output = solve_plan(plan,open_min=args.open_min)
+        output = solve_plan(plan,open_min=args.open_min,wire_clearance=args.wire_clearance)
         target = Path(args.output)
         target.parent.mkdir(parents=True,exist_ok=True)
         temporary = target.with_suffix(target.suffix+".tmp")

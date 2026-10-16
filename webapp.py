@@ -123,15 +123,12 @@ def load_catalog():
 
 
 def scene(plan):
-    wire_free = getattr(plan, "wire_free", None)
-    if wire_free is None:
-        wire_free = getattr(plan, "_wire_free", None)
-    if wire_free is None:
-        wire_free = getattr(plan, "free", Polygon())
     free_area = getattr(plan, "free", Polygon())
+    band_barrier = plan.barriers.buffer(0.5, join_style=2) if getattr(plan, "barriers", None) and not plan.barriers.is_empty else Polygon()
+    clearance_band = free_area.intersection(band_barrier)
     return {"id":plan.id, "bounds":list(plan.inner.bounds), "inner":mapping(plan.inner),
             "wall":mapping(plan.wall), "window":mapping(plan.window),
-            "clearance_band":mapping(free_area.difference(wire_free)),
+            "clearance_band":mapping(clearance_band),
             "doors":[mapping(d) for d in plan.doors], "warnings":plan.warnings,
             "rooms":[{"id":r.id,"kind":r.kind,"area":r.area,"polygon":mapping(r.polygon),
                        "node":r.node,"node_id":r.node_id,"label":list(r.polygon.representative_point().coords)[0]}

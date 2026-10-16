@@ -15,7 +15,16 @@ class Router:
     def __init__(self, plan, hubs):
         self.plan = plan
         terminals = [r.node for r in plan.eligible.values()] + [p for ps in hubs.values() for p in ps]
-        coords = shapely.get_coordinates(plan.free)
+        if getattr(plan, "wire_clearance", 0.0) > 0 and not plan.barriers.is_empty:
+            routing_space = plan.wire_free
+            uncovered = [p for p in terminals if not routing_space.covers(Point(p))]
+            if uncovered:
+                from shapely.ops import unary_union
+                stubs = unary_union([Point(p).buffer(0.005, join_style=2) for p in uncovered])
+                routing_space = unary_union([routing_space, stubs.intersection(plan.free)])
+        else:
+            routing_space = plan.free
+        coords = shapely.get_coordinates(routing_space)
         axes = []
         for axis in (0, 1):
             lo, hi = plan.inner.bounds[axis], plan.inner.bounds[axis+2]
@@ -43,7 +52,7 @@ class Router:
         lines = shapely.linestrings(np.stack([self.xy[u], self.xy[v]], axis=1))
         # Stay a micron inside free space to avoid floating-point boundary
         # inconsistencies when adjacent graph edges are merged into long runs.
-        safe_free = plan.free.buffer(-0.000001, join_style=2)
+        safe_free = routing_space.buffer(-0.000001, join_style=2)
         self.safe_free = safe_free
         shapely.prepare(safe_free)
         good = shapely.covers(safe_free, lines)

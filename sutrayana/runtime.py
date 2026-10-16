@@ -9,6 +9,8 @@ def _worker(connection, source, options):
         from .model import Plan
         import inspect
         plan = source if isinstance(source, Plan) else Plan(source, open_min=options.get("open_min", .5), wire_clearance=options.get("wire_clearance", .5), translate_origin=options.get("translate_origin", False))
+        if isinstance(source, Plan) and "wire_clearance" in options:
+            plan.set_wire_clearance(options["wire_clearance"])
         accepted = inspect.signature(solve_plan).parameters
         output = solve_plan(plan, **{k:v for k,v in options.items() if k in accepted})
         output.setdefault("warnings", list(plan.warnings))
