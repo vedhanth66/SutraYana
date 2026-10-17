@@ -14,9 +14,11 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import numpy as np
+import concurrent.futures
 from shapely.geometry import mapping, LineString, Polygon
 from sutrayana.model import Plan, plan_from_solution
 from sutrayana.runtime import solve_bounded
+from sutrayana.solver import solve_plan
 from sutrayana.hubring.solve import solve_plan as hubring_solve, top_solutions, to_json as hubring_to_json
 from sutrayana.image_import import load_image, detect as image_detect, preview as image_preview, build_raw as image_build_raw
 
@@ -192,16 +194,57 @@ def scene(plan):
 
 def work(job_id, raw, options):
     try:
-        result = solve_bounded(raw, **options)
-        if result["ok"]:
-            plan = Plan(raw, wire_clearance=options["wire_clearance"])
-            lines = [LineString(l["polyline"]) for h in result["output"]["hubs"] for l in h["route_segments"]]
-            result["measured_clearance_m"] = min((l.distance(plan.barriers) for l in lines),default=None) if not plan.barriers.is_empty else None
+        t0 = time.perf_counter()
+        wire_clearance = options.get("wire_clearance", 0.0)
+        use_rl = options.get("use_rl", False)
+        enhanced = options.get("enhanced", False)
+        timeout = options.get("timeout", 30)
+
+        plan = Plan(raw, wire_clearance=wire_clearance)
+
+        def _do_solve():
+            if enhanced:
+                base_out = solve_plan(plan, wide=False, wire_clearance=wire_clearance, use_rl=use_rl)
+                try:
+                    wide_out = solve_plan(plan, wide=True, wire_clearance=wire_clearance, use_rl=use_rl)
+                    def rank(item):
+                        return (len(item["hubs"]), item["reported_metrics"]["total_cost_J"], item["solver"]["area_gap_m2"])
+                    return wide_out if rank(wide_out) < rank(base_out) else base_out
+                except Exception:
+                    return base_out
+            return solve_plan(plan, wide=False, wire_clearance=wire_clearance, use_rl=use_rl)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_do_solve)
+            out = future.result(timeout=timeout)
+
+        out.setdefault("warnings", list(plan.warnings))
+        out.setdefault("solver", {})["wire_clearance_m"] = plan.wire_clearance
+        lines = [LineString(l["polyline"]) for h in out["hubs"] for l in h["route_segments"]]
+        clearance = min((l.distance(plan.barriers) for l in lines), default=None) if not plan.barriers.is_empty else None
+        dt = round(time.perf_counter() - t0, 3)
+
+        plan_key = options.get("plan_key")
+        if plan_key:
+            with LOCK:
+                if plan_key in CATALOG:
+                    CATALOG[plan_key]["solution"] = out
+
+        result = {
+            "ok": True,
+            "output": out,
+            "measured_clearance_m": clearance,
+            "elapsed_s": dt,
+            "solver_time_s": out.get("solver", {}).get("elapsed_s", dt),
+        }
         with LOCK:
             JOBS[job_id].update(result, status="done")
+    except concurrent.futures.TimeoutError:
+        with LOCK:
+            JOBS[job_id].update(status="done", ok=False, error=f"Time limit reached ({options.get('timeout', 30):g} s). No unvalidated output was emitted.")
     except Exception as error:
         with LOCK:
-            JOBS[job_id].update(status="done",ok=False,error=f"{type(error).__name__}: {error}")
+            JOBS[job_id].update(status="done", ok=False, error=f"{type(error).__name__}: {error}")
     finally:
         SLOT.release()
 
@@ -613,7 +656,7 @@ class Handler(BaseHTTPRequestHandler):
                         if JOBS[key]["status"] == "done":
                             del JOBS[key]
                     JOBS[job_id] = {"status":"running", "started":time.time()}
-                threading.Thread(target=work,args=(job_id,raw,{"wire_clearance":clearance,"timeout":timeout,"enhanced":bool(data.get("enhanced")),"use_rl":use_rl}),daemon=True).start()
+                threading.Thread(target=work,args=(job_id,raw,{"wire_clearance":clearance,"timeout":timeout,"enhanced":bool(data.get("enhanced")),"use_rl":use_rl,"plan_key":data.get("key")}),daemon=True).start()
                 self.respond({"job_id":job_id},202)
             elif self.path.startswith("/api/top3"):
                 plan_key = data.get("key") or self.path.rsplit("/", 1)[-1]

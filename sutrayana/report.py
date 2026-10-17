@@ -8,7 +8,10 @@ import io
 import json
 import textwrap
 from typing import Any, Dict, List, Optional
+import os
+import tempfile
 
+os.environ.setdefault("MPLCONFIGDIR", tempfile.gettempdir())
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

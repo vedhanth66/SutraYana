@@ -1,6 +1,10 @@
 """Process isolation gives Windows and Unix the same hard per-plan deadline."""
 import multiprocessing as mp
+import os
+import tempfile
 import time
+
+os.environ.setdefault("MPLCONFIGDIR", tempfile.gettempdir())
 
 
 def _worker(connection, source, options):
