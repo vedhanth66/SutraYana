@@ -150,3 +150,78 @@ def export_provisional_submission(plan, solution):
         "hubs": sub["hubs"],
         "reported_metrics": sub["reported_metrics"]
     }
+
+
+_RESPLAN_DATA = None
+_RESPLAN_ID_MAP = None
+
+
+def lookup_resplan_by_id_or_stem(target_id=None, stem=None):
+    """Attempt to find a plan record in ResPlan.pkl by ID (e.g. '7108') or stem (e.g. 'plan_09012')."""
+    global _RESPLAN_DATA, _RESPLAN_ID_MAP
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    candidates = [
+        root / "ResPlan" / "ResPlan" / "ResPlan.pkl",
+        root / "ResPlan" / "ResPlan.pkl",
+        root.parent / "ResPlan.pkl",
+    ]
+    pkl_file = None
+    for cand in candidates:
+        if cand.is_file():
+            pkl_file = cand
+            break
+    if not pkl_file:
+        return None
+
+    if _RESPLAN_DATA is None:
+        try:
+            import pickle
+            with open(pkl_file, "rb") as f:
+                _RESPLAN_DATA = pickle.load(f)
+        except Exception:
+            return None
+
+    if _RESPLAN_ID_MAP is None and _RESPLAN_DATA:
+        _RESPLAN_ID_MAP = {}
+        for i, item in enumerate(_RESPLAN_DATA):
+            if isinstance(item, dict):
+                pid = str(item.get("id", item.get("plan_id", ""))).strip()
+                if pid:
+                    _RESPLAN_ID_MAP[pid] = i
+
+    target_idx = None
+    # 1. Try numeric index from stem (e.g. 'plan_09012' -> 9012)
+    if stem:
+        m = re.search(r"(\d+)", stem)
+        if m:
+            idx = int(m.group(1))
+            if 0 <= idx < len(_RESPLAN_DATA):
+                item = _RESPLAN_DATA[idx]
+                item_id = str(item.get("id", item.get("plan_id", ""))).strip()
+                if not target_id or item_id == str(target_id).strip():
+                    target_idx = idx
+
+    # 2. Try target_id in map
+    if target_idx is None and target_id and _RESPLAN_ID_MAP:
+        target_idx = _RESPLAN_ID_MAP.get(str(target_id).strip())
+
+    # 3. Try integer target_id as index directly
+    if target_idx is None and target_id and str(target_id).strip().isdigit():
+        idx = int(target_id)
+        if 0 <= idx < len(_RESPLAN_DATA):
+            item = _RESPLAN_DATA[idx]
+            if str(item.get("id", "")) == str(target_id).strip():
+                target_idx = idx
+
+    if target_idx is not None and 0 <= target_idx < len(_RESPLAN_DATA):
+        try:
+            raw_record = _RESPLAN_DATA[target_idx]
+            extracted = extract_rooms_and_doors(raw_record, plan_id=stem or f"plan_{target_idx:05d}")
+            return extracted
+        except Exception:
+            return None
+
+    return None

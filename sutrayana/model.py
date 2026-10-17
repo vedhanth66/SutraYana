@@ -63,6 +63,17 @@ class Room:
 def plan_from_solution(raw, name="plan"):
     """Reconstruct a valid Plan dictionary from a submission/solution JSON containing 'hubs'."""
     plan_id = str(raw.get("plan_id", raw.get("id", name)))
+    stem = Path(name).stem if name else ""
+
+    # 1. Attempt to resolve ground truth geometry from ResPlan dataset
+    try:
+        from .exporter import lookup_resplan_by_id_or_stem
+        real_plan = lookup_resplan_by_id_or_stem(target_id=plan_id, stem=stem)
+        if real_plan:
+            return real_plan
+    except Exception:
+        pass
+
     terminals = {}
     all_pts = []
     hubs = raw.get("hubs", [])
@@ -87,6 +98,7 @@ def plan_from_solution(raw, name="plan"):
 
     rooms = []
     doors = []
+    room_polys = {}
     for h in hubs:
         assigned_rooms = h.get("assigned_rooms", [])
         assigned_nodes = h.get("assigned_nodes", [])
@@ -100,6 +112,7 @@ def plan_from_solution(raw, name="plan"):
             dx = max(1.5, max(abs(p[0] - cx) for p in pts_in_room) + 0.8)
             dy = max(1.5, max(abs(p[1] - cy) for p in pts_in_room) + 0.8)
             poly = box(cx - dx, cy - dy, cx + dx, cy + dy).intersection(inner)
+            room_polys[rid] = poly
             kind = "kitchen" if "kitchen" in rid.lower() else ("bedroom" if "bed" in rid.lower() else ("storage" if "store" in rid.lower() else "living"))
             rooms.append({
                 "id": rid,
@@ -111,12 +124,15 @@ def plan_from_solution(raw, name="plan"):
     for h in hubs:
         assigned_rooms = h.get("assigned_rooms", [])
         for i in range(len(assigned_rooms) - 1):
-            r1 = next((r for r in rooms if r["id"] == assigned_rooms[i]), None)
-            r2 = next((r for r in rooms if r["id"] == assigned_rooms[i + 1]), None)
-            if r1 and r2:
-                p1 = Point(r1["node"]["x"], r1["node"]["y"])
-                p2 = Point(r2["node"]["x"], r2["node"]["y"])
-                door_poly = LineString([p1, p2]).buffer(0.3)
+            rid1, rid2 = assigned_rooms[i], assigned_rooms[i + 1]
+            poly1, poly2 = room_polys.get(rid1), room_polys.get(rid2)
+            if poly1 and poly2:
+                # Use boundary-to-boundary connector, not node-to-node across the rooms
+                p1, p2 = nearest_points(poly1, poly2)
+                if p1.equals(p2) or poly1.distance(poly2) < 0.05:
+                    door_poly = p1.buffer(0.4)
+                else:
+                    door_poly = LineString([p1, p2]).buffer(0.4)
                 doors.append({"polygon": mapping(door_poly)})
 
     return {
@@ -144,8 +160,9 @@ class Plan:
                 break
         if "hubs" in raw and ("rooms" not in raw or not raw["rooms"]):
             target_id = str(raw.get("plan_id", raw.get("id", ""))).strip()
+            stem = Path(source).stem if isinstance(source, (str, Path)) else ""
             found = None
-            if target_id:
+            if target_id or stem:
                 root = Path(__file__).resolve().parents[1]
                 for folder in ("examples", "plans", "."):
                     fdir = root / folder
@@ -162,13 +179,20 @@ class Plan:
                             if cand is None and "rooms" in d:
                                 cand = d
                             if isinstance(cand, dict) and isinstance(cand.get("rooms"), list) and cand["rooms"]:
-                                if str(cand.get("id", cand.get("plan_id", ""))).strip() == target_id:
+                                cid = str(cand.get("id", cand.get("plan_id", ""))).strip()
+                                if (target_id and cid == target_id) or (stem and p.stem == stem) or (target_id and p.stem == target_id):
                                     found = cand
                                     break
                         except Exception:
                             pass
                     if found:
                         break
+            if not found:
+                try:
+                    from .exporter import lookup_resplan_by_id_or_stem
+                    found = lookup_resplan_by_id_or_stem(target_id=target_id, stem=stem)
+                except Exception:
+                    pass
             if found:
                 raw = found
             else:

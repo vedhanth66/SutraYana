@@ -83,6 +83,15 @@ def add_plan(raw, name, source):
                 if base_plan:
                     break
 
+        if not base_plan:
+            try:
+                from sutrayana.exporter import lookup_resplan_by_id_or_stem
+                base_plan = lookup_resplan_by_id_or_stem(target_id=target_id, stem=stem)
+                if base_plan:
+                    base_source = f"ResPlan dataset ({stem or target_id})"
+            except Exception:
+                pass
+
         if base_plan:
             raw = base_plan
             source = "Verified solution"
