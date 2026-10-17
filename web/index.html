@@ -5,7 +5,7 @@
 <div class="side-heading">PLAN LIBRARY <span id="count">0</span></div><label class="search"><span>⌕</span><input id="search" placeholder="Find a floor plan…" aria-label="Search plans"></label>
 <div class="filters"><button class="filter active" data-filter="all">All plans</button><button class="filter" data-filter="real">Real</button><button class="filter" data-filter="test">Tests</button></div>
 <nav id="plans" aria-label="Floor plans"></nav>
-<div class="library-bottom"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;"><label class="upload" style="margin:0;padding:8px 4px;font-size:12px;text-align:center;">＋ JSON<input id="upload" type="file" accept=".json,application/json" multiple></label><label class="upload" style="margin:0;padding:8px 4px;font-size:12px;text-align:center;border-color:#5eead4;color:#5eead4;">Photo<input id="photo-upload" type="file" accept="image/png,image/jpeg"></label></div><button class="secondary full" id="batch">Multi-Core Batch Suite</button><p>Runs locally. Your plans stay here.<br>Imported plans last for this session.</p></div></aside>
+<div class="library-bottom"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;"><label class="upload" style="margin:0;padding:8px 4px;font-size:12px;text-align:center;">＋ JSON<input id="upload" type="file" accept=".json,application/json" multiple></label><label class="upload" style="margin:0;padding:8px 4px;font-size:12px;text-align:center;border-color:#5eead4;color:#5eead4;">Photo<input id="photo-upload" type="file" accept="image/png,image/jpeg"></label></div><p>Runs locally. Your plans stay here.<br>Imported plans last for this session.</p></div></aside>
 <main><header><div class="breadcrumb">WORKSPACE <span>/</span> CABLE RING CHALLENGE</div><span class="local"><i></i> Local solver</span></header>
 <section class="title-row"><div><p class="eyebrow">FROM FLOOR PLAN TO VERIFIED RING</p><h1 id="title">Choose your floor plan</h1><p id="description" class="subtitle">Inspect the geometry. Find a route. See the evidence.</p></div><div class="action-buttons"><button id="btn-top3" class="secondary" disabled title="Compare Top 3 Alternative Groupings">Top 3 Groupings</button><button id="btn-pdf-report" class="secondary" disabled title="Download Comprehensive PDF Verification Report">PDF Report</button><button id="btn-official-submission" class="secondary" disabled title="Download Slide 8 Official Submission JSON">Slide 8 JSON</button><button id="download" class="secondary" disabled title="Export Full Solution JSON">↓ Export result</button></div></section>
 <section class="controls"><div class="profile-group"><span class="control-label">Routing profile</span><div id="profile" class="profile-toggle" role="radiogroup" aria-label="Routing profile"><button type="button" class="profile-btn active" data-value="0" role="radio" aria-checked="true">Slide rules · obstacle avoidance</button><button type="button" class="profile-btn" data-value="0.5" role="radio" aria-checked="false">0.5 m wall-to-wire clearance</button></div></div><div class="rl-tag">Enhanced by RL</div><button id="solve" class="primary" disabled>Generate cable rings <span>↗</span></button></section>
@@ -73,75 +73,6 @@
     </div>
     <div class="modal-body top3-grid" id="top3-cards">
       <!-- 3 comparison cards generated dynamically -->
-    </div>
-  </div>
-</div>
-
-<div id="batch-modal" class="modal-backdrop" style="display:none;">
-  <div class="modal-box modal-extra-wide">
-    <div class="modal-header">
-      <div>
-        <h3>Multi-Core Parallel Batch Runner</h3>
-        <p class="modal-subtitle">Solve suites across all CPU cores with exact-cover DP, zero crashes, zero timeouts</p>
-      </div>
-      <button class="modal-close" id="batch-close">×</button>
-    </div>
-    <div class="modal-body batch-layout">
-      <div class="batch-controls-bar">
-        <label>Plan Count:
-          <select id="batch-n">
-            <option value="10">10 plans (Quick test)</option>
-            <option value="50">50 plans</option>
-            <option value="100" selected>100 plans</option>
-            <option value="all">All plans in catalog</option>
-          </select>
-        </label>
-        <label>Seed:
-          <input id="batch-seed" type="number" value="11" style="width:70px;">
-        </label>
-        <button id="batch-run-btn" class="primary" type="button">Run Multi-Core Suite</button>
-        <div class="batch-progress-box">
-          <div class="batch-track"><i id="batch-progress-bar"></i></div>
-          <span id="batch-status-text" class="batch-status-text">Ready to run.</span>
-        </div>
-      </div>
-      <div class="batch-kpi-grid">
-        <div class="kpi-card"><span class="kpi-label">VALIDITY</span><strong id="batch-kpi-valid">—</strong><small id="batch-kpi-valid-sub">Passing 12 independent rules</small></div>
-        <div class="kpi-card"><span class="kpi-label">AVG HUBS</span><strong id="batch-kpi-hubs">—</strong><small id="batch-kpi-hubs-sub">Optimality vs lower bound</small></div>
-        <div class="kpi-card"><span class="kpi-label">MEDIAN J</span><strong id="batch-kpi-j">—</strong><small id="batch-kpi-j-sub">Objective score</small></div>
-        <div class="kpi-card"><span class="kpi-label">CROSSINGS</span><strong id="batch-kpi-x">—</strong><small id="batch-kpi-x-sub">Total crossing points</small></div>
-        <div class="kpi-card"><span class="kpi-label">SPEED</span><strong id="batch-kpi-speed">—</strong><small id="batch-kpi-speed-sub">Per plan median latency</small></div>
-      </div>
-      <div class="batch-results-split">
-        <div class="batch-chart-card">
-          <h4>Distribution of Objective J</h4>
-          <svg id="batch-hist-svg" class="batch-hist-svg" viewBox="0 0 400 220"></svg>
-        </div>
-        <div class="batch-table-card">
-          <div class="batch-table-header">
-            <h4>Plan Results Table</h4>
-            <label><input id="batch-filter-prob" type="checkbox"> Problematic plans only</label>
-          </div>
-          <div class="table-wrap batch-table-wrap">
-            <table class="batch-table">
-              <thead>
-                <tr>
-                  <th data-sort="id">Plan ID</th>
-                  <th data-sort="status">Status</th>
-                  <th data-sort="H">Hubs (H)</th>
-                  <th data-sort="lb">LB</th>
-                  <th data-sort="J">Objective J</th>
-                  <th data-sort="X">X</th>
-                  <th data-sort="s">Time (s)</th>
-                </tr>
-              </thead>
-              <tbody id="batch-rows">
-                <tr><td colspan="7" class="muted">Run the batch suite to inspect results.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </div>

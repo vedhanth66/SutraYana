@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
 const colors=['#268367','#bf8240','#688bc4','#ae6c93','#8e9d44','#5ba9ac'];
 let catalog=[],selected=null,plan=null,result=null,busy=false,filter='all',history=[],view=null,baseView=null,selectionVersion=0,catalogVersion=0,activeCutSimulation=null;
-let movedNodes={},baseResult=null,draggingNode=null,photoData=null,photoPickingColor=false,batchJobId=null,batchRows=[],batchSortKey='J',batchSortDir=1;
+let movedNodes={},baseResult=null,draggingNode=null,photoData=null,photoPickingColor=false;
 const el=(tag,attrs={},text)=>{const n=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));if(text!==undefined)n.textContent=text;return n};
 const dom=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
 async function api(path,body){const response=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});const value=await response.json();if(!response.ok)throw Error(value.error||'Request failed');return value}
@@ -22,12 +22,11 @@ function showResult(value){result=value;if(Object.keys(movedNodes).length===0)ba
 $('zones').replaceChildren();out.hubs.forEach((h,i)=>{const area=h.assigned_rooms.reduce((sum,id)=>sum+plan.rooms.find(r=>r.id===id).area,0),card=dom('article','zone'),head=dom('label','zone-head'),check=dom('input');check.type='checkbox';check.checked=true;check.onchange=()=>document.querySelector(`[data-ring="${i}"]`).setAttribute('opacity',check.checked?1:.08);head.append(check,dom('span','',h.hub_id),dom('small','',h.assigned_nodes.length+' / 5 nodes'));head.style.color=colors[i%colors.length];const bar=dom('div','bar'),fill=dom('i');fill.style.width=Math.min(100,area)+'%';fill.style.background=colors[i%colors.length];bar.append(fill);card.append(head,dom('p','',h.closed_sequence.join(' → ')),bar,dom('small','',`${area.toFixed(1)} / 100 m² · ${h.ring_length_m.toFixed(2)} m cable`));$('zones').append(card)});
 $('facts').replaceChildren();[['Wire clearance',Number(s.wire_clearance_m ?? $('profile').value).toFixed(1)+' m required'],['Router policy',s.rl_adaptive_routing?'RL Dueling-DDQN (Adaptive)':'Classical Dijkstra'],['Measured minimum',value.measured_clearance_m==null?'No wall/window':value.measured_clearance_m.toFixed(3)+' m'],['Solver latency',latencyDisplay],['Area gap',Number(s.area_gap_m2 ?? 0).toFixed(2)+' m²'],['Coordinates','Source origin / metres']].forEach(([k,v])=>{const d=dom('div');d.append(dom('span','',k),dom('b','',v));$('facts').append(d)});
 const costs=[m.total_length_m,5*m.total_crossings,m.total_overlap_m,.5*m.total_bends],bar=dom('div','cost-bars'),labels=dom('div','cost-labels');costs.forEach((v,i)=>{const part=dom('i');part.style.width=(m.total_cost_J?v/m.total_cost_J*100:0)+'%';part.style.background=colors[i];part.title=['Length','Crossings','Overlap','Bends'][i]+': '+v.toFixed(2);bar.append(part);labels.append(dom('span','',['L','5X','O','½B'][i]+' '+v.toFixed(1)))});$('score-bar').replaceChildren(bar,labels);const alerts=[...(out.warnings||out.validation?.warnings||plan.warnings||[])];const actual=value.measured_clearance_m,required=Number(s.wire_clearance_m ?? $('profile').value);const clearanceFailed=actual!=null&&actual<required-.001;if(clearanceFailed)alerts.push({rule:'wire_clearance',message:`This backend returned a wire ${actual.toFixed(3)} m from a wall/window; the selected profile requires ${required.toFixed(3)} m.`});warnings(alerts);draw();$('download').disabled=false;$('play').disabled=false;$('save-svg').disabled=false;if($('btn-pdf-report'))$('btn-pdf-report').disabled=false;if($('btn-official-submission'))$('btn-official-submission').disabled=Boolean(clearanceFailed||!value.ok);const hubSel=$('hud-3d-hub-select');if(hubSel){hubSel.innerHTML=`<option value="all"> All Circuits (${out.hubs.length} Loops)</option>`;out.hubs.forEach(h=>{const opt=dom('option','',`◆ ${h.hub_id} · ${h.assigned_nodes.length} nodes · ${(h.ring_length_m||0).toFixed(1)}m`);opt.value=h.hub_id;hubSel.append(opt)});}selected3DHub='all';update3DLoopCard();notice(`Validated in ${latencyDisplay}. Every node is covered and every route passes the configured geometry checks.`,'success');if(clearanceFailed){$('status').textContent='CLEARANCE ISSUE';$('canvas-label').textContent='INSPECTION ONLY';$('status').className='pill failed';$('download').disabled=true;if($('btn-official-submission'))$('btn-official-submission').disabled=true;notice(`The route is shown for inspection, but wires pass within ${actual.toFixed(3)} m of a wall/door. Switch profile to "Slide rules" to export.`,'error');}if($('resilience-panel'))$('resilience-panel').style.display='block';if($('btn-cut-test'))$('btn-cut-test').disabled=false;populateCutOptions();if(typeof updateMovedBadge==='function')updateMovedBadge();if(typeof update3DRoutes==='function')update3DRoutes();if(typeof update3DLabels==='function')update3DLabels();}
-function setBusy(value){busy=value;['solve','batch','upload'].forEach(id=>{const el=$(id);if(el)el.disabled=value||(!plan&&id==='solve')});$('profile')?.querySelectorAll('.profile-btn').forEach(b=>b.disabled=value);$('solve').textContent=value?'Solving…':'Generate cable rings ↗';library()}
+function setBusy(value){busy=value;['solve','upload'].forEach(id=>{const el=$(id);if(el)el.disabled=value||(!plan&&id==='solve')});$('profile')?.querySelectorAll('.profile-btn').forEach(b=>b.disabled=value);$('solve').textContent=value?'Solving…':'Generate cable rings ↗';library()}
 async function run(key,use_rl=false){clearResult();draw();const profile=Number($('profile').value),limit=Number($('budget')?.value||30),enhanced=Boolean($('enhanced')?.checked),start=performance.now();notice('Searching connected zones and clearance-safe routes…','busy');$('status').textContent='RUNNING';try{const {job_id}=await api('/api/solve',{key,wire_clearance:profile,timeout:limit,enhanced,use_rl});let value;do{if(performance.now()-start>(limit+15)*1000)throw Error('The server has not finished within the time budget. Check that you are running the current server.');await new Promise(r=>setTimeout(r,450));value=await api('/api/jobs/'+job_id);if(value.status!=='done')notice(`Searching routes · ${((performance.now()-start)/1000).toFixed(0)} s elapsed`,'busy')}while(value.status!=='done');const solverSec=value.output?.solver?.elapsed_s??value.solver_time_s??value.solve_time_s;if(solverSec!=null)value.solver_time_s=solverSec;value.network_elapsed_s=(performance.now()-start)/1000;value.profile_valid=value.ok&&(value.measured_clearance_m==null||value.measured_clearance_m>=profile-.001);history.unshift({key,name:catalog.find(p=>p.key===key).name,profile,use_rl,...value});renderHistory();if(value.ok)showResult(value);else{notice(value.error,'error');$('status').textContent='NOT SOLVED';$('status').className='pill failed';$('proof-title').textContent='No valid design emitted';$('proof').textContent=value.error;warnings([...(plan?.warnings||[]),{rule:'routing',message:value.error}])}return value}catch(e){notice(e.message,'error');$('status').textContent='ERROR';$('status').className='pill failed';history.unshift({key,name:catalog.find(p=>p.key===key).name,profile,use_rl,ok:false,error:e.message,elapsed_s:(performance.now()-start)/1000});renderHistory();return {ok:false}}}
 function renderHistory(){$('history').replaceChildren();history.forEach(h=>{const row=dom('tr'),name=dom('td'),link=dom('button','text-button',h.name);link.onclick=async()=>{if(busy)return;$('profile').value=String(h.profile);await choose(h.key);if(plan&&h.ok)showResult(h);else if(h.error){notice(h.error,'error');$('status').textContent='NOT SOLVED';$('status').className='pill failed';$('proof-title').textContent='No valid design emitted';$('proof').textContent=h.error;warnings([...(plan?.warnings||[]),{rule:'routing',message:h.error}])}};name.append(link);name.append(dom('small','',(h.profile===.5?'0.5 m clearance':'Slide rules')+(h.use_rl?' · RL enhanced':'')));row.title=h.error||'Validated for the selected profile';const m=h.output?.reported_metrics;const histTime=h.output?.solver?.elapsed_s??h.solver_time_s??h.elapsed_s;const histTimeStr=histTime!=null?(Number(histTime)<0.01&&Number(histTime)>0?(Number(histTime)*1000).toFixed(0)+' ms':Number(histTime).toFixed(3)+' s'):'—';row.append(name,...[h.profile_valid===false&&h.ok?'Clearance issue':h.ok?'✓ Valid':'Issue',m?.hub_count??'—',m?.total_cost_J.toFixed(2)??'—',histTimeStr].map(v=>dom('td','',v)));$('history').append(row)})}
 function download(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'})),a=dom('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('solve').onclick=async()=>{if(!selected||busy)return;setBusy(true);try{await run(selected)}finally{setBusy(false)}};
-$('batch').onclick=()=>{if($('batch-modal'))$('batch-modal').style.display='flex';};
 $('upload').onchange=async e=>{try{const files=[...e.target.files];if(files.length>50)throw Error('Import up to 50 files at once.');const items=[];for(const f of files){if(f.size>12*1024*1024)throw Error(f.name+' exceeds 12 MB.');items.push({name:f.name,data:JSON.parse(await f.text())})}if(!items.length)return;const response=await api('/api/import',{plans:items});const stamp=++catalogVersion;const data=await api('/api/plans');if(stamp!==catalogVersion)return;catalog=data;library();const lastKey=response.keys && response.keys.length ? response.keys[response.keys.length-1] : null;if(lastKey)await choose(lastKey);if(response.errors.length)notice(response.errors.join(' '),'error')}catch(error){notice('Import failed: '+error.message,'error')}finally{e.target.value=''}};
 $('search').oninput=library;document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(n=>n.classList.toggle('active',n===b));library()});
 $('download').onclick=()=>result&&download(result.output,'sutrayana-result.json');
@@ -1298,169 +1297,6 @@ if ($('photo-build-btn')) {
   };
 }
 
-/* -------------------------------------------------------------
-   Multi-Core Parallel Batch Suite
-   ------------------------------------------------------------- */
-if ($('batch-close')) {
-  $('batch-close').onclick = () => {
-    $('batch-modal').style.display = 'none';
-  };
-}
 
-if ($('batch-run-btn')) {
-  $('batch-run-btn').onclick = async () => {
-    const nVal = $('batch-n').value;
-    const seedVal = parseInt($('batch-seed').value) || 11;
-    $('batch-run-btn').disabled = true;
-    $('batch-status-text').textContent = 'Launching multi-core parallel workers…';
-    $('batch-progress-bar').style.width = '0%';
-    batchRows = [];
-    renderBatchRows();
-    try {
-      const init = await api('/api/batch', { n: nVal, seed: seedVal });
-      batchJobId = init.job;
-      pollBatchProgress(init.job);
-    } catch (err) {
-      $('batch-run-btn').disabled = false;
-      $('batch-status-text').textContent = 'Batch failed to launch: ' + err.message;
-    }
-  };
-}
-
-async function pollBatchProgress(jobId) {
-  try {
-    const data = await api('/api/batch/' + jobId);
-    batchRows = data.rows || [];
-    const pct = data.total > 0 ? (batchRows.length / data.total) * 100 : 0;
-    $('batch-progress-bar').style.width = pct.toFixed(1) + '%';
-    if (data.running) {
-      $('batch-status-text').textContent = `Solving ${batchRows.length} / ${data.total} plans across ${data.workers} CPU cores (${data.elapsed.toFixed(1)}s elapsed)…`;
-      setTimeout(() => pollBatchProgress(jobId), 350);
-    } else {
-      $('batch-status-text').textContent = `Complete: solved ${batchRows.length} / ${data.total} plans in ${data.elapsed.toFixed(2)}s across ${data.workers} CPU cores.`;
-      $('batch-run-btn').disabled = false;
-    }
-    updateBatchKPIs(data.summary, data.workers);
-    renderBatchHist(batchRows);
-    renderBatchRows();
-  } catch (err) {
-    $('batch-status-text').textContent = 'Batch polling error: ' + err.message;
-    $('batch-run-btn').disabled = false;
-  }
-}
-
-function updateBatchKPIs(summary, workers) {
-  if (!summary) return;
-  if ($('batch-kpi-valid')) $('batch-kpi-valid').textContent = summary.valid_pct != null ? summary.valid_pct.toFixed(1) + '%' : '—';
-  if ($('batch-kpi-valid-sub')) $('batch-kpi-valid-sub').textContent = `${summary.done || 0} plans tested`;
-  if ($('batch-kpi-hubs')) $('batch-kpi-hubs').textContent = summary.hubs_mean != null ? summary.hubs_mean.toFixed(2) : '—';
-  if ($('batch-kpi-hubs-sub')) $('batch-kpi-hubs-sub').textContent = summary.at_lower_bound_pct != null ? `${summary.at_lower_bound_pct.toFixed(1)}% at lower bound` : 'Lower bound target';
-  if ($('batch-kpi-j')) $('batch-kpi-j').textContent = summary.J_median != null ? summary.J_median.toFixed(1) : (summary.done > 0 ? '—' : '—');
-  if ($('batch-kpi-j-sub')) $('batch-kpi-j-sub').textContent = summary.J_mean != null ? `Mean J: ${summary.J_mean.toFixed(1)}` : 'Objective score';
-  if ($('batch-kpi-x')) $('batch-kpi-x').textContent = summary.crossings_total != null ? String(summary.crossings_total) : '0';
-  if ($('batch-kpi-x-sub')) $('batch-kpi-x-sub').textContent = `${summary.crossings_zero_pct != null ? summary.crossings_zero_pct.toFixed(0) : '100'}% zero crossings`;
-  if ($('batch-kpi-speed')) $('batch-kpi-speed').textContent = summary.time_median != null ? (summary.time_median < 0.01 ? (summary.time_median * 1000).toFixed(0) + ' ms' : summary.time_median.toFixed(2) + ' s') : '—';
-  if ($('batch-kpi-speed-sub')) $('batch-kpi-speed-sub').textContent = `p95: ${summary.time_p95 != null ? summary.time_p95.toFixed(2) : 0}s · ${workers || 8} cores`;
-}
-
-function renderBatchHist(rows) {
-  const svg = $('batch-hist-svg');
-  if (!svg) return;
-  const okJ = rows.filter(r => r.status === 'valid' && r.J != null).map(r => r.J);
-  if (okJ.length === 0) {
-    svg.innerHTML = '<text x="200" y="110" text-anchor="middle" fill="#64748b" font-size="12">Run suite to generate J distribution</text>';
-    return;
-  }
-  const minJ = Math.floor(Math.min(...okJ));
-  const maxJ = Math.ceil(Math.max(...okJ));
-  const binCount = 12;
-  const binWidth = Math.max(1, (maxJ - minJ) / binCount);
-  const bins = new Array(binCount).fill(0);
-  okJ.forEach(j => {
-    const idx = Math.min(binCount - 1, Math.max(0, Math.floor((j - minJ) / binWidth)));
-    bins[idx]++;
-  });
-  const maxCount = Math.max(...bins, 1);
-  const w = 400, h = 220, padL = 35, padB = 30, padT = 20, padR = 20;
-  const chartW = w - padL - padR;
-  const chartH = h - padT - padB;
-  const barW = chartW / binCount;
-  let paths = '';
-  bins.forEach((count, bIdx) => {
-    const bh = (count / maxCount) * chartH;
-    const bx = padL + bIdx * barW + 2;
-    const by = padT + chartH - bh;
-    const bw = Math.max(2, barW - 4);
-    paths += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#5eead4" rx="2" opacity="0.85"><title>J: ${(minJ + bIdx * binWidth).toFixed(1)}–${(minJ + (bIdx + 1) * binWidth).toFixed(1)} (${count} plans)</title></rect>`;
-    if (count > 0 && bh > 14) {
-      paths += `<text x="${bx + bw / 2}" y="${by - 4}" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="monospace">${count}</text>`;
-    }
-  });
-  paths += `<line x1="${padL}" y1="${padT + chartH}" x2="${w - padR}" y2="${padT + chartH}" stroke="#26384a" stroke-width="1"/>`;
-  paths += `<text x="${padL}" y="${h - 8}" fill="#64748b" font-size="10" font-family="monospace">${minJ}</text>`;
-  paths += `<text x="${w - padR}" y="${h - 8}" text-anchor="end" fill="#64748b" font-size="10" font-family="monospace">${maxJ}</text>`;
-  paths += `<text x="${padL + chartW / 2}" y="${h - 8}" text-anchor="middle" fill="#94a3b8" font-size="10">Objective J (lower is better)</text>`;
-  svg.innerHTML = paths;
-}
-
-function renderBatchRows() {
-  const tbody = $('batch-rows');
-  if (!tbody) return;
-  let rows = [...batchRows];
-  if ($('batch-filter-prob') && $('batch-filter-prob').checked) {
-    rows = rows.filter(r => r.status !== 'valid' || (r.lb != null && r.H > r.lb) || r.X > 0);
-  }
-  rows.sort((a, b) => {
-    let va = a[batchSortKey], vb = b[batchSortKey];
-    if (va == null) return 1;
-    if (vb == null) return -1;
-    if (typeof va === 'string') return batchSortDir * va.localeCompare(vb);
-    return batchSortDir * (va - vb);
-  });
-  if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:16px;">No plans to display.</td></tr>';
-    return;
-  }
-  tbody.replaceChildren();
-  rows.forEach(r => {
-    const tr = dom('tr');
-    const isOK = r.status === 'valid';
-    const statusBadge = isOK ? '<span style="color:#5eead4;">valid</span>' : `<span style="color:#ef4444;">${r.status}</span>`;
-    const hStr = r.H != null ? (r.lb != null && r.H === r.lb ? `<b>${r.H}</b> <small style="color:#5eead4;">(LB)</small>` : `${r.H}`) : '—';
-    tr.innerHTML = `
-      <td><b>${r.id}</b></td>
-      <td>${statusBadge}</td>
-      <td>${hStr}</td>
-      <td>${r.lb != null ? r.lb : '—'}</td>
-      <td>${r.J != null ? r.J.toFixed(1) : '—'}</td>
-      <td>${r.X != null ? r.X : '—'}</td>
-      <td>${r.s != null ? r.s.toFixed(3) + 's' : '—'}</td>
-    `;
-    tr.title = `Click to load Plan ${r.id} into main canvas`;
-    tr.onclick = async () => {
-      $('batch-modal').style.display = 'none';
-      if (r.key) {
-        await choose(r.key);
-      }
-    };
-    tbody.append(tr);
-  });
-}
-
-document.querySelectorAll('.batch-table th[data-sort]').forEach(th => {
-  th.onclick = () => {
-    const key = th.dataset.sort;
-    if (batchSortKey === key) {
-      batchSortDir = -batchSortDir;
-    } else {
-      batchSortKey = key;
-      batchSortDir = 1;
-    }
-    renderBatchRows();
-  };
-});
-if ($('batch-filter-prob')) {
-  $('batch-filter-prob').onchange = renderBatchRows;
-}
 
 

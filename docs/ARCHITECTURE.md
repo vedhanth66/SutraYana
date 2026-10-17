@@ -88,3 +88,24 @@ In industrial standards, ring topologies provide dual-feed fault tolerance:
   - Branch B energizes $H \to \dots \to v$ in counter-clockwise sequence.
 - **Continuity Guarantee**: 100% of devices remain online with zero isolated nodes under any single cable break.
 - Traditional open daisy-chains lose $50\% - 90\%$ of downstream devices under the same fault.
+
+---
+
+## 4. Dual-Reading Ranking System & Checker Mirror
+
+### 4.1 Conservative Dual-Reading Ranking
+To prevent discrepancies between internal solver approximations and official independent scoring, SutraYana implements a **dual-reading evaluation system**:
+- **Reading 1 ($J_{\text{solver}}$)**: Recomputed internally during coordinate descent and rip-up passes.
+- **Reading 2 ($J_{\text{checker}}$)**: Evaluated independently by `sutrayana.validation.validate()` from the raw polyline geometry.
+- **Worse $J$ Evaluation**: Every candidate arrangement is ranked strictly by:
+  $$\text{Rank} = \left( H, \max(J_{\text{solver}}, J_{\text{checker}}), \text{Area Gap} \right)$$
+  Where:
+  1. Primary: Fewest hubs ($H$).
+  2. Secondary: Worse $J$ of the two readings ($\max(J_{\text{solver}}, J_{\text{checker}})$).
+  3. Tertiary: Minimal area spread ($\max \text{Area} - \min \text{Area}$).
+
+### 4.2 Checker Mirror Gate
+During rip-up-and-reroute passes and candidate selection, every arrangement must pass the independent validation mirror before being accepted. Any candidate violating device caps ($\le 5$), area caps ($\le 100\text{ m}^2$), or physical clearance is immediately disqualified.
+
+### 4.3 Decision Transparency Trace
+Every solution includes a structured `decision_trace` recording the evaluated candidates, their hub counts, dual-reading scores, and checker verdicts, providing complete reproducibility and transparency into why each layout was chosen.

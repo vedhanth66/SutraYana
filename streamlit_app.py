@@ -78,13 +78,50 @@ else:
             st.error(f"Invalid JSON file: {e}")
             st.stop()
 
-with col_opts:
-    wire_clearance = st.selectbox(
-        "Wire-to-wall clearance",
-        (0.0, 0.5),
-        format_func=lambda x: f"{x:.1f} m {'(Slide rules · obstacles)' if x == 0.0 else '(Stricter clearance)'}",
-        index=0,
+# Labelled What-If Scenarios & Sensitivity Controls
+with st.sidebar:
+    st.header("Labelled What-If Scenarios")
+    st.caption("Investigate how parameter variations impact hub counts and routing economics.")
+
+    area_cap = st.slider(
+        "Area Cap (m²)",
+        min_value=50.0,
+        max_value=150.0,
+        value=100.0,
+        step=5.0,
+        help="Standard is 100 m² per circuit. Relaxing allows larger consolidated loops; tightening forces more hubs."
     )
+
+    hub_clearance = st.selectbox(
+        "Hub & Wire Clearance",
+        (0.0, 0.25, 0.5),
+        index=0,
+        format_func=lambda x: f"{x:.2f} m {'(Slide rules · obstacles)' if x == 0.0 else '(Stricter clearance)'}",
+        help="Distance wires and hubs must keep from physical walls and windows."
+    )
+
+    d5_device_cap = st.slider(
+        "D5 Device Cap (Nodes/Hub)",
+        min_value=3,
+        max_value=10,
+        value=5,
+        step=1,
+        help="Rule D5: Maximum monitored devices connected to a single control hub loop. Standard is 5."
+    )
+
+    d7_door_clearance = st.slider(
+        "D7 Doorway Passage Clearance (m)",
+        min_value=0.2,
+        max_value=1.2,
+        value=0.5,
+        step=0.05,
+        help="Rule D7: Minimum clear passage width required to traverse door portals between adjacent rooms."
+    )
+
+    use_rl = st.checkbox("Enable RL Adaptive Routing (Experimental)", value=False)
+
+with col_opts:
+    st.info(f"**What-If Settings**: {area_cap:.0f}m² cap · {d5_device_cap} nodes/hub · {hub_clearance}m clearance · {d7_door_clearance:.2f}m door min")
 
 if plan_data is None:
     st.info("Please select or upload a floor plan to begin.")
@@ -152,11 +189,18 @@ def render_plan_matplotlib(plan_obj: Plan, solution: dict | None = None):
 if st.button("Run planner", type="primary"):
     try:
         t0 = time.perf_counter()
-        plan_obj = Plan(raw_plan, wire_clearance=wire_clearance)
-        h_lower_bound = compute_hub_lower_bound(plan_obj)
+        plan_obj = Plan(raw_plan, open_min=d7_door_clearance, wire_clearance=hub_clearance)
+        h_lower_bound = compute_hub_lower_bound(plan_obj, max_nodes_per_hub=d5_device_cap, max_area_per_hub=area_cap)
 
         with st.spinner("Running SutraYana optimization (exact cover + rectilinear routing)..."):
-            solution = solve_plan(plan_obj, wire_clearance=wire_clearance)
+            solution = solve_plan(
+                plan_obj,
+                open_min=d7_door_clearance,
+                wire_clearance=hub_clearance,
+                use_rl=use_rl,
+                max_nodes_per_hub=d5_device_cap,
+                max_area_per_hub=area_cap,
+            )
             elapsed = time.perf_counter() - t0
             report = validate(plan_obj, solution)
             is_valid = report.get("valid", False)
@@ -164,6 +208,7 @@ if st.button("Run planner", type="primary"):
         m = solution.get("reported_metrics", {})
         h_count = m.get("hub_count", len(solution.get("hubs", [])))
         j_cost = m.get("total_cost_J", 0.0)
+        solver_meta = solution.get("solver", {})
 
         # Metrics bar
         c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
@@ -174,6 +219,21 @@ if st.button("Run planner", type="primary"):
         c5.metric("Overlap (O)", f"{m.get('total_overlap_m', 0.0):.2f} m")
         c6.metric("Bends (B)", f"{m.get('total_bends', 0)}")
         c7.metric("Solve Time", f"{elapsed:.3f} s")
+
+        # Decision transparency block
+        decision_trace = solver_meta.get("decision_trace", [])
+        st.subheader("Decision Transparency: Why this layout was chosen")
+        worse_j_val = solver_meta.get("worse_J", j_cost)
+        area_gap_val = solver_meta.get("area_gap_m2", 0.0)
+        st.info(
+            f"**Ranking Strategy**: {solver_meta.get('ranking_criterion', 'fewest hubs -> worse J of two counting readings -> area gap')}.\n\n"
+            f"Evaluated {len(decision_trace)} candidate arrangements under the checker mirror. "
+            f"Selected design achieves **{h_count} hubs** (theoretical lower bound: {h_lower_bound}), "
+            f"conservative worse J = **{worse_j_val:.2f}**, and area spread = **{area_gap_val:.1f} m²**."
+        )
+        if decision_trace:
+            with st.expander("Candidate Arrangement Decision Table", expanded=False):
+                st.dataframe(decision_trace, use_container_width=True)
 
         if is_valid:
             st.success(f"Independent validation passed! All {len(plan_obj.eligible)} nodes connected with 0 rule violations.")

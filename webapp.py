@@ -1,8 +1,6 @@
 """Local plan workbench. No external services or web framework required."""
 import argparse
 import base64
-from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import json
 import math
@@ -26,7 +24,6 @@ ROOT = Path(__file__).resolve().parent
 CATALOG = {}
 JOBS = {}
 IMAGES = {}
-BATCH_JOBS = {}
 _next_photo_id = [900001]
 LOCK = threading.Lock()
 SLOT = threading.BoundedSemaphore(1)
@@ -362,91 +359,6 @@ def format_hubring_solution(sol, raw):
     }
 
 
-def _batch_summary(rows: list[dict]) -> dict:
-    st = Counter(r["status"] for r in rows)
-    ok = [r for r in rows if r["status"] == "valid"]
-    feas = len(rows) - st.get("infeasible", 0)
-    t = np.array([r["s"] for r in rows]) if rows else np.zeros(1)
-    out = {
-        "done": len(rows),
-        "status": dict(st),
-        "valid_pct": float(round(100.0 * len(ok) / max(feas, 1), 2)) if feas else 100.0,
-        "time_median": float(round(float(np.median(t)), 3)),
-        "time_p95": float(round(float(np.percentile(t, 95)), 3)),
-        "time_max": float(round(float(t.max()), 3))
-    }
-    if ok:
-        H = np.array([r["H"] for r in ok])
-        J = np.array([r["J"] for r in ok])
-        X = np.array([r["X"] for r in ok])
-        lb = np.array([r.get("lb", r["H"]) for r in ok])
-        out.update(
-            hubs_mean=float(round(float(H.mean()), 2)),
-            at_lower_bound_pct=float(round(float(100.0 * np.mean(H == lb)), 1)),
-            J_median=float(round(float(np.median(J)), 1)),
-            J_mean=float(round(float(J.mean()), 1)),
-            J_p90=float(round(float(np.percentile(J, 90)), 1)),
-            X_total=int(X.sum()),
-            X_plans=int((X > 0).sum())
-        )
-        counts, edges = np.histogram(J, bins=15)
-        out["J_hist"] = counts.tolist()
-        out["J_edges"] = [round(float(e), 1) for e in edges.tolist()]
-    return out
-
-
-def _run_batch_job(job_id: str, plan_items: list[tuple[str, dict]]):
-    t0 = time.perf_counter()
-    workers = min(os.cpu_count() or 4, len(plan_items) or 1)
-
-    def _solve_single(item):
-        key, raw = item
-        pid = raw.get("id", raw.get("plan_id", key))
-        pt0 = time.perf_counter()
-        try:
-            sol = hubring_solve(raw)
-            dt = time.perf_counter() - pt0
-            return {
-                "id": pid,
-                "key": key,
-                "status": sol.status,
-                "H": sol.H,
-                "lb": getattr(sol, "lower_bound", sol.H),
-                "J": round(float(sol.total.J), 2),
-                "X": int(sol.total.X),
-                "s": round(dt, 3)
-            }
-        except Exception as e:
-            dt = time.perf_counter() - pt0
-            return {
-                "id": pid,
-                "key": key,
-                "status": "crash",
-                "H": None,
-                "lb": None,
-                "J": None,
-                "X": None,
-                "s": round(dt, 3),
-                "error": str(e)
-            }
-
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [executor.submit(_solve_single, it) for it in plan_items]
-        for f in as_completed(futures):
-            row = f.result()
-            with LOCK:
-                job = BATCH_JOBS.get(job_id)
-                if job:
-                    job["rows"].append(row)
-                    job["elapsed"] = time.perf_counter() - t0
-
-    with LOCK:
-        job = BATCH_JOBS.get(job_id)
-        if job:
-            job["running"] = False
-            job["elapsed"] = time.perf_counter() - t0
-
-
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -597,17 +509,6 @@ class Handler(BaseHTTPRequestHandler):
                 elapsed = time.perf_counter() - t0
                 options = [format_hubring_solution(s_, raw) for s_ in sols]
                 self.respond({"ok": True, "seconds": round(elapsed, 3), "options": options})
-            elif path.startswith("/api/batch/"):
-                job_id = path.rsplit("/", 1)[-1].split("?")[0]
-                with LOCK:
-                    job = BATCH_JOBS.get(job_id)
-                if not job:
-                    raise KeyError("Unknown batch job")
-                rws = list(job["rows"])
-                out = {k: job[k] for k in ("id", "total", "running", "elapsed", "workers", "seed")}
-                out["summary"] = _batch_summary(rws)
-                out["rows"] = rws
-                self.respond(out)
             elif path.startswith("/results/"):
                 file_path = ROOT / path.lstrip("/")
                 if file_path.is_file():
@@ -760,29 +661,6 @@ class Handler(BaseHTTPRequestHandler):
                 raw = image_build_raw(item["det"], data.get("types") or [], pid)
                 key = add_plan(raw, f"Photo Plan {pid}", "Photo import")
                 self.respond({"ok": True, "id": pid, "key": key})
-            elif self.path == "/api/batch":
-                n = data.get("n", 10)
-                seed = int(data.get("seed", 11))
-                with LOCK:
-                    all_keys = list(CATALOG.keys())
-                import random
-                rng = random.Random(seed)
-                if n == "all":
-                    chosen_keys = all_keys
-                else:
-                    n_count = max(1, min(int(n), len(all_keys)))
-                    chosen_keys = rng.sample(all_keys, n_count) if len(all_keys) >= n_count else all_keys
-                with LOCK:
-                    plan_items = [(k, CATALOG[k]["raw"]) for k in chosen_keys]
-                job_id = uuid.uuid4().hex[:8]
-                workers = min(os.cpu_count() or 4, len(plan_items) or 1)
-                with LOCK:
-                    BATCH_JOBS[job_id] = {
-                        "id": job_id, "total": len(plan_items), "rows": [],
-                        "running": True, "elapsed": 0.0, "workers": workers, "seed": seed
-                    }
-                threading.Thread(target=_run_batch_job, args=(job_id, plan_items), daemon=True).start()
-                self.respond({"ok": True, "job": job_id, "total": len(plan_items)})
             elif self.path == "/api/resilience/simulate":
                 from sutrayana.resilience import simulate_single_cut
                 plan_key = data.get("key")

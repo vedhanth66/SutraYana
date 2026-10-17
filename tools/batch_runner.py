@@ -18,10 +18,14 @@ from typing import Dict, Any, List, Optional
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-if sys.platform == "win32":
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+if sys.platform == "win32" and "pytest" not in sys.modules:
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 from sutrayana.model import Plan
 from sutrayana.solver import solve_plan, compute_hub_lower_bound
@@ -72,6 +76,8 @@ def evaluate_single_plan(task_args: tuple) -> Dict[str, Any]:
         # Directly solve within isolated worker process
         opts = dict(options)
         opts.pop("timeout", None)
+        designs_dir = opts.pop("designs_dir", None)
+        save_designs = opts.pop("save_designs", False)
         out = solve_plan(plan, **opts)
 
         dt = time.perf_counter() - t0
@@ -91,6 +97,13 @@ def evaluate_single_plan(task_args: tuple) -> Dict[str, Any]:
         bends_b = rep.get("total_bends", 0)
         at_lb = (hubs_count == lower_bound) if lower_bound > 0 else True
 
+        design_json_path = None
+        if save_designs and designs_dir:
+            os.makedirs(designs_dir, exist_ok=True)
+            d_path = Path(designs_dir) / f"{plan_id}_solution.json"
+            d_path.write_text(json.dumps(out, indent=2, allow_nan=False), encoding="utf-8")
+            design_json_path = str(d_path)
+
         return {
             "plan_id": plan_id,
             "valid": is_valid,
@@ -102,12 +115,15 @@ def evaluate_single_plan(task_args: tuple) -> Dict[str, Any]:
             "hubs_count": hubs_count,
             "at_lower_bound": at_lb,
             "cost_J": round(float(cost_j), 2),
+            "worse_J": round(float(solver_meta.get("worse_J", cost_j)), 2),
             "length_m": round(float(len_m), 2),
             "crossings_X": int(cross_x),
             "overlap_m": round(float(over_o), 2),
             "bends_B": int(bends_b),
+            "area_gap_m2": round(float(solver_meta.get("area_gap_m2", 0.0)), 2),
             "elapsed_s": round(dt, 4),
             "fallback_ladder": solver_meta.get("fallback_ladder_activated", False),
+            "design_json_path": design_json_path,
             "clearance_min_m": None
         }
 
@@ -208,8 +224,9 @@ def run_batch(
     os.makedirs(os.path.dirname(os.path.abspath(output_csv)), exist_ok=True)
     csv_fields = [
         "plan_id", "valid", "hubs_count", "lower_bound_hubs", "at_lower_bound",
-        "cost_J", "length_m", "crossings_X", "overlap_m", "bends_B",
-        "rooms_count", "nodes_count", "total_area_m2", "elapsed_s"
+        "cost_J", "worse_J", "length_m", "crossings_X", "overlap_m", "bends_B",
+        "area_gap_m2", "rooms_count", "nodes_count", "total_area_m2", "elapsed_s",
+        "design_json_path"
     ]
     with open(output_csv, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=csv_fields, extrasaction="ignore")

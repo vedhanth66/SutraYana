@@ -12,14 +12,14 @@ from .metrics import score, length
 from .validation import validate
 
 
-def compute_hub_lower_bound(plan):
-    """Theoretical lower bound on hubs: max(ceil(total_area/100), ceil(total_nodes/5))."""
+def compute_hub_lower_bound(plan, max_nodes_per_hub=5, max_area_per_hub=100.0):
+    """Theoretical lower bound on hubs: max(ceil(total_area/max_area), ceil(total_nodes/max_nodes))."""
     ids = list(plan.eligible)
     if not ids:
         return 0
     total_area = sum(plan.rooms[r].area for r in ids)
     total_nodes = len(ids)
-    return max(math.ceil(total_area / 100.0 - 1e-8), math.ceil(total_nodes / 5))
+    return max(math.ceil(total_area / float(max_area_per_hub) - 1e-8), math.ceil(total_nodes / float(max_nodes_per_hub)))
 
 
 def generate_connected_zones(plan, max_size=5, max_area=100.0):
@@ -60,14 +60,14 @@ def generate_connected_zones(plan, max_size=5, max_area=100.0):
     return zones
 
 
-def minimum_partitions(plan, target_hubs=None, max_partitions=16):
+def minimum_partitions(plan, target_hubs=None, max_partitions=16, max_nodes_per_hub=5, max_area_per_hub=100.0):
     """Exact cover DP with bitmask BFS and lower-bound pruning."""
     ids = sorted(plan.eligible)
     n = len(ids)
     if n == 0:
         return 0, [[]]
 
-    zones = generate_connected_zones(plan)
+    zones = generate_connected_zones(plan, max_size=max_nodes_per_hub, max_area=max_area_per_hub)
     if not zones:
         raise ValueError("No capacity-feasible connected partition with legal hub positions.")
 
@@ -111,7 +111,7 @@ def minimum_partitions(plan, target_hubs=None, max_partitions=16):
 
 
 
-def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=False):
+def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=False, max_nodes_per_hub=5, max_area_per_hub=100.0):
     t0 = time.perf_counter()
     if isinstance(source, Plan):
         plan = source
@@ -120,7 +120,7 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=
     else:
         plan = Plan(source, open_min=open_min, wire_clearance=wire_clearance if wire_clearance is not None else 0.0)
     open_min = plan.open_min
-    minimum, partitions = minimum_partitions(plan)
+    minimum, partitions = minimum_partitions(plan, max_nodes_per_hub=max_nodes_per_hub, max_area_per_hub=max_area_per_hub)
     nodes = [r.node for r in plan.eligible.values()]
     candidates = {rid: plan.hub_candidates(rid, wide=wide) for rid in plan.eligible}
     router = Router(plan, candidates, use_rl=use_rl) if minimum else None
@@ -168,10 +168,11 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=
                 break
         return retained
 
-    lower_bound = compute_hub_lower_bound(plan)
+    lower_bound = compute_hub_lower_bound(plan, max_nodes_per_hub=max_nodes_per_hub, max_area_per_hub=max_area_per_hub)
     fallback_used = False
     attempted_k = [minimum]
     feasible_partitions = 0
+    decision_trace = []
 
     def evaluate_partitions(candidate_partitions):
         nonlocal feasible_partitions
@@ -200,7 +201,41 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=
             areas = [sum(plan.rooms[r].area for r in z) for z in partition]
             gap = max(areas)-min(areas) if areas else 0.0
             metrics = score(chosen,nodes)
-            rank = (metrics["total_cost_J"],gap)
+            j_solver = metrics["total_cost_J"]
+
+            # Independent checker mirror evaluation:
+            trial_hubs = copy.deepcopy(chosen)
+            for idx, th in enumerate(trial_hubs, 1):
+                thid = f"H{idx}"
+                th["hub_id"] = thid
+                th["closed_sequence"] = [thid] + th["closed_sequence"][1:-1] + [thid]
+                if th["route_segments"]:
+                    th["route_segments"][0]["from"] = thid
+                    th["route_segments"][-1]["to"] = thid
+            trial_out = {"plan_id": plan.id, "units": "m", "hubs": trial_hubs, "reported_metrics": metrics}
+            val = validate(plan, trial_out)
+
+            if val["valid"] and val.get("recomputed_metrics"):
+                j_checker = val["recomputed_metrics"]["total_cost_J"]
+                worse_j = max(j_solver, j_checker)
+                passed_checker = True
+            else:
+                j_checker = j_solver
+                worse_j = j_solver + 1000.0  # Disqualify / heavily penalize invalid candidates
+                passed_checker = False
+
+            decision_trace.append({
+                "hubs_count": len(chosen),
+                "solver_J": round(j_solver, 3),
+                "checker_J": round(j_checker, 3) if passed_checker else None,
+                "worse_J": round(worse_j, 3) if passed_checker else None,
+                "area_gap_m2": round(gap, 2),
+                "passed_checker": passed_checker,
+                "status": "PASSED_CHECKER" if passed_checker else "REJECTED_BY_CHECKER"
+            })
+
+            # Rank: fewest hubs -> worse J of two counting readings -> area gap
+            rank = (len(chosen), worse_j, gap)
             if chosen_rank is None or rank < chosen_rank:
                 chosen_best, chosen_rank = chosen, rank
         return chosen_best, chosen_rank
@@ -223,7 +258,7 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=
         for next_k in range(minimum + 1, len(plan.eligible) + 1):
             attempted_k.append(next_k)
             try:
-                _, next_partitions = minimum_partitions(plan, target_hubs=next_k)
+                _, next_partitions = minimum_partitions(plan, target_hubs=next_k, max_nodes_per_hub=max_nodes_per_hub, max_area_per_hub=max_area_per_hub)
             except ValueError:
                 continue
             best, best_rank = evaluate_partitions(next_partitions)
@@ -231,7 +266,7 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=
                 break
 
     if best is None and minimum == 0:
-        best, best_rank = [], (0.0, 0.0)
+        best, best_rank = [], (0, 0.0, 0.0)
     if best is None:
         raise ValueError("No validated routes found for the minimum-hub partitions; no invalid fallback is emitted.")
     best = copy.deepcopy(best)
@@ -362,7 +397,12 @@ def solve_plan(source, *, open_min=0.5, wide=False, wire_clearance=None, use_rl=
                          "fallback_ladder_activated": fallback_used,
                          "attempted_hub_counts": attempted_k,
                          "minimum_hub_partitions":len(partitions), "routable_partitions":feasible_partitions,
-                         "area_gap_m2":best_rank[1], "cost_optimality":"heuristic finite hub/route candidates",
+                         "area_gap_m2": best_rank[2] if len(best_rank) > 2 else best_rank[1],
+                         "worse_J": best_rank[1] if len(best_rank) > 2 else best_rank[0],
+                         "ranking_criterion": "fewest hubs -> worse J of two counting readings -> area gap",
+                         "checker_mirror_passed": True,
+                         "decision_trace": decision_trace[:12],
+                         "cost_optimality":"heuristic finite hub/route candidates",
                          "cost_before_rerouting":initial_cost,
                          "cost_before_hub_refinement":cost_before_hub_refinement,
                          "expanded_hub_search":wide, "rl_adaptive_routing":use_rl,
