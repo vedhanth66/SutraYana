@@ -15,6 +15,8 @@ def main():
     parser.add_argument("output",help="Submission JSON (or existing JSON with --validate-only)")
     parser.add_argument("--image",help="Save floor-plan overlay as PNG or SVG")
     parser.add_argument("--html",help="Save an interactive, standalone review page")
+    parser.add_argument("--pdf",help="Save comprehensive verification PDF report")
+    parser.add_argument("--submission",help="Save Slide 8 official submission JSON format")
     parser.add_argument("--validate-only",action="store_true")
     parser.add_argument("--open-min",type=float,default=.5,help="Minimum open-passage width in metres (assumption: 0.5)")
     parser.add_argument("--wire-clearance",type=float,default=0.0,help="Wall-to-wire clearance in metres (default: 0.0 for slide rules, 0.5 for 0.5m clearance)")
@@ -33,6 +35,11 @@ def main():
                 from sutrayana.visualize import render
                 output["validation"] = report
                 render(plan,output,image_path=args.image,html_path=args.html)
+            if args.pdf:
+                from sutrayana.report import generate_plan_report_pdf
+                raw = json.loads(Path(args.input).read_text(encoding="utf-8"))
+                pdf_data = generate_plan_report_pdf(raw, output, {"plan_id": Path(args.input).stem, "is_valid": report["valid"]})
+                Path(args.pdf).write_bytes(pdf_data)
             return 0 if report["valid"] else 1
         output = solve_plan(plan,open_min=args.open_min,wire_clearance=args.wire_clearance,use_rl=args.rl)
         target = Path(args.output)
@@ -40,6 +47,28 @@ def main():
         temporary = target.with_suffix(target.suffix+".tmp")
         temporary.write_text(json.dumps(output,indent=2,allow_nan=False),encoding="utf-8")
         temporary.replace(target)
+        report = validate(plan, output)
+        is_valid = report.get("valid", False)
+        if args.submission:
+            from sutrayana.exporter import format_official_submission
+            raw = json.loads(Path(args.input).read_text(encoding="utf-8"))
+            if not is_valid:
+                raise ValueError("Official submission withheld: solution failed independent validation.")
+            sub_data = format_official_submission(raw, output, report)
+            sub_path = Path(args.submission)
+            sub_path.parent.mkdir(parents=True, exist_ok=True)
+            sub_path.write_text(json.dumps(sub_data, indent=2), encoding="utf-8")
+        if args.pdf:
+            from sutrayana.report import generate_plan_report_pdf
+            raw = json.loads(Path(args.input).read_text(encoding="utf-8"))
+            pdf_data = generate_plan_report_pdf(raw, output, {
+                "plan_id": Path(args.input).stem,
+                "elapsed_s": time.perf_counter() - started,
+                "is_valid": is_valid,
+            })
+            pdf_path = Path(args.pdf)
+            pdf_path.parent.mkdir(parents=True, exist_ok=True)
+            pdf_path.write_bytes(pdf_data)
         if args.image or args.html:
             from sutrayana.visualize import render
             render(plan,output,image_path=args.image,html_path=args.html)

@@ -63,3 +63,90 @@ def extract_rooms_and_doors(plan, plan_id="plan_0"):
             "front_door":mapping(geometry(plan.get("front_door"))),
             "node_provenance":"generated demo nodes; not organiser benchmark nodes",
             "coordinate_system":{"y_axis":"up"}}
+
+
+def format_official_submission(plan, solution, report=None):
+    """
+    Format output matching Slide 8 of the challenge deck:
+    - Coordinates in physical metres, lower-left origin, y up.
+    - Structure:
+        {
+          "plan_id": "...",
+          "units": "m",
+          "hubs": [
+            {
+              "hub_id": "H1",
+              "room_id": "...",
+              "location": {"x": 5.2, "y": 3.6},
+              "assigned_rooms": ["...", ...],
+              "assigned_nodes": ["...", ...],
+              "closed_sequence": ["H1", "N1", ...],
+              "route_segments": [
+                {"from": "H1", "to": "N1", "length_m": 4.8, "polyline": [[x, y], ...]}
+              ],
+              "ring_length_m": 23.8
+            }
+          ],
+          "reported_metrics": {
+            "hub_count": 2,
+            "total_length_m": 49.0,
+            "crossings": 0,
+            "overlap_m": 0.0,
+            "bends": 8,
+            "total_cost_J": 53.0
+          }
+        }
+    """
+    hubs_out = []
+    for h in solution.get("hubs", []):
+        loc = h.get("location", {})
+        if isinstance(loc, (list, tuple)):
+            loc_dict = {"x": round(float(loc[0]), 3), "y": round(float(loc[1]), 3)}
+        elif isinstance(loc, dict):
+            loc_dict = {"x": round(float(loc.get("x", 0)), 3), "y": round(float(loc.get("y", 0)), 3)}
+        else:
+            loc_dict = {"x": 0.0, "y": 0.0}
+
+        segs_out = []
+        for s in h.get("route_segments", []):
+            segs_out.append({
+                "from": s.get("from", s.get("from_id")),
+                "to": s.get("to", s.get("to_id")),
+                "length_m": round(float(s.get("length_m", 0.0)), 3),
+                "polyline": [[round(float(p[0]), 3), round(float(p[1]), 3)] for p in s.get("polyline", [])]
+            })
+
+        hubs_out.append({
+            "hub_id": h.get("hub_id"),
+            "room_id": h.get("room_id"),
+            "location": loc_dict,
+            "assigned_rooms": sorted(list(h.get("assigned_rooms", []))),
+            "assigned_nodes": sorted(list(h.get("assigned_nodes", []))),
+            "closed_sequence": list(h.get("closed_sequence", [])),
+            "route_segments": segs_out,
+            "ring_length_m": round(float(h.get("ring_length_m", 0.0)), 3)
+        })
+
+    rep = dict(solution.get("reported_metrics", {}))
+    return {
+        "plan_id": str(solution.get("plan_id", getattr(plan, "id", "plan"))),
+        "units": "m",
+        "hubs": hubs_out,
+        "reported_metrics": rep
+    }
+
+
+def export_provisional_submission(plan, solution):
+    """Provisional submission export following Slide 8 format with explicit coordinate metadata."""
+    sub = format_official_submission(plan, solution)
+    return {
+        "format": "hackhive-provisional-metre-export-v0.1",
+        "plan_id": sub["plan_id"],
+        "coordinate_system": {
+            "unit": "metre",
+            "origin": "internal_boundary_lower_left",
+            "y_axis": "up"
+        },
+        "hubs": sub["hubs"],
+        "reported_metrics": sub["reported_metrics"]
+    }

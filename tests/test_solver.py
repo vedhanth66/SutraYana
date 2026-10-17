@@ -186,6 +186,29 @@ class SolverTests(unittest.TestCase):
             exhaustive(list(p.rooms),[])
             self.assertEqual(minimum_partitions(p)[0],best)
 
+    def test_lower_bound_and_proven_flag(self):
+        from sutrayana.solver import compute_hub_lower_bound
+        raw = fixture()
+        p = Plan(raw)
+        lb = compute_hub_lower_bound(p)
+        self.assertGreaterEqual(lb, 1)
+        out = solve_plan(p)
+        self.assertEqual(out["solver"]["lower_bound_hubs"], lb)
+        self.assertTrue(out["solver"]["hub_count_proven"])
+        self.assertFalse(out["solver"]["fallback_ladder_activated"])
+        self.assertIn(1, out["solver"]["attempted_hub_counts"])
+
+    def test_scalable_connected_zones_generator(self):
+        from sutrayana.solver import generate_connected_zones
+        p = Plan(fixture())
+        zones = generate_connected_zones(p)
+        self.assertGreater(len(zones), 0)
+        # Verify every returned zone is connected and has <= 5 rooms
+        for mask, room_ids in zones.items():
+            self.assertLessEqual(len(room_ids), 5)
+            self.assertTrue(sum(p.rooms[r].area for r in room_ids) <= 100.0 + 1e-8)
+
 
 if __name__ == "__main__":
     unittest.main()
+
